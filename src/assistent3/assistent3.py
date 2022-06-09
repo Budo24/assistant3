@@ -5,10 +5,14 @@ import vosk
 import queue
 import os
 import sys
-from processors import Plugin, DatePlugin, NetworkPlugin
-import re
+from processors import DatePlugin, NetworkPlugin
+import common
+
 
 q = queue.Queue()
+results_queue = queue.Queue()
+
+
 
 def callback(indata, frames, time, status):
     """This is called (from a separate thread) for each audio block."""
@@ -24,7 +28,10 @@ def int_or_str(text):
         return text
 
 def main() -> None:
-    plugin = NetworkPlugin()
+    plugins = [DatePlugin(), NetworkPlugin()]
+    plugins = common.bulk_assign_uuid(plugins)
+    
+
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument(
         '-l', '--list-devices', action='store_true',
@@ -43,15 +50,12 @@ def main() -> None:
     parser.add_argument(
         '-d', '--device', type=int_or_str,
         help='input device (numeric ID or substring)')
-    parser.add_argument(
-        '-r', '--samplerate', type=int, help='sampling rate')
     args = parser.parse_args(remaining)
 
     try:
-        if args.samplerate is None:
-            device_info = sd.query_devices(args.device, 'input')
-            # soundfile expects an int, sounddevice provides a float:
-            args.samplerate = int(device_info['default_samplerate'])
+        device_info = sd.query_devices(args.device, 'input')
+        # soundfile expects an int, sounddevice provides a float:
+        args.samplerate = int(device_info['default_samplerate'])
 
         model = vosk.Model(r"%s"%(os.getcwd())+r"/models/vosk-model-small-en-us-0.15")
 
@@ -83,8 +87,9 @@ def main() -> None:
                         print("\n")
                         print("__CALL__")
                         print(text.split(' '))
-                        o = plugin.run(text.split(' '))
-                        print(o)
+                        for plugin in plugins:
+                            plugin.run(text, results_queue)
+                        print(results_queue.get())
                         exit()
                     else:
                         print(rec.PartialResult())

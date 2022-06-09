@@ -3,3 +3,6 @@ class NoInternetConnexion(Exception):
 
 class NoAction(Exception):
     pass
+
+class UUidNotAssigned(Exception):
+    pass

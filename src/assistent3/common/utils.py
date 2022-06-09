@@ -1,5 +1,6 @@
 import sys
 import os
+import uuid
 
 def get_root_dir():
     root_name, _, _ = __name__.partition('.')
@@ -7,4 +8,8 @@ def get_root_dir():
     root_dir = os.path.dirname(root_module.__file__)
     return root_dir
 
-#config_path = os.path.join(root_dir, 'configuration.conf')
+def bulk_assign_uuid(plugins):
+    for plugin in plugins:
+        plugin.set_uid(uuid.uuid4())
+    return plugins
+
