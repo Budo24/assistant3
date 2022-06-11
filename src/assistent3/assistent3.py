@@ -5,7 +5,7 @@ import vosk
 import queue
 import os
 import sys
-from processors import DatePlugin, NetworkPlugin
+from processors import DatePlugin, NetworkPlugin, MonthlyPlanPlugin
 import common
 
 
@@ -28,7 +28,7 @@ def int_or_str(text):
         return text
 
 def main() -> None:
-    plugins = [DatePlugin(), NetworkPlugin()]
+    plugins = [DatePlugin(), NetworkPlugin(), MonthlyPlanPlugin()]
     plugins = common.bulk_assign_uuid(plugins)
     
 
@@ -74,7 +74,7 @@ def main() -> None:
                 while True:
                     data = q.get()
                     if rec.AcceptWaveform(data):
-                        print("\n")
+                        print("\n") 
                         print("\n")
                         print("\n")
                         res = '%s' % rec.Result()
@@ -94,7 +94,7 @@ def main() -> None:
                     else:
                         print(rec.PartialResult())
                     if dump_fn is not None:
-                        dump_fn.write(data)
+                        dump_fn.write(data) 
 
     except KeyboardInterrupt:
         print('\nDone')

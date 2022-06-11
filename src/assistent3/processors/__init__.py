@@ -1,1 +1,1 @@
-from .base_processor import DatePlugin, NetworkPlugin
+from .base_processor import DatePlugin, NetworkPlugin, MonthlyPlanPlugin
