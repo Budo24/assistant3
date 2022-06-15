@@ -5,14 +5,12 @@ import vosk
 import queue
 import os
 import sys
-from processors import DatePlugin, NetworkPlugin
+from processors import DatePlugin, NetworkPlugin, SpacyDatePlugin, TriggerPlugin
 import common
+from plugins_watcher import PluginWatcher
 
 
 q = queue.Queue()
-results_queue = queue.Queue()
-
-
 
 def callback(indata, frames, time, status):
     """This is called (from a separate thread) for each audio block."""
@@ -28,8 +26,26 @@ def int_or_str(text):
         return text
 
 def main() -> None:
-    plugins = [DatePlugin(), NetworkPlugin()]
-    plugins = common.bulk_assign_uuid(plugins)
+    # entrypoint to our program, at this level [Speech Recognition Part] we transform 
+    # audio to text throug 'VOSK' library, briefly: it's an infinite loop (until user interrupts)
+    # the Program Ctrl+C, where we poll a queue for audio chunks, feed them to vosk library 
+    # and vosk will check with "rec.AcceptWaveform(data):" if the chunks of audio
+    # recorded can be accepted as a complete sentence, if yes transforms it to text.
+    # otherwise if the sentence is not yet complete it shows it as partial result
+
+    # plugin object
+    sdp = SpacyDatePlugin()
+    # trigger plugin object
+    trigger = TriggerPlugin()
+    # the pw object
+    pw = PluginWatcher([sdp])
+    # optionaly adding a trigger Plugin ("hey assistant")
+    pw.add_trigger_plugin(trigger)
+    print("-->")
+    sdp.list_activation_docs()
+    trigger.list_activation_docs()
+    print("<--")
+    pw.list_plugins_by_uid()
     
 
     parser = argparse.ArgumentParser(add_help=False)
@@ -71,30 +87,69 @@ def main() -> None:
                 print('#' * 80)
 
                 rec = vosk.KaldiRecognizer(model, args.samplerate)
+                trigger_result = None
+                end_result = None
                 while True:
                     data = q.get()
                     if rec.AcceptWaveform(data):
-                        print("\n")
-                        print("\n")
-                        print("\n")
                         res = '%s' % rec.Result()
                         text = res.replace('\n', '')
                         text = text.replace('{  "text" : "', '').replace('"}', '')
-                        #text = text.replace("{\\n"text" : "")
+                        print(text)
                         
-                        print("\n")
-                        print("\n")
-                        print("\n")
-                        print("__CALL__")
-                        print(text.split(' '))
-                        for plugin in plugins:
-                            plugin.run(text, results_queue)
-                        print(results_queue.get())
-                        exit()
+                        # check if pw has a trigger plugin 
+                        if pw.is_trigger_plugin_enabled():
+                            if trigger_result:
+                                # if there is already a result from the trigger
+                                # run pw.run and specify True from triggered_now_plugins
+                                # to tell it that the trigger was activated and can now 
+                                # run the plugins
+                                res_list = pw.run(text, True)
+                            else:
+                                # not yet triggered, pass False, and should run the trigger
+                                # plugin first
+                                res_list = pw.run(text, False)
+                        else:
+                            # if trigger not even enabled, run and feed to plugins directely
+                            res_list = pw.run(text, False)
+                        
+                        
+                        for result in res_list:
+                            # if one result contains a trigger type we check it first
+                            # and set it in trigger_result
+                            if result["plugin_type"] == common.PluginType.TRIGGER_PLUGIN:
+                                trigger_result = result
+                                break
+                            else:
+                                trigger_result = None
+                        for result in res_list:
+                            if result["plugin_type"] == common.PluginType.SYSTEM_PLUGIN:
+                                end_result = result
+                                break
+                            else:
+                                end_result = None
+
+                        if trigger_result:
+                            print(trigger_result)
+                            trigger_result["result_speech_func"]()
+                            #trigger_result = None
+                            
+                        if end_result:
+                            print(trigger_result)
+                            end_result["result_speech_func"]()
+                            end_result = None
+                            
+                        
+                        #res = pw.pop_result()
+                        #print(res)
+                        #res["result_speech_func"]()
+                        #exit()
                     else:
                         print(rec.PartialResult())
                     if dump_fn is not None:
                         dump_fn.write(data)
+                    #
+                    #end_result = None
 
     except KeyboardInterrupt:
         print('\nDone')
