@@ -43,6 +43,7 @@ class PluginWatcher():
                 # if all good, we pass an instance of the nlp object to each plugin,
                 # so it can be used to check similarity of what the user said compared
                 # to the reference sentence
+                print("Self.nlp: ", self.nlp)
                 plugin.set_spacy_model(self.nlp)
                 self.plugins.append(plugin)
         # here we add an empty trigger plugin, and later we can add one.
@@ -108,11 +109,13 @@ class PluginWatcher():
             else:
                 for plugin in self.plugins:
                     print('run_doc')
+                    print("Run plugin but not trigger plugin: ", self.doc)
+                    print("Self.results_queue: ", self.results_queue)
                     plugin.run_doc( self.doc, self.results_queue )
         # if not trigger plugin present, we pass directly to plugins
         else:
             for plugin in self.plugins:
-                print('run_doc')
+
                 plugin.run_doc( self.doc, self.results_queue )
         
         # in all cases, wether we pass to plugins or to trigger plugin,

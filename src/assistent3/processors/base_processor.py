@@ -60,11 +60,10 @@ class BasePlugin():
             # if there is no reference phrases, not activated
             return False 
         activation_similarities = self.get_activation_similarities(target)
-        print(activation_similarities)
-        for similarity in activation_similarities:
-            # the logic mybe changed later ! 
+        for index, similarity in enumerate(activation_similarities):
+            # the logic maybe changed later ! 
             if similarity > self.min_similarity:
-                return True
+                return self.activation_dict['docs'][index]
         return False
 
     def init_activation_doc(self):
@@ -72,7 +71,8 @@ class BasePlugin():
             but only the initial one, to add another one the next function 
             'add_activation_doc is used'
         """
-        self.activation_dict['docs'].append(self.spacy_model(self.init_doc))
+        for keyword in self.init_doc:
+            self.activation_dict['docs'].append(self.spacy_model(keyword))
     
     def add_activation_doc(self, text):
         if not self.spacy_model:
@@ -89,6 +89,7 @@ class BasePlugin():
                 print(doc.text)
     
     def set_spacy_model(self, model):
+        print("MODEL: ", model)
         self.spacy_model = model
         self.init_activation_doc()
     
@@ -120,8 +121,9 @@ class SpacyDatePlugin(BasePlugin):
             Object (BasePlugin) and it will take care of adding it as described
             above
         """
-        super().__init__("what is the date")
-        self.queue = None
+        super().__init__(["what is the date", "how are you"])
+
+   
        
     def spit(self):
         """this is the function/callback that a plugin needs to add in end result 
@@ -131,6 +133,9 @@ class SpacyDatePlugin(BasePlugin):
         print(time.strftime("%c"))
         self.engine.say(time.strftime("%c"))
         self.engine.runAndWait()
+    def spit_text(self):
+        self.engine.say(self.end_result["result"])
+        self.engine.runAndWait()
     
     def run_doc(self, doc, queue):
         """run function that we call in pw for each plugin
@@ -138,24 +143,35 @@ class SpacyDatePlugin(BasePlugin):
             push the final result to it if it's activated
             * and the doc representing a Spacy Object where the received voice input is
         """
+        print("Queue: ", queue)
         self.queue = queue
         #check if plugin is activted
         activated = self.is_activated(doc)
+
         if not activated:
             print("***")
             return
-        o = datetime.datetime.now()
-        # here we set some informations in the result dict
-        self.end_result["type"] = PluginResultType.TEXT
-        self.end_result["result"] = o
-        self.end_result["result_speech_func"] = self.spit
-        # here we push it to the results queue passed by pw
+        activated_keyword = str(activated)
+        print("Activated_keyword", activated_keyword)
+
+        if activated_keyword == "what is the date":
+            o = datetime.datetime.now()
+            # here we set some informations in the result dict
+            self.end_result["type"] = PluginResultType.TEXT
+            self.end_result["result"] = o
+            self.end_result["result_speech_func"] = self.spit
+            # here we push it to the results queue passed by pw
+
+        elif activated_keyword == "how are you":
+            self.end_result["type"] = PluginResultType.TEXT
+            self.end_result["result"] = 'why do you ask me how am I'
+            self.end_result["result_speech_func"] = self.spit_text
         self.queue.put(self.end_result)
         return
 
 class TriggerPlugin(BasePlugin):
     def __init__(self):
-        super().__init__("hey assistant")
+        super().__init__(["hey assistant"])
         self.queue = None
         self.min_similarity = 0.99
 
