@@ -41,6 +41,7 @@ def main() -> None:
     pw = PluginWatcher([sdp])
     # optionaly adding a trigger Plugin ("hey assistant")
     pw.add_trigger_plugin(trigger)
+    sdp.add_keywords()
     print("-->")
     sdp.list_activation_docs()
     trigger.list_activation_docs()
@@ -96,7 +97,8 @@ def main() -> None:
                         text = res.replace('\n', '')
                         text = text.replace('{  "text" : "', '').replace('"}', '')
                         print(text)
-                        
+                        res_list = pw.run(text, True)
+                        '''
                         # check if pw has a trigger plugin 
                         if pw.is_trigger_plugin_enabled():
                             if trigger_result:
@@ -112,7 +114,9 @@ def main() -> None:
                         else:
                             # if trigger not even enabled, run and feed to plugins directely
                             res_list = pw.run(text, False)
-                        
+                        '''
+
+                        '''
                         
                         for result in res_list:
                             # if one result contains a trigger type we check it first
@@ -122,17 +126,19 @@ def main() -> None:
                                 break
                             else:
                                 trigger_result = None
+                        '''
                         for result in res_list:
                             if result["plugin_type"] == common.PluginType.SYSTEM_PLUGIN:
                                 end_result = result
                                 break
                             else:
                                 end_result = None
-
+                        '''
                         if trigger_result:
                             print(trigger_result)
                             trigger_result["result_speech_func"]()
                             #trigger_result = None
+                        '''
                             
                         if end_result:
                             print(trigger_result)

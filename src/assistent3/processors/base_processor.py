@@ -60,6 +60,20 @@ class BasePlugin():
             # if there is no reference phrases, not activated
             return False 
         activation_similarities = self.get_activation_similarities(target)
+        print(activation_similarities)
+        for similarity in activation_similarities:
+            # the logic mybe changed later ! 
+            if similarity > self.min_similarity:
+                return True
+        return False
+
+
+    def exact_keyword_activated(self, target):
+        """ checks if a plugin is activated """
+        if len(self.activation_dict['docs']) == 0:
+            # if there is no reference phrases, not activated
+            return False 
+        activation_similarities = self.get_activation_similarities(target)
         for index, similarity in enumerate(activation_similarities):
             # the logic maybe changed later ! 
             if similarity > self.min_similarity:
@@ -71,8 +85,8 @@ class BasePlugin():
             but only the initial one, to add another one the next function 
             'add_activation_doc is used'
         """
-        for keyword in self.init_doc:
-            self.activation_dict['docs'].append(self.spacy_model(keyword))
+        self.activation_dict['docs'].append(self.spacy_model(self.init_doc))
+
     
     def add_activation_doc(self, text):
         if not self.spacy_model:
@@ -121,10 +135,14 @@ class SpacyDatePlugin(BasePlugin):
             Object (BasePlugin) and it will take care of adding it as described
             above
         """
-        super().__init__(["what is the date", "how are you"])
+        super().__init__("what is the date")
+    def add_keywords(self):
+        keywords = ['how are you']
+        for keyword in keywords:
+            print("Keyword: ", keyword)
+            self.add_activation_doc(keyword)
+        print("Docs: ", self.activation_dict)
 
-   
-       
     def spit(self):
         """this is the function/callback that a plugin needs to add in end result 
             in "result_speech_func" key, and in pw we call it to let the user 
@@ -151,8 +169,9 @@ class SpacyDatePlugin(BasePlugin):
         if not activated:
             print("***")
             return
-        activated_keyword = str(activated)
-        print("Activated_keyword", activated_keyword)
+        print("Here")
+        activated_keyword = str(self.exact_keyword_activated(doc))
+        print("Activated_keyword: ", activated_keyword)
 
         if activated_keyword == "what is the date":
             o = datetime.datetime.now()
@@ -163,6 +182,7 @@ class SpacyDatePlugin(BasePlugin):
             # here we push it to the results queue passed by pw
 
         elif activated_keyword == "how are you":
+            print("Found")
             self.end_result["type"] = PluginResultType.TEXT
             self.end_result["result"] = 'why do you ask me how am I'
             self.end_result["result_speech_func"] = self.spit_text
@@ -171,7 +191,7 @@ class SpacyDatePlugin(BasePlugin):
 
 class TriggerPlugin(BasePlugin):
     def __init__(self):
-        super().__init__(["hey assistant"])
+        super().__init__("hey assistant")
         self.queue = None
         self.min_similarity = 0.99
 
