@@ -7,6 +7,8 @@ class PluginResultType(Enum):
     HTML = 4
     ERROR = 5
     KEEP_ALIVE = 6
+    # budo added
+    DATE = 7
 
 class PluginType(Enum):
     SYSTEM_PLUGIN = 1

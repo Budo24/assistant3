@@ -5,7 +5,7 @@ import vosk
 import queue
 import os
 import sys
-from processors import DatePlugin, NetworkPlugin, SpacyDatePlugin, TriggerPlugin
+from processors import DatePlugin, NetworkPlugin, SpacyDatePlugin, TriggerPlugin, MonthlyPlanPlugin
 import common
 from plugins_watcher import PluginWatcher
 
@@ -34,16 +34,21 @@ def main() -> None:
     # otherwise if the sentence is not yet complete it shows it as partial result
 
     # plugin object
-    sdp = SpacyDatePlugin()
+    mp = MonthlyPlanPlugin()
     # trigger plugin object
     trigger = TriggerPlugin()
     # the pw object
-    pw = PluginWatcher([sdp])
+    pw = PluginWatcher([mp])
     # optionaly adding a trigger Plugin ("hey assistant")
     pw.add_trigger_plugin(trigger)
-    sdp.add_keywords()
+    # budo added
+    mp.add_keywords()
     print("-->")
-    sdp.list_activation_docs()
+    print("Monthly Plan")
+    mp.list_activation_docs()
+    print("<---")
+    print("Trigger")
+    print("---->")
     trigger.list_activation_docs()
     print("<--")
     pw.list_plugins_by_uid()
@@ -97,6 +102,7 @@ def main() -> None:
                         text = res.replace('\n', '')
                         text = text.replace('{  "text" : "', '').replace('"}', '')
                         print(text)
+                        # text = "twenty first"
                         res_list = pw.run(text, True)
                         '''
                         # check if pw has a trigger plugin 
