@@ -1,3 +1,5 @@
+from os import stat
+#from turtle import st
 from common import NoAction, UUidNotAssigned, PluginResultType, PluginType, plugin_defined_errors, constants
 import datetime
 from datetime import date
@@ -13,7 +15,7 @@ class BasePlugin():
     def __init__(self, match):
         # this will contain the reference initial doc
         # passed later from each plugin
-        self.init_doc = match
+        self.init_doc = match 
         # pyttsx3 object for voice response
         self.engine=pyttsx3.init()
         # this will hold the activation/reference sentence or sentences
@@ -105,6 +107,7 @@ class BasePlugin():
             print("Similarity: ", similarity)
             print("Self.min_similarity: ", self.min_similarity)
             if similarity == self.min_similarity:
+                print("To return: ", self.activation_dict['docs'][index])
                 return self.activation_dict['docs'][index]
         return False
 
@@ -255,13 +258,9 @@ class MonthlyPlanPlugin(BasePlugin):
         super().__init__("insert date in monthly plan") 
         self.head = None
         self.tail = None
-
-        self.add_date = False
-        self.delete_date = False
-        self.add_activity = False
-        self.delete_activity = False
-        self.update_activitiy = False
-
+        self.buttons = {"add_date": False, "delete_date": False,
+                        "add_activity": False, "delete_activity": False}
+   
         self.dates = constants.dates
         self.conv_date = constants.conv_date
         self.months = constants.months
@@ -271,7 +270,14 @@ class MonthlyPlanPlugin(BasePlugin):
             above
         """
     def add_keywords(self):
-        keywords = ['insert date in monthly plan', 'break', 'show dates'] 
+        keywords = [
+                     'insert date in monthly plan',
+                     'break', 'show dates', 
+                     'delete', 
+                     'add activity in monthly plan', 
+                     'delete activity in monthly plan',
+                     'save monthly plan in excel'
+                     ] 
         for keyword in keywords:
             self.add_activation_doc(keyword)
         for date in self.dates:
@@ -285,7 +291,6 @@ class MonthlyPlanPlugin(BasePlugin):
             self.end_result["result"] = "Monthly plan is empty"
             self.end_result["result_speech_func"] = self.spit_text
             self.queue.put(self.end_result)
-            return
         else:
             date__ = self.head
             self.end_result["result"] = "" 
@@ -341,17 +346,8 @@ class MonthlyPlanPlugin(BasePlugin):
         return day_today
 
     def check_number_of_days_in_month(self, date_):
-        print("\n\n")
-        print("Checking of number of days in month")
         date_ = date_.split('-')
-        print("Date_: ", date_)
         for month, days in constants.days_per_month.items():
-            print("\n\n")
-            print("month: ", month)
-            print("date_[1]: ", date_[1]) 
-            print("days: ", days)
-            print("date_[2]: ", date_[2])
-            print("\n\n")
             if date_[2] > days and date_[1] == month:
                 if date_[1] == '02' and date_[2] == '29':
                     date_[0] = int(date_[0])
@@ -382,10 +378,12 @@ class MonthlyPlanPlugin(BasePlugin):
            
 
             if day_today > day:
-                return ("That date is in the past for this month, mothly plan provides just future")
+                return ("That date is in the past for this month, "
+                        "mothly plan provides just future")
             elif day_today == day:
                 print("Today")
-                return("if you want to plan, than plan for tomorrow, monthly plan does not provides plannig in the same day for now")
+                return("if you want to plan, than plan for tomorrow,"
+                "monthly plan does not provides plannig in the same day for now")
             else:
                 Date = Single_Date(date_, date_day)
                 if self.tail == None and self.head == None:
@@ -395,17 +393,142 @@ class MonthlyPlanPlugin(BasePlugin):
                     self.tail.next = Date
                     self.tail = Date
                 date_ = self.say_date(date_)
-                self.add_date = False
+                self.buttons['add_date'] = False
                 self.min_similarity = 0.75
                 return ("Date {} is successfully inserted, function for inserting of dates is deactivated".format(date_))
         else:
             date_ = self.say_date(date_)
             return ("Date {} already exist in monthly plan".format(date_))
+            
+    def delete_date(self, date_day):
+        date_already_exist = self.date_exist_in_monthly_plan(date_day)
+        date_ = self.make_date(date_day)
+        date_ = self.say_date(date_)
+        if date_already_exist:
+            start = self.head
+            if start.date_date == date_day:
+                if self.tail == self.head:
+                    self.tail = None
+                self.head = self.head.next
+                self.buttons['delete_date'] = False
+                self.min_similarity = 0.75
+                return ("The first date {} is successfully deleted, fuction for deleting is deactivated".format(date_))
+            previous = start 
+            start = start.next
+            while start.next != None: 
+                print("Inside")
+                if start.date_date == date_day:
+                    previous.next = start.next
+                    self.buttons['delete_date'] = False
+                    self.min_similarity = 0.75
+                    return ("The date {} is successfully deleted, fuction for deleting is deactivated".format(date_))
+                previous = start
+                start = start.next 
+            self.tail = previous
+            self.tail.next = None
+            self.buttons['delete_date'] = False
+            self.min_similarity = 0.75
+            return("The last date in the monthly plan is deleted")
+        else:
+            return("The date {} does not exist in monthly plan so it can not be deleted".format(date_))
+
 
     def spit_text(self):
         self.engine.say(self.end_result["result"])
         self.engine.runAndWait()
-    
+
+    def button_activated(self):
+        for function, activated in self.buttons.items():
+            if activated:
+                return function
+        return False
+
+    def activate_button(self, activated_keyword):
+        if activated_keyword == "insert date in monthly plan":
+            self.min_similarity = 1
+            # here we set some informations in the result dict
+            self.buttons['add_date'] = True
+            print("Add_date", self.buttons['add_date'])
+            self.end_result["type"] = PluginResultType.TEXT
+            self.end_result["result"] = "Which date do you want to insert"
+            self.end_result["result_speech_func"] = self.spit_text
+            self.queue.put(self.end_result)
+
+        if activated_keyword == 'delete':
+            self.min_similarity = 1
+            # here we set some informations in the result dict
+            self.buttons['delete_date'] = True
+            self.end_result["type"] = PluginResultType.TEXT
+            self.end_result["result"] = "Which date do you want to delete"
+            self.end_result["result_speech_func"] = self.spit_text
+            self.queue.put(self.end_result)
+
+        if activated_keyword == 'add activity in monthly plan':
+            self.min_similarity = 1
+            # here we set some informations in the result dict
+            self.buttons['add_activity'] = True
+            self.end_result["type"] = PluginResultType.TEXT
+            self.end_result["result"] = "On which date you want to add activity"
+            self.end_result["result_speech_func"] = self.spit_text
+            self.queue.put(self.end_result)
+
+        if activated_keyword == 'delete activity in monthly plan':
+            self.min_similarity = 1
+            # here we set some informations in the result dict
+            self.buttons['delete_activity'] = True
+            self.end_result["type"] = PluginResultType.TEXT
+            self.end_result["result"] = "On which date you want to delete activity"
+            self.end_result["result_speech_func"] = self.spit_text
+            self.queue.put(self.end_result)
+
+        if activated_keyword == 'save monthly plan in excel':
+            print("Here comes saving")
+
+    def add_date_in_montly_plan(self, activated_keyword):
+        if activated_keyword == 'break':
+            self.buttons['add_date'] = False
+            self.min_similarity = 0.75
+            self.end_result["type"] = PluginResultType.TEXT
+            self.end_result["result"] = "Ok insert of date is broken"
+            self.end_result["result_speech_func"] = self.spit_text
+            self.queue.put(self.end_result) 
+            return
+        if activated_keyword in self.dates:
+            self.end_result["type"] = PluginResultType.TEXT
+            self.end_result["result"] = self.insert_date(activated_keyword)
+            self.end_result["result_speech_func"] = self.spit_text
+            self.queue.put(self.end_result)
+            return
+        print("Right activation")
+        self.end_result["type"] = PluginResultType.TEXT
+        self.end_result["result"] = "I did not understand the date, can you please repeat, or say break, if you do not want to insert, you can also say show dates, but I understan it just in that form"
+        self.end_result["result_speech_func"] = self.spit_text
+        self.queue.put(self.end_result)
+        
+
+    def delete_date_in_monthly_plan(self, activated_keyword):
+        if activated_keyword == 'break':
+            self.buttons['delete_date'] = False
+            self.min_similarity = 0.75
+            self.end_result["type"] = PluginResultType.TEXT
+            self.end_result["result"] = "Ok, deleting of date is broken"
+            self.end_result["result_speech_func"] = self.spit_text
+            self.queue.put(self.end_result) 
+            return
+        if activated_keyword in self.dates:
+            self.end_result["type"] = PluginResultType.TEXT
+            self.end_result["result"] = self.delete_date(activated_keyword)
+            self.end_result["result_speech_func"] = self.spit_text
+            self.queue.put(self.end_result)
+            return
+        print("Right activation")
+        self.end_result["type"] = PluginResultType.TEXT
+        self.end_result["result"] = "I did not understand the date, can you please repeat, or say break, if you do not want to delete, you can also say show dates, but I understan it just in that form"
+        self.end_result["result_speech_func"] = self.spit_text
+        self.queue.put(self.end_result)
+
+
+
     def run_doc(self, doc, queue):
         """run function that we call in pw for each plugin
             * we pass the queue result defined in pw to each plugin, so the plugin can 
@@ -419,48 +542,35 @@ class MonthlyPlanPlugin(BasePlugin):
 
         print("Here")
         if self.min_similarity == 1:
+            print("DOc: ", doc)
             activated_keyword = str(self.exact_keyword_activated_(doc))
         else:
             activated_keyword = str(self.similar_word(doc))
+        print("Activate keyword:", activated_keyword)
        
         if activated_keyword == "show dates":
             self.show_dates()
+            return
+        button = self.button_activated()
+        print("Button: ", button)
 
-        if activated_keyword == "insert date in monthly plan" and not self.add_date:
-            # here we set some informations in the result dict
-            self.min_similarity = 1
-            self.add_date = True
-            self.end_result["type"] = PluginResultType.TEXT
-            self.end_result["result"] = "Can you please say the date"
-            self.end_result["result_speech_func"] = self.spit_text
-            self.queue.put(self.end_result)
+        if not button:
+            self.activate_button(activated_keyword)
             return
-            # here we push it to the results queue passed by pw
-        print("Self.add_date: ", self.add_date)
+        else:
+            if button == 'add_date':
+                self.add_date_in_montly_plan(activated_keyword)
+    
+            if button == 'delete_date':
+                self.delete_date_in_monthly_plan(activated_keyword)
+            '''
+            if button == 'add_activity':
+
+            if button == 'delete_activity':
+            '''
+
+
         
-        if activated_keyword == 'break' and self.add_date == True:
-            self.add_date = False
-            self.min_similarity = 0.75
-            self.end_result["type"] = PluginResultType.TEXT
-            self.end_result["result"] = "Ok insert of date is broken"
-            self.end_result["result_speech_func"] = self.spit_text
-            self.queue.put(self.end_result) 
-            return
-        
-        print("Self.add_date: ", self.add_date)
-        if activated_keyword in self.dates and self.add_date:
-            print("We are on the right position")
-            self.end_result["type"] = PluginResultType.TEXT
-            self.end_result["result"] = self.insert_date(activated_keyword)
-            self.end_result["result_speech_func"] = self.spit_text
-            self.queue.put(self.end_result)
-            return
-        if self.add_date and activated_keyword != 'show dates':
-            print("Right activation")
-            self.end_result["type"] = PluginResultType.TEXT
-            self.end_result["result"] = "I did not understand the date, can you please repeat, or say break, if you do not want to insert"
-            self.end_result["result_speech_func"] = self.spit_text
-            self.queue.put(self.end_result)
-            return
-        
+
+   
 
