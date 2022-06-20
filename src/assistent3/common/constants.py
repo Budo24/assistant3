@@ -68,3 +68,48 @@ days_per_month = {
                   '11':'30',
                   '12': '31'
 }
+hours = {
+            '00': 'zero',
+            '01': 'one',
+            '02': 'two',
+            '03': 'three',
+            '04': 'four',
+            '05': 'five',
+            '06': 'six',
+            '07': 'seven',
+            '08': 'eight',
+            '09': 'nine',
+            '10': 'ten',
+            '11': 'eleven',
+            '12': 'twelve',
+            '13': 'thirteen',
+            '14': 'fourteen',
+            '15': 'fifteen',
+            '16': 'sixteen',
+            '17': 'seventeen',
+            '18': 'eighteen',
+            '19': 'nineteen',
+            '20': 'twenty',
+            '21': 'twenty one',
+            '22': 'twenty two',
+            '23': 'twenty three'
+            }
+
+minutes = {
+            '30': 'thirty',
+            '00': 'zero'
+}
+keywords = [
+                     'insert date in monthly plan',
+                     'break', 'show dates', 
+                     'delete', 
+                     'add activity in monthly plan', 
+                     'delete activity in monthly plan',
+                     'save monthly plan in excel',
+                     'from',
+                     'until',
+                     'name of activity',
+                     'hour',
+                     'minute',
+                     'I want to do'
+                     ]

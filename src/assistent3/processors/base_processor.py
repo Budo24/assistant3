@@ -1,4 +1,5 @@
 from os import stat
+from this import s
 #from turtle import st
 from common import NoAction, UUidNotAssigned, PluginResultType, PluginType, plugin_defined_errors, constants
 import datetime
@@ -264,26 +265,28 @@ class MonthlyPlanPlugin(BasePlugin):
         self.dates = constants.dates
         self.conv_date = constants.conv_date
         self.months = constants.months
+        self.hours = constants.hours
+        self.minutes = constants.minutes
+        self.keywords = constants.keywords
+        self.from_ = False
+        self.until_ = False
+        self.time_range = ""
+        self.activity = ""
+        self.date = None
 
         """ here we pass the initial reference phrase to the parent
             Object (BasePlugin) and it will take care of adding it as described
             above
         """
+
     def add_keywords(self):
-        keywords = [
-                     'insert date in monthly plan',
-                     'break', 'show dates', 
-                     'delete', 
-                     'add activity in monthly plan', 
-                     'delete activity in monthly plan',
-                     'save monthly plan in excel'
-                     ] 
-        for keyword in keywords:
+        for keyword in self.keywords:
             self.add_activation_doc(keyword)
         for date in self.dates:
             self.add_activation_doc(date)
         print("Self.activation_dict: ", self.activation_dict)
         print("Keywords added")
+
 
     def show_dates(self):
         if self.head == None:
@@ -347,6 +350,7 @@ class MonthlyPlanPlugin(BasePlugin):
 
     def check_number_of_days_in_month(self, date_):
         date_ = date_.split('-')
+        # constants is to change
         for month, days in constants.days_per_month.items():
             if date_[2] > days and date_[1] == month:
                 if date_[1] == '02' and date_[2] == '29':
@@ -367,16 +371,11 @@ class MonthlyPlanPlugin(BasePlugin):
         date_ = self.make_date(date_day)
         print("Date_: ", date_)
         check_number_of_days = self.check_number_of_days_in_month(date_)
-
         if check_number_of_days != True:
             return check_number_of_days
-
         if not date_already_exist:
-
             day = date_[len(date_)-2:]
             day_today = self.day_today()
-           
-
             if day_today > day:
                 return ("That date is in the past for this month, "
                         "mothly plan provides just future")
@@ -526,8 +525,149 @@ class MonthlyPlanPlugin(BasePlugin):
         self.end_result["result"] = "I did not understand the date, can you please repeat, or say break, if you do not want to delete, you can also say show dates, but I understan it just in that form"
         self.end_result["result_speech_func"] = self.spit_text
         self.queue.put(self.end_result)
+    
+    def insert_activity_in_monthly_plan(self, activated_keyword):
+        date_already_exist = self.date_exist_in_monthly_plan(activated_keyword)
+        activated_keyword = activated_keyword.split(' ')
+
+        if activated_keyword[0] == 'break':
+            self.from_ = False
+            self.until_ = False
+            self.time_range = ""
+            self.activity = ""
+            self.buttons['add_activity'] = False
+            self.min_similarity = 0.75
+            self.end_result["type"] = PluginResultType.TEXT
+            self.end_result["result"] = "Ok, adding of activity of date is broken"
+            self.end_result["result_speech_func"] = self.spit_text
+            self.queue.put(self.end_result) 
+            return
+
+        if activated_keyword[0] in self.dates and not self.from_ and not self.until_:
+            self.end_result["type"] = PluginResultType.TEXT
+            if date_already_exist: 
+                self.from_ = True
+                self.end_result["result"] = "Date exist in monthly plan, you can try to add time range from activity"
+            else:
+                self.end_result["result"] = "Date does not exist in monthly plan, please check again with, show dates, which dates we have in monthly plan or say break, if you want to break adding of activity in monthly plan"
+            self.end_result["result_speech_func"] = self.spit_text
+            self.queue.put(self.end_result)
+            return
+
+        if self.from_:
+
+            indexes = []
+            for index, keyword in enumerate(activated_keyword):
+                if 'twenty' in keyword and activated_keyword[index+1] != 'zero' and activated_keyword[index+1] != 'thirty':
+                    indexes.append(index+1)
+            for index in indexes:
+                activated_keyword[index-1] = activated_keyword[index-1] + ' ' + activated_keyword[index]
+            activated_keyword = [word for index, word in enumerate(activated_keyword) if index not in indexes]
+            activated_keyword_numbers = activated_keyword.copy()
+
+            for numbers, values in self.hours.items():
+                if values == activated_keyword_numbers[0]:
+                    activated_keyword_numbers[0] = int(numbers)
+                if values == activated_keyword_numbers[2]:
+                    activated_keyword_numbers[2] = int(numbers)
+
+            for numbers, values in self.minutes.items():
+                if values == activated_keyword_numbers[1]:
+                    activated_keyword_numbers[1] = int(numbers)
+                if values == activated_keyword_numbers[3]:
+                    activated_keyword_numbers[3] = int(numbers)
+            
+            print("Activated copy: ",  activated_keyword_numbers)
+
+            time_range_possible = -1
+            all_integers = True
+            for element in activated_keyword_numbers:
+                if not isinstance(element,int):
+                    all_integers = False
+            if all_integers:
+                time_range_possible = (activated_keyword_numbers[2]*60 + activated_keyword_numbers[3]) - (activated_keyword_numbers[0]*60 + activated_keyword_numbers[1])
+            print("Time range possible: ", time_range_possible)
 
 
+            print("Activated keyword: ", activated_keyword)
+            if activated_keyword[0] in self.hours.values() and activated_keyword[1] in self.minutes.values() and activated_keyword[2] in self.hours.values() and activated_keyword[3] in self.minutes.values() and time_range_possible > 0:
+                self.time_range = ' '.join(activated_keyword)
+                self.from_ = False
+                self.until_ = True
+                self.end_result["result"] = "Adding of time range was successfull, now you have to say name of activity"
+                self.end_result["result_speech_func"] = self.spit_text
+                self.queue.put(self.end_result)
+                return
+            else:
+                self.end_result["result"] = "Time range is not right, try again or say break, if you want to break adding of activity"
+                self.end_result["result_speech_func"] = self.spit_text
+                self.queue.put(self.end_result) 
+                return
+        
+        if self.until_:
+            self.until_ = False
+            self.activity = ' '.join(activated_keyword)
+            self.end_result["result"] = "Name of activity is added"
+            self.end_result["result_speech_func"] = self.spit_text
+            self.buttons['add_activity'] = False
+            self.min_similarity = 0.75
+            self.queue.put(self.end_result) 
+            return
+
+
+
+
+
+
+        
+    
+
+        '''
+        if activated_keyword == 'from' and self.from_:
+            self.end_result["type"] = PluginResultType.TEXT
+            self.end_result["result"] = "Can you please say me starting of activity"
+            self.end_result["result_speech_func"] = self.spit_text
+            self.queue.put(self.end_result)
+            return
+        if activated_keyword in self.hours.values() and self.from_:
+            self.end_result["type"] = PluginResultType.TEXT
+            self.time_range = activated_keyword + ':'
+            self.end_result["result"] = "Can you please say me starting minute of activity"
+            self.end_result["result_speech_func"] = self.spit_text
+            self.queue.put(self.end_result)
+            return
+        if activated_keyword in self.minutes.values() and self.from_:
+            self.from_ = False
+            self.until_ = True
+            self.end_result["type"] = PluginResultType.TEXT
+            self.time_range += activated_keyword
+            self.end_result["result"] = "Can you say me ending hour of activity now"
+            self.end_result["result_speech_func"] = self.spit_text
+            self.queue.put(self.end_result)
+            return
+        if activated_keyword in self.hours.values() and self.until_:
+            self.end_result["type"] = PluginResultType.TEXT
+            self.time_range = '-' + activated_keyword + ':'
+            self.end_result["result"] = "Can you please say me ending minute of activity"
+            self.end_result["result_speech_func"] = self.spit_text
+            self.queue.put(self.end_result)
+            return
+        if activated_keyword in self.minutes.values() and self.until_:
+            self.until_ = False
+            self.activity = True
+            self.end_result["type"] = PluginResultType.TEXT
+            self.time_range += activated_keyword
+            self.end_result["result"] = "Time range is successfully generated, can you please say me name of activity which you would like to do"
+            self.end_result["result_speech_func"] = self.spit_text
+            self.queue.put(self.end_result)
+            return
+        if self.activity:
+        '''
+        print("Right activation")
+        self.end_result["type"] = PluginResultType.TEXT
+        self.end_result["result"] = "I did not understand the date, can you please repeat, or say break, if you do not want to delete, you can also say show dates, but I understan it just in that form"
+        self.end_result["result_speech_func"] = self.spit_text
+        self.queue.put(self.end_result)
 
     def run_doc(self, doc, queue):
         """run function that we call in pw for each plugin
@@ -542,7 +682,7 @@ class MonthlyPlanPlugin(BasePlugin):
 
         print("Here")
         if self.min_similarity == 1:
-            print("DOc: ", doc)
+            print("Doc: ", doc)
             activated_keyword = str(self.exact_keyword_activated_(doc))
         else:
             activated_keyword = str(self.similar_word(doc))
@@ -553,7 +693,7 @@ class MonthlyPlanPlugin(BasePlugin):
             return
         button = self.button_activated()
         print("Button: ", button)
-
+        
         if not button:
             self.activate_button(activated_keyword)
             return
@@ -563,14 +703,9 @@ class MonthlyPlanPlugin(BasePlugin):
     
             if button == 'delete_date':
                 self.delete_date_in_monthly_plan(activated_keyword)
-            '''
+
             if button == 'add_activity':
-
-            if button == 'delete_activity':
-            '''
-
-
-        
-
-   
-
+                if self.from_:
+                    self.insert_activity_in_monthly_plan(str(doc))
+                else:
+                    self.insert_activity_in_monthly_plan(activated_keyword)
