@@ -20,7 +20,7 @@ conv_date = {'first': 1,
              'twentieth':20, 
              'twenty first':21, 
              'twenty second':22,
-             'twenty third':23,
+             'twenty third':23, 
              'twenty fourth':24,
              'twenty fifth':25,
              'twenty sixth':26,
@@ -100,16 +100,14 @@ minutes = {
             '00': 'zero'
 }
 keywords = [
-                     'insert date in monthly plan',
-                     'break', 'show dates', 
+                     'insert',
+                     'break', 'show', 
                      'delete', 
-                     'add activity in monthly plan', 
-                     'delete activity in monthly plan',
-                     'save monthly plan in excel',
+                     'activity', 
+                     'delete activity',
                      'from',
                      'until',
                      'name of activity',
                      'hour',
-                     'minute',
-                     'I want to do'
+                     'minute'
                      ]
