@@ -29,6 +29,7 @@ Clone the repository and setup your local checkout:
    
    pip install -r requirements-dev.txt
    pip install -e .
+   python -m spacy download en_core_web_md 
 
 This creates a new virtual environment with the necessary python dependencies and installs the project in editable mode.
 
