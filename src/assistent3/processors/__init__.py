@@ -1,2 +1,9 @@
-from .base_processor import DatePlugin, NetworkPlugin, BaseInitializationErrorPlugin, BasePlugin,\
-    SpacyDatePlugin, TriggerPlugin
+""" Docstring."""
+from .base_processor import (
+    BaseInitializationErrorPlugin,
+    BasePlugin,
+    DatePlugin,
+    NetworkPlugin,
+    SpacyDatePlugin,
+    TriggerPlugin,
+)

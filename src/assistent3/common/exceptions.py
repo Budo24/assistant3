@@ -1,8 +1,13 @@
+"""Exceptions"""
+
+
 class NoInternetConnexion(Exception):
-    pass
+    """Exception if No Internet available"""
+
 
 class NoAction(Exception):
-    pass
+    """If Exception == true -> NoAction"""
+
 
 class UUidNotAssigned(Exception):
-    pass
+    """Exception that UUid is not assigned"""
