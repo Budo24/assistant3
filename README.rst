@@ -27,9 +27,15 @@ Clone the repository and setup your local checkout:
    python -m venv venv
    . venv/bin/activate
    
+   
+   pip install pip-tools
+   pip-compile --extra=dev --generate-hashes --output-file=requirements-dev.txt setup.cfg
    pip install -r requirements-dev.txt
    pip install -e .
    python -m spacy download en_core_web_md 
+
+   cd src
+   python assistant3.py -d 0
 
 This creates a new virtual environment with the necessary python dependencies and installs the project in editable mode.
 
