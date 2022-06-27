@@ -23,11 +23,11 @@ plugin_watcher = PluginWatcher([sdp])
 plugin_watcher.add_trigger_plugin(trigger)
 
 
-def callback(indata: object, **kwargs: object) -> None:
+def callback(*args: object) -> None:
     """Push audio data to queue."""
-    if kwargs.get('status', None):
-        print(kwargs.get('status'), file=sys.stderr)
-    q.put(bytes(indata))
+    if args[3]:
+        print(args[3], file=sys.stderr)
+    q.put(bytes(args[0]))
 
 
 def int_or_str(text: str | int) -> str | int:

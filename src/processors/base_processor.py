@@ -6,7 +6,8 @@ import typing
 
 import pyttsx3
 
-import common
+from common.exceptions import UidNotAssignedError
+from common.plugins import PluginResultType, PluginType
 
 
 class BasePlugin():
@@ -33,8 +34,8 @@ class BasePlugin():
         # when a plugin is activated and finished with processing
         self.end_result: dict[str, typing.Any] = {
             'uid': None,
-            'type': common.plugins.PluginResultType.UNDEFINED,
-            'plugin_type': common.plugins.PluginType.SYSTEM_PLUGIN,
+            'type': PluginResultType.UNDEFINED,
+            'plugin_type': PluginType.SYSTEM_PLUGIN,
             'result': None,
             'error_message': '',
             'suggestion_message': '',
@@ -106,7 +107,7 @@ class BasePlugin():
         """Get UID."""
         if self.uid:
             return self.uid
-        raise common.exceptions.UidNotAssignedError
+        raise UidNotAssignedError
 
     def run_doc(self, doc: object, queue: queue.Queue[typing.Any]) -> None:
         """Run_doc."""
@@ -170,7 +171,7 @@ class SpacyDatePlugin(BasePlugin):
             return
         output_result_value = datetime.datetime.now()
         # here we set some informations in the result dict
-        self.end_result['type'] = common.plugins.PluginResultType.TEXT
+        self.end_result['type'] = PluginResultType.TEXT
         self.end_result['result'] = output_result_value
         self.end_result['result_speech_func'] = self.spit
         # here we push it to the results queue passed by pw
@@ -199,9 +200,9 @@ class TriggerPlugin(BasePlugin):
         if not activated:
             print('***')
             return
-        self.end_result['type'] = common.plugins.PluginResultType.TEXT
+        self.end_result['type'] = PluginResultType.TEXT
         self.end_result['result'] = datetime.datetime.now()
-        self.end_result['plugin_type'] = common.plugins.PluginType.TRIGGER_PLUGIN
+        self.end_result['plugin_type'] = PluginType.TRIGGER_PLUGIN
         self.end_result['result_speech_func'] = self.spit
         self.queue.put(self.end_result)
         return

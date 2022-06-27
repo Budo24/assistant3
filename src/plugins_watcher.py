@@ -5,8 +5,9 @@ import typing
 
 import spacy
 
-import common
 import processors
+from common.exceptions import UidNotAssignedError
+from common.utils import bulk_assign_uuid
 from processors.base_processor import BasePlugin
 
 
@@ -66,7 +67,7 @@ class PluginWatcher():
         # here we assign a unique id to each plugin, so later we can distinguish
         # between them, just from the result they send (which contains this uid)
         # witout bothering of accessing them with the names and all that head ache
-        self.plugins = common.utils.bulk_assign_uuid(self.plugins)
+        self.plugins = bulk_assign_uuid(self.plugins)
 
         # this is maybe a duplication, i'll check it later
         for plugin in self.plugins:
@@ -79,7 +80,7 @@ class PluginWatcher():
         - set SpaCy model
         """
         print('INIT TRIGGER PLUGIN')
-        self.trigger_plugin = common.utils.bulk_assign_uuid([self.trigger_plugin])[0]
+        self.trigger_plugin = bulk_assign_uuid([self.trigger_plugin])[0]
         self.trigger_plugin.set_spacy_model(self.nlp)
 
     def add_trigger_plugin(self, trigger_plugin_obj: BasePlugin) -> None:
@@ -136,6 +137,6 @@ class PluginWatcher():
             for plugin in self.plugins:
                 print('[ PLIGIN UID ]  ' + str(plugin.get_uid()))
             return
-        except common.exceptions.UidNotAssignedError:
+        except UidNotAssignedError:
             print('MALFUNCTION')
             return

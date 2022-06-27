@@ -3,7 +3,7 @@ import os
 import sys
 import uuid
 
-import processors
+from processors.base_processor import BasePlugin
 
 
 def get_root_dir() -> str:
@@ -14,8 +14,8 @@ def get_root_dir() -> str:
 
 
 def bulk_assign_uuid(
-        plugins: list[processors.base_processor.BasePlugin],
-) -> list[processors.base_processor.BasePlugin]:
+        plugins: list[BasePlugin],
+) -> list[BasePlugin]:
     """Assign uuids in bulk."""
     for plugin in plugins:
         plugin.set_uid(uuid.uuid4())
