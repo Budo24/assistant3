@@ -244,13 +244,13 @@ class TriggerPlugin(BasePlugin):
 class NetworkPlugin(BasePlugin):
     pass
 
-class SingleDate:
-    def __init__(self, date_, day_ordinal_number_):
+class Single_Date:
+    def __init__(self, date, day_ordinal_number):
 
-        self.date = date_
+        self.date = date
         self.next = None
         self.activities = {}
-        self.day_ordinal_number = day_ordinal_number_ 
+        self.day_ordinal_number = day_ordinal_number
         
 
 
@@ -261,8 +261,8 @@ class MonthlyPlanPlugin(BasePlugin):
         super().__init__("insert") 
         self.first_date = None
         self.last_date = None
-        self.actions_keywords = {"add_date": False, "delete_date": False,
-                                 "add_activity": False, "delete_activity": False}
+        self.actions_keywords = { "add_date": False, "delete_date": False,
+                                  "add_activity": False, "delete_activity": False }
 
         self.time_range_add = False
         self.activity_add = False
@@ -276,47 +276,47 @@ class MonthlyPlanPlugin(BasePlugin):
         self.engine.say(self.end_result["result"])
         self.engine.runAndWait()
 
-    def give_date_from_monthly_plan(self, _date):
-        print("Date: ", _date)
+    def give_date_from_monthly_plan(self, date):
+        print("Date: ", date)
         if self.first_date is None: 
             print("Returning false")
             return False
         start = self.first_date
-        _date = str(_date)
+        date = str(date)
         print("Start date: ", start.date)
-        print(type(_date))
+        print(type(date))
         print(type(start.date))
         print("Start ")
-        if start.date == _date:
+        if start.date == date:
             print("First given")
             return start
-        while start.next is not None:
-            print("Start date inside: ", _date)
+        while start.next != None:
+            print("Start date inside: ", date)
             print("Start.date: ", start.date)
-            if start.date == _date:
+            if start.date == date:
                 print("Found")
                 print("Middle given")
                 return start
             start = start.next
-        if start.date == _date:
+        if start.date == date:
             print("Last given")
             return start
         return False
 
-    def form_time_range(activated_keyword):
+    def form_time_range(self, activated_keyword):
 
         activated_keyword = activated_keyword.split(' ')
         hour_minutes = ""
         time_range = []
         skip_interation = False
 
-        for index, keyword_ in enumerate(activated_keyword):
+        for index, keyword in enumerate(activated_keyword):
             if skip_interation:
                 skip_interation = False
                 continue
 
-            hour_minutes += keyword_
-            if ('twenty' or 'thirty') == keyword_ \
+            hour_minutes += keyword
+            if ('twenty' or 'thirty') == keyword \
                 and activated_keyword[index+1] != 'zero' \
                 and activated_keyword[index+1] != 'thirty':
                 hour_minutes += ' ' + activated_keyword[index+1]
@@ -327,7 +327,7 @@ class MonthlyPlanPlugin(BasePlugin):
 
         return time_range   
 
-    def convert_time_range_from_words_to_numbers(time_range):
+    def convert_time_range_from_words_to_numbers(self, time_range):
 
         time_range_numbers = []
         print("In function on begin: ", time_range)
@@ -338,14 +338,14 @@ class MonthlyPlanPlugin(BasePlugin):
 
         for index, word in enumerate(time_range):
             for numbers, words in constants.hour_number_to_word.items():
-                if index in (0, 2)  and word == words:
+                if (index == 0 or index == 2) and word == words:
 
                     print("Index in hours: ", index)
                     time_range_numbers.append(int(numbers))
 
         for index, word in enumerate(time_range):
             for numbers, words in constants.minute_number_to_word.items():
-                if index in (1, 3) and word == words:
+                if (index == 1 or index == 3) and word == words:
 
                     print("Index in minutes: ", index)
                     time_range_numbers.append(int(numbers))
@@ -356,12 +356,12 @@ class MonthlyPlanPlugin(BasePlugin):
         print("Time range numbers: ", time_range_numbers)
         return time_range_numbers
 
-    def time_range_validy(time_range_numbers):
+    def time_range_validy(self, time_range_numbers):
 
         time_range = -1
         all_integers = True
         for element in time_range_numbers:
-            if not isinstance(element, int):
+            if not isinstance(element,int):
                 all_integers = False
 
         if len(time_range_numbers) != 4:
@@ -375,19 +375,19 @@ class MonthlyPlanPlugin(BasePlugin):
         
         return time_range
 
-    def activity_exist(self, date_single: SingleDate, time_range_numbers_):
+    def activity_exist(self, date: Single_Date, time_range_numbers):
         print("self.single_date.date: ", self.single_day.date)
-        print("Time range numbers: ", time_range_numbers_)
+        print("Time range numbers: ", time_range_numbers)
 
-        time_range_numbers_ = [int(word) for word in time_range_numbers_]
+        time_range_numbers = [int(word) for word in time_range_numbers]
         print("Works1")
         starting_time_to_insert = \
-            int(time_range_numbers_[0])*60 + int(time_range_numbers_[1])
+            int(time_range_numbers[0])*60 + int(time_range_numbers[1])
         print("Works2")
         ending_time_to_insert = \
-            int(time_range_numbers_[2])*60 + int(time_range_numbers_[3])
+            int(time_range_numbers[2])*60 + int(time_range_numbers[3])
         print("Works 3")
-        for time_range, act in date_single.activities.items():
+        for time_range, act in date.activities.items():
             print("Time range: ", time_range)
             
             time_range = time_range.split(' ')
@@ -395,10 +395,12 @@ class MonthlyPlanPlugin(BasePlugin):
             starting_time = int(time_range[0])*60 + int(time_range[1]) 
             ending_time = int(time_range[2])*60 + int(time_range[3])
 
-            if ending_time > starting_time_to_insert > starting_time:
+            if starting_time_to_insert > starting_time and \
+                starting_time_to_insert < ending_time:
                 return True
 
-            if ending_time > ending_time_to_insert > starting_time:
+            if ending_time_to_insert > starting_time and\
+                 ending_time_to_insert < ending_time:
                 return True
 
             if ending_time_to_insert >= ending_time and \
@@ -415,22 +417,23 @@ class MonthlyPlanPlugin(BasePlugin):
             self.actions_keywords['add_activity'] = False
             self.min_similarity = 0.75
             self.reset_activity()
-            return "Time range {} is not valid, try another one,"\
-            " adding of activity broken.".format(time_range_words)
+            return ("Time range {} is not valid, try another one, adding of activity broken.".
+                    format(time_range_words))
 
         if not self.activity_exist(self.single_day, time_range_numbers):
             print("Here")
             self.activity_add = True
             self.add_time_range(time_range_numbers)
 
-            return "Time range {} available,"\
-            " you can try to add an activity".format(time_range_numbers)
+            return ("Time range {} available, you can try to add an activity"
+                    .format(time_range_numbers))
 
-        print("Returned false")
-        self.actions_keywords['add_activity'] = False
-        self.min_similarity = 0.75
-        self.reset_activity()
-        return "In that time range already exist activity"
+        else:
+            print("Returned false")
+            self.actions_keywords['add_activity'] = False
+            self.min_similarity = 0.75
+            self.reset_activity()
+            return ("In that time range already exist activity") 
 
     def time_range(self, activated_keyword):
 
@@ -453,7 +456,7 @@ class MonthlyPlanPlugin(BasePlugin):
     def add_time_range(self, time_range_numbers):
         time_range_ = ""
         for number in time_range_numbers:
-            time_range_ += str(number) + " "
+            time_range_ +=  str(number) + ' '
         self.time_range_ = time_range_.rstrip()
     
     def add_activity_to_time_range(self, activated_keyword):
@@ -487,24 +490,23 @@ class MonthlyPlanPlugin(BasePlugin):
                 self.single_day = self.give_date_from_monthly_plan(self.said_day)
                 print("Self.single_day: ", self.single_day)
                 say_date = self.say_date(self.said_day)
-                return "Date {} exist in monthly plan,"\
-                " you can add time range"\
-                    .format(say_date)
+                return ("Date {} exist in monthly plan, you can add time range"
+                    .format(say_date))
             else:
                 print("Does not exist")
                 self.actions_keywords['add_activity'] = False
                 self.min_similarity = 0.75
                 say_date = self.say_date(self.said_day)
                 self.reset_activity()
-                return "Date {} does not exist in monthly plan, "\
-                        "adding of activity broken".format(say_date)
+                return ("Date {} does not exist in monthly plan, "
+                        "adding of activity broken".format(say_date))
 
         if self.activity_add:
             self.add_activity_to_time_range(activated_keyword)
             self.actions_keywords['add_activity'] = False
             self.min_similarity = 0.75
             self.reset_activity()
-            return "Activity {} successfully added".format(activated_keyword)
+            return("Activity {} successfully added".format(activated_keyword)) 
 
         if self.time_range_add: 
 
@@ -536,7 +538,7 @@ class MonthlyPlanPlugin(BasePlugin):
 
             date = self.first_date
             self.end_result["result"] = "" 
-            while date != None:
+            while date!= None:
                 print("Date activity: ", date.activities)
                 date_word = self.say_date(date.date)
                 self.end_result["result"] += ', ' + date_word
@@ -576,26 +578,26 @@ class MonthlyPlanPlugin(BasePlugin):
                     if date_year % 4 == 0: 
                         return True
                     else: 
-                        return "This year february has {} days".format(days)
+                        return("This year february has {} days".format(days))
                 else:
-                    return "This month has {} days".format(days)
+                    return("This month has {} days".format(days))
         return True
 
     def create_date(self, ordinal_number_day):
-        day = False
+            day = False
 
-        for word, number in constants.ordinal_number_to_number.items():
-            if word == ordinal_number_day:
-                day = number
+            for word, number in constants.ordinal_number_to_number.items():
+                if word == ordinal_number_day:
+                    day = number
 
-        today = date.today()
-        create_date = str(today)
-        if day:
-            created_date = create_date[:-2] + day
-        else:
-            created_date = False
+            today = date.today()
+            create_date = str(today)
+            if day:
+                created_date = create_date[:-2] + day
+            else:
+                created_date = False
 
-        return  created_date
+            return  created_date
 
     def day_today(self):
 
@@ -632,10 +634,11 @@ class MonthlyPlanPlugin(BasePlugin):
 
         for number_, month_ in constants.month_number_to_word.items():
             if number_ == month:
-                month = month_
+                    month = month_
+
         for word_, number_ in constants.ordinal_number_to_number.items():
             if number_ == day:
-                day = word_
+                    day = word_
         date = day + ' ' +  month + ' ' + year
 
         return date
@@ -661,8 +664,8 @@ class MonthlyPlanPlugin(BasePlugin):
                 self.first_date = self.first_date.next
                 
                 print("First")
-                return "The first date {} is successfully deleted, "\
-                "fuction for deleting is deactivated".format(date)
+                return ("The first date {} is successfully deleted, "
+                "fuction for deleting is deactivated".format(date))
 
             previous = start 
             start = start.next
@@ -674,9 +677,9 @@ class MonthlyPlanPlugin(BasePlugin):
 
                     previous.next = start.next
                     print("Second")
-                    return "The date {} is successfully deleted, "\
-                    "fuction for deleting "\
-                    "is deactivated".format(date)
+                    return ("The date {} is successfully deleted, "
+                    "fuction for deleting "
+                    "is deactivated".format(date))
 
                 previous = start
                 start = start.next 
@@ -684,7 +687,7 @@ class MonthlyPlanPlugin(BasePlugin):
             self.last_date = previous
             self.last_date.next = None
             print("Third")
-            return "The last date {} in the monthly plan is deleted".format(date)
+            return("The last date {} in the monthly plan is deleted".format(date))
 
         else:
             date = self.say_date(date)
@@ -692,8 +695,8 @@ class MonthlyPlanPlugin(BasePlugin):
             self.min_similarity = 0.75
             print("Fourth")
 
-            return "The date {}  does not exist in monthly "\
-            "plan, so it can not be deleted".format(date)
+            return("The date {}  does not exist in monthly "
+            "plan, so it can not be deleted".format(date))
 
     def insert_date(self, day_ordinal_number):
 
@@ -720,7 +723,7 @@ class MonthlyPlanPlugin(BasePlugin):
                 return day_in_past
             else:
 
-                Date = SingleDate(date, day_ordinal_number)
+                Date = Single_Date(date, day_ordinal_number)
 
                 if self.last_date == None and self.first_date == None:
                     self.first_date = Date
@@ -734,14 +737,14 @@ class MonthlyPlanPlugin(BasePlugin):
                 self.actions_keywords['add_date'] = False
                 self.min_similarity = 0.75
 
-                return "Date {} is successfully inserted, function "\
-                "for inserting of dates is deactivated".format(date)
+                return ("Date {} is successfully inserted, function "
+                "for inserting of dates is deactivated".format(date))
         else:
 
             self.actions_keywords['add_date'] = False
             self.min_similarity = 0.75
             date_ = self.say_date(date)
-            return "Date {} already exist in monthly plan".format(date_)
+            return ("Date {} already exist in monthly plan".format(date_))
 
     def add_date(self, activated_keyword):
 
@@ -862,32 +865,32 @@ class MonthlyPlanPlugin(BasePlugin):
     def wrong_inputs(self, activated_keyword, action_activated): 
         if action_activated == 'add_date'\
              and activated_keyword not in constants.days_ordinal_numbers_keywords:
-            self.actions_keywords['add_date'] = False
-            self.end_result["result"] = "Input is wrong, try again with insert"
-            self.say_result_put_in_queue()
-            return
+                self.actions_keywords['add_date'] = False
+                self.end_result["result"] = "Input is wrong, try again with insert"
+                self.say_result_put_in_queue()
+                return
         if action_activated == 'delete_date'\
              and activated_keyword not in constants.days_ordinal_numbers_keywords:
-            self.actions_keywords['delete_date'] = False
-            self.end_result["result"] = "Input is wrong, try again with deleting"
-            self.say_result_put_in_queue()
-            return
+                self.actions_keywords['delete_date'] = False
+                self.end_result["result"] = "Input is wrong, try again with deleting"
+                self.say_result_put_in_queue()
+                return
 
     def check_keyword(self, action_activated, activated_keyword):
 
         if action_activated == 'add_date'\
              and activated_keyword in constants.days_ordinal_numbers_keywords:
 
-            if self.actions_keywords['add_date']:
-                self.add_date(activated_keyword)
-                return
+                if self.actions_keywords['add_date']:
+                    self.add_date(activated_keyword)
+                    return
 
         if action_activated == 'delete_date'\
              and activated_keyword in constants.days_ordinal_numbers_keywords:
 
-            if self.actions_keywords['delete_date']:
-                self.delete_date(activated_keyword)
-                return
+                if self.actions_keywords['delete_date']:
+                    self.delete_date(activated_keyword)
+                    return
         
         self.wrong_inputs(activated_keyword, action_activated)
 
