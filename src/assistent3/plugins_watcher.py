@@ -110,7 +110,6 @@ class PluginWatcher():
                 for plugin in self.plugins:
                     print('run_doc')
                     print("Run plugin but not trigger plugin: ", self.doc)
-                    print("Self.results_queue: ", self.results_queue)
                     plugin.run_doc( self.doc, self.results_queue )
         # if not trigger plugin present, we pass directly to plugins
         else:

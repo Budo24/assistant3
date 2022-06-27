@@ -5,7 +5,7 @@ import vosk
 import queue
 import os
 import sys
-from processors import DatePlugin, NetworkPlugin, SpacyDatePlugin, TriggerPlugin, MonthlyPlanPlugin
+from processors import  TriggerPlugin, MonthlyPlanPlugin
 import common
 from plugins_watcher import PluginWatcher
 
