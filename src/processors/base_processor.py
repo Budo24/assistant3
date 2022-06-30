@@ -5,14 +5,10 @@ import time
 import typing
 
 import pyttsx3
+import spacy
 
 from common.exceptions import UidNotAssignedError
 from common.plugins import PluginResultType, PluginType
-
-
-def do_nothing(_: object) -> None:
-    """Empty."""
-    return
 
 
 class BasePlugin():
@@ -21,7 +17,7 @@ class BasePlugin():
     def __init__(self, match: str):
         """Contain the reference initial doc passed later from each plugin."""
         self.init_doc = match
-        self.spacy_model = do_nothing
+        self.spacy_model = spacy.blank('en')
         # pyttsx3 object for voice response
         self.engine = pyttsx3.init()
         # this will hold the activation/reference sentence or sentences
@@ -98,7 +94,7 @@ class BasePlugin():
                 print(' [DOC TEXT]  ', end='')
                 print(doc.text)
 
-    def set_spacy_model(self, model1: object) -> None:
+    def set_spacy_model(self, model1: spacy.language.Language) -> None:
         """Set spacy model."""
         self.spacy_model = model1
         self.init_activation_doc()
