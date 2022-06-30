@@ -12,7 +12,7 @@ import common
 import processors
 from plugins_watcher import PluginWatcher
 
-q: queue.Queue[typing.Any] = queue.Queue()
+q: queue.Queue[bytes] = queue.Queue()
 # plugin object
 sdp = processors.base_processor.SpacyDatePlugin()
 # trigger plugin object
@@ -23,7 +23,7 @@ plugin_watcher = PluginWatcher([sdp])
 plugin_watcher.add_trigger_plugin(trigger)
 
 
-def callback(*args: object) -> None:
+def callback(*args: typing.Iterable[typing.SupportsIndex]) -> None:
     """Push audio data to queue."""
     if args[3]:
         print(args[3], file=sys.stderr)
@@ -50,12 +50,13 @@ def record(args: argparse.Namespace) -> None:
         dump_file_exist = bool(args.filename)
 
         with sd.RawInputStream(
-                samplerate=args.samplerate,
-                blocksize=8000,
-                device=args.device,
-                dtype='int16',
-                channels=1,
-                callback=callback):
+            samplerate=args.samplerate,
+            blocksize=8000,
+            device=args.device,
+            dtype='int16',
+            channels=1,
+            callback=callback,
+        ):
             print('#' * 80)
             print('Press Ctrl+C to stop the recording')
             print('#' * 80)
@@ -137,8 +138,11 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument(
-        '-l', '--list-devices', action='store_true',
-        help='show list of audio devices and exit')
+        '-l',
+        '--list-devices',
+        action='store_true',
+        help='show list of audio devices and exit',
+    )
     args, remaining = parser.parse_known_args()
     if args.list_devices:
         print(sd.query_devices())
@@ -146,13 +150,21 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        parents=[parser])
+        parents=[parser],
+    )
     parser.add_argument(
-        '-f', '--filename', type=str, metavar='FILENAME',
-        help='audio file to store recording to')
+        '-f',
+        '--filename',
+        type=str,
+        metavar='FILENAME',
+        help='audio file to store recording to',
+    )
     parser.add_argument(
-        '-d', '--device', type=int_or_str,
-        help='input device (numeric ID or substring)')
+        '-d',
+        '--device',
+        type=int_or_str,
+        help='input device (numeric ID or substring)',
+    )
     args = parser.parse_args(remaining)
 
     try:

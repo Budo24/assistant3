@@ -10,12 +10,18 @@ from common.exceptions import UidNotAssignedError
 from common.plugins import PluginResultType, PluginType
 
 
+def do_nothing(_: object) -> None:
+    """Empty."""
+    return
+
+
 class BasePlugin():
     """Base Class from which all plugins need to inherit."""
 
     def __init__(self, match: str):
         """Contain the reference initial doc passed later from each plugin."""
         self.init_doc = match
+        self.spacy_model = do_nothing
         # pyttsx3 object for voice response
         self.engine = pyttsx3.init()
         # this will hold the activation/reference sentence or sentences
@@ -92,9 +98,9 @@ class BasePlugin():
                 print(' [DOC TEXT]  ', end='')
                 print(doc.text)
 
-    def set_spacy_model(self, model: object) -> None:
+    def set_spacy_model(self, model1: object) -> None:
         """Set spacy model."""
-        self.spacy_model = model
+        self.spacy_model = model1
         self.init_activation_doc()
 
     def set_uid(self, uid: object) -> None:
@@ -109,7 +115,7 @@ class BasePlugin():
             return self.uid
         raise UidNotAssignedError
 
-    def run_doc(self, doc: object, queue: queue.Queue[typing.Any]) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
         """Run_doc."""
         ret_str = ''
         ret_str += 'Not implemented, [todo] should raise exception instead\n'
@@ -117,7 +123,7 @@ class BasePlugin():
         ret_str += str(doc.__class__)
         ret_str += '\n'
         ret_str += 'queue: '
-        ret_str += str(queue.__class__)
+        ret_str += str(_queue.__class__)
         ret_str += '\n'
         print(ret_str)
 
@@ -130,7 +136,7 @@ class BaseInitializationErrorPlugin(BasePlugin):
         self.error_details = error_details
         super().__init__(match='')
 
-    def run_doc(self, doc: object, queue: queue.Queue[typing.Any]) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
         """Run_doc."""
         ret_str = ''
         ret_str += 'Not implemented, [todo] should raise exception instead\n'
@@ -138,7 +144,7 @@ class BaseInitializationErrorPlugin(BasePlugin):
         ret_str += str(doc.__class__)
         ret_str += '\n'
         ret_str += 'queue: '
-        ret_str += str(queue.__class__)
+        ret_str += str(_queue.__class__)
         ret_str += '\n'
         print(ret_str)
 
@@ -161,9 +167,9 @@ class SpacyDatePlugin(BasePlugin):
         self.engine.say(time.strftime('%c'))
         self.engine.runAndWait()
 
-    def run_doc(self, doc: object, queue: queue.Queue[typing.Any]) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
         """Run_doc."""
-        self.queue = queue
+        self.queue = _queue
         # check if plugin is activted
         activated = self.is_activated(doc)
         if not activated:
@@ -193,9 +199,9 @@ class TriggerPlugin(BasePlugin):
         self.engine.say('how can i help')
         self.engine.runAndWait()
 
-    def run_doc(self, doc: object, queue: queue.Queue[typing.Any]) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
         """Run_doc."""
-        self.queue = queue
+        self.queue = _queue
         activated = self.is_activated(doc)
         if not activated:
             print('***')

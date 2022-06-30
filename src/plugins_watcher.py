@@ -41,10 +41,13 @@ class PluginWatcher():
                 error_plugin_name = ''
                 with contextlib.suppress(Exception):
                     error_plugin_name = plugin.__str__()
-                self.plugins = [processors.base_processor.BaseInitializationErrorPlugin(
-                    error_details={
-                        'plugin_name': error_plugin_name,
-                    })]
+                self.plugins = [
+                    processors.base_processor.BaseInitializationErrorPlugin(
+                        error_details={
+                            'plugin_name': error_plugin_name,
+                        },
+                    ),
+                ]
                 break
             # if all good, we pass an instance of the nlp object to each plugin,
             # so it can be used to check similarity of what the user said compared

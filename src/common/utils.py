@@ -1,9 +1,13 @@
 """Utils."""
+from __future__ import annotations
+
 import os
 import sys
 import uuid
+from typing import TYPE_CHECKING
 
-from processors.base_processor import BasePlugin
+if TYPE_CHECKING:
+    from processors.base_processor import BasePlugin
 
 
 def get_root_dir() -> str:
@@ -13,9 +17,7 @@ def get_root_dir() -> str:
     return os.path.dirname(str(root_module.__file__))
 
 
-def bulk_assign_uuid(
-        plugins: list[BasePlugin],
-) -> list[BasePlugin]:
+def bulk_assign_uuid(plugins: list[BasePlugin]) -> list[BasePlugin]:
     """Assign uuids in bulk."""
     for plugin in plugins:
         plugin.set_uid(uuid.uuid4())
