@@ -8,8 +8,6 @@ test:
   image: python:3.10
   script:
     - python3.10 -m venv venv
-    - venv/bin/python -m pip install pip-tools
-    - venv/bin/python -m pip-compile --extra=dev --generate-hashes --output-file=requirements.txt setup.cfg
     - venv/bin/python -m pip install -r requirements.txt
     - venv/bin/python -m pip install -e .[dev]
     - venv/bin/python -m pytest
