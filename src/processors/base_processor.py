@@ -244,21 +244,21 @@ class TriggerPlugin(BasePlugin):
 
 def form_time_range(activated_keyword: str) -> list[str]:
     """Form time range from said time range."""
-    activated_keyword = activated_keyword.split(' ')
+    activated_keyword_ = activated_keyword.split(' ')
     hour_minutes = ''
     time_range = []
     skip_interation = False
 
-    for index, keyword in enumerate(activated_keyword):
+    for index, keyword in enumerate(activated_keyword_):
         if skip_interation:
             skip_interation = False
             continue
 
         hour_minutes += keyword
         if ('twenty' or 'thirty') == keyword \
-            and activated_keyword[index + 1] != 'zero' \
-                and activated_keyword[index + 1] != 'thirty':
-            hour_minutes += ' ' + activated_keyword[index + 1]
+            and activated_keyword_[index + 1] != 'zero' \
+                and activated_keyword_[index + 1] != 'thirty':
+            hour_minutes += ' ' + activated_keyword_[index + 1]
             skip_interation = True
 
         time_range.append(hour_minutes)
@@ -267,30 +267,31 @@ def form_time_range(activated_keyword: str) -> list[str]:
     return time_range
 
 
-def create_date(ordinal_number_day: str) -> str | bool:
+def create_date(ordinal_number_day: str) -> str:
     """Create date in current month.
 
     Create date in month using just day, given like ordinal number
     """
-    day = False
+    day_created = 'not created'
 
     for word, number in constants.ordinal_number_to_number.items():
         if word == ordinal_number_day:
-            day = number
+            day_ = number
+            day_created = 'created'
 
     today = date.today()
     create_date_ = str(today)
-    if day:
-        return create_date_[:-2] + day
-    return False
+    if day_created == 'created':
+        return str(create_date_[:-2]) + str(day_)
+    return day_created
 
 
-def convert_time_range_from_words_to_numbers(time_range: str) -> list[int]:
+def convert_time_range_from_words_to_numbers(time_range: list[str]) -> list[int]:
     """Convert time range from words to numbers.
 
     It is helping function, to enable calculation in time_validy
     """
-    time_range_numbers = []
+    time_range_numbers: list[int] = []
     print('In function on begin: ', time_range)
 
     if len(time_range) != 4:
@@ -322,10 +323,10 @@ def check_number_of_days_in_month(_date: str) -> str | bool:
 
     To avoid for example 31-06-2022
     """
-    _date = _date.split('-')
-    date_days = _date[2]
-    date_month = _date[1]
-    date_year = _date[0]
+    _date_ = _date.split('-')
+    date_days = _date_[2]
+    date_month = _date_[1]
+    date_year = int(_date_[0])
 
     print('Date days: ', date_days)
     print('Date month: ', date_month)
@@ -335,7 +336,6 @@ def check_number_of_days_in_month(_date: str) -> str | bool:
         if date_days > days and date_month == month:
 
             if date_month == '02' and date_days == '29':
-                date_year = int(date_year)
                 if date_year % 4 == 0:
                     return True
                 return f'This year february has {days} days'
@@ -390,10 +390,10 @@ def say_date(date_to_say: str) -> str:
 
     Example 20-06-2022 -> twenty sixth 2022
     """
-    date_to_say = date_to_say.split('-')
-    day = date_to_say[2]
-    month = date_to_say[1]
-    year = date_to_say[0]
+    date_to_say_ = date_to_say.split('-')
+    day = date_to_say_[2]
+    month = date_to_say_[1]
+    year = date_to_say_[0]
 
     for number_, month_ in constants.month_number_to_word.items():
         if number_ == month:
@@ -412,7 +412,7 @@ class SingleDate:
         """Initialize one single date values."""
         self.date_in_month = date_in_month
         self.next = None
-        self.activities = {}
+        self.activities: dict[str, str] = {}
         self.day_ordinal_number = day_ordinal_number
 
     def get_activities(self, day_ordinal_number: str) -> dict | None:
@@ -442,10 +442,10 @@ def activity_exist(one_date: SingleDate, time_range_numbers: list[int]) -> bool:
     for time_range, act in one_date.activities.items():
         print('Time range: ', time_range)
         print('Act: ', act)
-        time_range = time_range.split(' ')
+        time_range_ = time_range.split(' ')
 
-        starting_time = int(time_range[0]) * 60 + int(time_range[1])
-        ending_time = int(time_range[2]) * 60 + int(time_range[3])
+        starting_time = int(time_range_[0]) * 60 + int(time_range_[1])
+        ending_time = int(time_range_[2]) * 60 + int(time_range_[3])
 
         if starting_time < starting_time_to_insert < ending_time:
             return True
@@ -472,23 +472,24 @@ class MonthlyPlanPlugin(BasePlugin):
         super().__init__('insert')
         self.first_date = None
         self.last_date = None
-        self.actions_keywords = {'add_date': False, 'delete_date': False,
-                                 'add_activity': False, 'delete_activity': False}
+        self.actions_keywords = {
+            'add_date': False,
+            'delete_date': False,
+            'add_activity': False,
+            'delete_activity': False,
+        }
 
         self.time_range_add = False
         self.activity_add = False
-        self.said_day = False
+        self.said_day = 'nothing nothing'
         self.date_exist = False
         self.single_day = False
         self.time_range_ = False
         self.queue = None
 
-    def give_date_from_monthly_plan(self, find_date: str) -> bool | SingleDate:
+    def give_date_from_monthly_plan(self, find_date: str) -> SingleDate:
         """Give date from monthly plan, if it exist."""
         print('Date: ', find_date)
-        if self.first_date is None:
-            print('Returning false')
-            return False
         start = self.first_date
         find_date = str(find_date)
         print('Start date: ', start.date_in_month)
@@ -509,10 +510,14 @@ class MonthlyPlanPlugin(BasePlugin):
         if start.date_in_month == find_date:
             print('Last given')
             return start
-        return False
+        return start
 
-    def activity_in_time(self, time_range_possible: int, time_range_numbers: list[int],
-                         time_range_words: str) -> str:
+    def activity_in_time(
+        self,
+        time_range_possible: int,
+        time_range_numbers: list[int],
+        time_range_words: list[str],
+    ) -> str:
         """Check finally, if it is possible to add time range."""
         print('Time range possible: ', time_range_possible)
         if time_range_possible < 0:
@@ -549,14 +554,13 @@ class MonthlyPlanPlugin(BasePlugin):
         time_range_possible = \
             time_range_validy(time_range_numbers)
         print('Time range possible: ', time_range_possible)
-        return self.activity_in_time(time_range_possible, time_range_numbers,
-                                     time_range_words)
+        return self.activity_in_time(time_range_possible, time_range_numbers, time_range_words)
 
     def reset_activity(self) -> None:
         """Reset all values regarding activity."""
         self.time_range_add = False
         self.activity_add = False
-        self.said_day = False
+        self.said_day = 'nothing nothing'
         self.date_exist = False
         self.single_day = False
 
@@ -629,8 +633,10 @@ class MonthlyPlanPlugin(BasePlugin):
             date_ = date_.next
         return False
 
-    def check_date_before_action(self, day_ordinal_number: str) -> tuple[bool, str | bool,
-                                                                         str | bool, str | bool]:
+    def check_date_before_action(
+        self,
+        day_ordinal_number: str,
+    ) -> tuple[bool, str | bool, str | bool, str]:
         """Check general informations of input, before doing a action, in monthly plan."""
         date_already_exist = self.check_existing_dates(day_ordinal_number)
         date_ = create_date(day_ordinal_number)
