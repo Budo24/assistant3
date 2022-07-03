@@ -8,8 +8,36 @@ import spacy
 import processors
 from common.exceptions import UidNotAssignedError
 from common.utils import bulk_assign_uuid
+from common.plugins import PluginResultType, PluginType
 from processors.base_processor import BasePlugin
 
+
+class FlowRecord():
+    """The class where we record plugins invoking flow."""
+
+    def __init__(self):
+        self.record = []
+
+    def add_entry(self, entry):
+        self.record.append(entry)
+    
+    def get_last(self):
+        if self.is_empty():
+            return None
+        else:
+            return self.record[-1]
+
+    def is_empty(self):
+        return len(self.record) == 0
+    
+    def printify(self):
+        if self.is_empty():
+            print()
+            print(str('EMPTY RECORD'))
+            print()
+        print()
+        print(str(self.record))
+        print()
 
 class PluginWatcher():
     """The class where we maintain Plugins initialization and running.
@@ -24,6 +52,7 @@ class PluginWatcher():
         """Init."""
         # reslts_queue : the queue where all plugins push their result dicts
         self.results_queue: queue.Queue[typing.Any] = queue.Queue()
+        self.flow_record = FlowRecord()
         self.plugins: list[BasePlugin] = []
         self.trigger_plugin: BasePlugin = BasePlugin(match='')
         # flag to tell pw if a trigger plugin was already triggered ("hey assistant")
@@ -96,41 +125,67 @@ class PluginWatcher():
         """Check if pw has a trigger plugin."""
         return self.trigger_plugin is not None
 
-    def run(self, speech_text: str, triggered_now_plugins: bool = False) -> list[typing.Any]:
+    def add_entry_to_flow_record(self, entry):
+        self.flow_record.add_entry(entry)
+    
+    def run(self, speech_text: str) -> list[typing.Any]:
         """Run."""
         # we transform the text from vosk to doc object (pass it to SpaCy to process it)
         self.doc = self.nlp(speech_text)
-        # flag to know if a trigger plugin was triggered before run() was called
-        # or not
-        self.triggered_now_plugins = triggered_now_plugins
-        print(self.doc)
-        # if there is a trigger plugin assigned to pw ..
-        if self.trigger_plugin:
-            # if run() was called and no trigger plugin was triggered before,
-            # we should run the Trigger run() function and not the plugins
-            if not self.triggered_now_plugins:
-                self.trigger_plugin.run_doc(self.doc, self.results_queue)
-            # if not, (trigger plugin was already triggered successfuly) we pass to plugins
+        
+        def run_by_uid(uid):
+            if uid == self.trigger_plugin.get_uid():
+                run_trigger()
             else:
+                run_plugins(uid)
+
+
+        def run_trigger():
+            self.trigger_plugin.run_doc(self.doc, self.results_queue)
+        def run_plugins(uid = None):
+            if uid:
                 for plugin in self.plugins:
+                    if uid == plugin.get_uid():
+                        plugin.run_doc(self.doc, self.results_queue)
+                        return
+            for plugin in self.plugins:
                     print('run_doc')
                     plugin.run_doc(self.doc, self.results_queue)
-        # if not trigger plugin present, we pass directly to plugins
-        else:
-            for plugin in self.plugins:
-                print('run_doc')
-                plugin.run_doc(self.doc, self.results_queue)
-        # in all cases, wether we pass to plugins or to trigger plugin,
-        # at this point we go back to initial state (after we say "hey assistant, and then ask
-        # what we want") we are back to the start,
-        self.triggered_now_plugins = False
+        def flush_result_queue_in_list():
+            res_list = []
+            while self.results_queue.qsize() != 0:
+                res_list.append(self.results_queue.get())
+            return res_list
+        
+        
+        self.flow_record.printify()
 
-        # this is a speedy thing, maybe removed later, just quickly getting
-        # all results from the queue into a list
-        res_list = []
-        while self.results_queue.qsize() != 0:
-            res_list.append(self.results_queue.get())
-        return res_list
+        if self.flow_record.is_empty():
+            run_trigger()
+            return flush_result_queue_in_list()
+
+        else:
+            last_record = self.flow_record.get_last()
+        
+        
+        if last_record['type'] == PluginResultType.ERROR:
+            run_by_uid(last_record['uid'])
+            return flush_result_queue_in_list()
+
+
+        if last_record['plugin_type'] == PluginType.TRIGGER_PLUGIN:
+            print("LAST RECORD", last_record)
+            run_plugins()
+            return flush_result_queue_in_list()
+
+        else:
+            match last_record['type']:
+                case 6:
+                    print("__KEEP_ALIVE")
+
+                # If an exact match is not confirmed, this last case will be used if provided
+                case _:
+                    print("__NORMAL")
 
     def list_plugins_by_uid(self) -> None:
         """Show all assigned plugin's uids."""

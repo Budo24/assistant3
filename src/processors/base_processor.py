@@ -24,6 +24,7 @@ class BasePlugin():
         self.activation_dict: dict[str, list[typing.Any]] = {
             'docs': [],
         }
+        self.tts_error_message = 'please try again'
         # unique id
         self.uid: object = None
         # this is the result dict with several informations like
@@ -53,6 +54,11 @@ class BasePlugin():
         """Play response audio."""
         print('SPIT')
 
+    def error_spit(self) -> None:
+        """Play error response audio."""
+        self.engine.say(self.tts_error_message)
+        self.engine.runAndWait()
+
     def get_activation_similarities(self, target: object) -> list[typing.Any]:
         """Return a similarity between 0 and 1.
 
@@ -67,7 +73,10 @@ class BasePlugin():
             return False
         activation_similarities = self.get_activation_similarities(target)
         print(activation_similarities)
-        return bool(similarity > self.min_similarity for similarity in activation_similarities)
+        for similarity in activation_similarities:
+            if similarity > self.min_similarity:
+                return True
+        return False
 
     def init_activation_doc(self) -> None:
         """Add a SpaCy Object to the reference phrases.
@@ -169,7 +178,11 @@ class SpacyDatePlugin(BasePlugin):
         # check if plugin is activted
         activated = self.is_activated(doc)
         if not activated:
-            print('***')
+            self.end_result['type'] = PluginResultType.ERROR
+            self.end_result['result'] = ''
+            self.end_result['result_speech_func'] = self.error_spit
+            # here we push it to the results queue passed by pw
+            self.queue.put(self.end_result)
             return
         output_result_value = datetime.datetime.now()
         # here we set some informations in the result dict
@@ -189,6 +202,7 @@ class TriggerPlugin(BasePlugin):
         super().__init__('hey assistant')
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
         self.min_similarity = 0.99
+        self.tts_error_message = 'did not match hey assistant'
 
     def spit(self) -> None:
         """Play response audio."""
@@ -199,11 +213,17 @@ class TriggerPlugin(BasePlugin):
         """Run_doc."""
         self.queue = _queue
         activated = self.is_activated(doc)
+        print("****", activated)
         if not activated:
-            print('***')
+            self.end_result['type'] = PluginResultType.ERROR
+            self.end_result['result'] = ''
+            self.end_result['plugin_type'] = PluginType.TRIGGER_PLUGIN
+            self.end_result['result_speech_func'] = self.error_spit
+            # here we push it to the results queue passed by pw
+            self.queue.put(self.end_result)
             return
         self.end_result['type'] = PluginResultType.TEXT
-        self.end_result['result'] = datetime.datetime.now()
+        self.end_result['result'] = ''
         self.end_result['plugin_type'] = PluginType.TRIGGER_PLUGIN
         self.end_result['result_speech_func'] = self.spit
         self.queue.put(self.end_result)

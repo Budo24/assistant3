@@ -12,6 +12,7 @@ import common
 import processors
 from plugins_watcher import PluginWatcher
 
+feedback_ignore: bool = False
 q: queue.Queue[bytes] = queue.Queue()
 # plugin object
 sdp = processors.base_processor.SpacyDatePlugin()
@@ -27,7 +28,10 @@ def callback(*args: typing.Iterable[typing.SupportsIndex]) -> None:
     """Push audio data to queue."""
     if args[3]:
         print(args[3], file=sys.stderr)
-    q.put(bytes(args[0]))
+    if not feedback_ignore:
+        q.put(bytes(args[0]))
+    else:
+        q.put(bytes(0))
 
 
 def int_or_str(text: str | int) -> str | int:
@@ -40,6 +44,8 @@ def int_or_str(text: str | int) -> str | int:
 
 def record(args: argparse.Namespace) -> None:
     """Program loop."""
+    global feedback_ignore
+    
     try:
         device_info = sd.query_devices(args.device, 'input')
         # soundfile expects an int, sounddevice provides a float:
@@ -71,7 +77,22 @@ def record(args: argparse.Namespace) -> None:
                     text = res.replace('\n', '')
                     text = text.replace('{  "text" : "', '').replace('"}', '')
                     print(text)
-                    if plugin_watcher.is_trigger_plugin_enabled():
+
+                    res_list = plugin_watcher.run(text)
+                    print("---->", res_list)
+                    feedback_ignore = True
+                    res_list[0]['result_speech_func']()
+                    feedback_ignore = False
+
+                    plugin_watcher.add_entry_to_flow_record(res_list[0])
+
+                    ret_str = ''
+                    ret_str += 'returned res_list\n'
+                    ret_str += str(res_list)
+                    ret_str += '\n'
+                    print(ret_str)
+
+                    """if plugin_watcher.is_trigger_plugin_enabled():
                         if trigger_result:
                             # if there is already a result from the trigger
                             # run plugin_watcher.run and specify True from triggered_now_plugins
@@ -101,16 +122,21 @@ def record(args: argparse.Namespace) -> None:
 
                     if trigger_result:
                         print(trigger_result)
+                        feedback_ignore = True
                         trigger_result['result_speech_func']()
+                        feedback_ignore = False
+                        plugin_watcher.add_entry_to_flow_record(trigger_result)
                         # trigger_result = None
                     if end_result:
                         print(trigger_result)
+                        feedback_ignore = True
                         end_result['result_speech_func']()
+                        feedback_ignore = False
                         end_result = None
-                    # res = plugin_watcher.pop_result()
-                    # print(res)
-                    # res["result_speech_func"]()
-                    # exit()
+                        plugin_watcher.add_entry_to_flow_record(end_result)"""
+                    
+
+                    
                 else:
                     print(rec.PartialResult())
                 if dump_file_exist:
