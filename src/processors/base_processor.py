@@ -82,7 +82,7 @@ class BasePlugin():
         for index, similarity in enumerate(activation_similarities):
             # the logic maybe changed later !
             if similarity > self.min_similarity:
-                return self.activation_dict['docs'][index]
+                return str(self.activation_dict['docs'][index])
         return 'False'
 
     def spit_text(self) -> None:
@@ -106,7 +106,7 @@ class BasePlugin():
             # the logic maybe changed later !
             if similarity == self.min_similarity:
                 print('To return: ', self.activation_dict['docs'][index])
-                return self.activation_dict['docs'][index]
+                return str(self.activation_dict['docs'][index])
         return 'False'
 
     def get_activation_similarities(self, target: object) -> list[typing.Any]:
@@ -415,11 +415,11 @@ class SingleDate:
         self.activities: dict[str, str] = {}
         self.day_ordinal_number = day_ordinal_number
 
-    def get_activities(self, day_ordinal_number: str) -> dict | None:
+    def get_activities(self, day_ordinal_number: str) -> dict:
         """Get activity in one single day."""
         if self.day_ordinal_number == day_ordinal_number:
             return self.activities
-        return None
+        return {}
 
     def set_activity(self, day_ordinal_number: str, time_range: str, activity: str) -> None:
         """Set activity in one single day, in one time range."""
@@ -463,7 +463,7 @@ def activity_exist(one_date: SingleDate, time_range_numbers: list[int]) -> bool:
 class MonthlyPlanPlugin(BasePlugin):
     """Monthly Plan."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize values in monthly plan.
 
         The second separated part of values, will be used
