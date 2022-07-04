@@ -18,19 +18,6 @@ def spit() -> None:
     print('SPIT')
 
 
-def run_doc(doc: object, _queue: queue.Queue[typing.Any]) -> None:
-    """Run_doc."""
-    ret_str = ''
-    ret_str += 'Not implemented, [todo] should raise exception instead\n'
-    ret_str += 'doc: '
-    ret_str += str(doc.__class__)
-    ret_str += '\n'
-    ret_str += 'queue: '
-    ret_str += str(_queue.__class__)
-    ret_str += '\n'
-    print(ret_str)
-
-
 class BasePlugin():
     """Base Class from which all plugins need to inherit."""
 
@@ -68,6 +55,19 @@ class BasePlugin():
         # default minimum similarity, for a plugin to be activated,
         # this is used by SpaCy and can also be changed in each plugin
         self.min_similarity = 0.75
+
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
+        """Run_doc."""
+        print('self.activation_dict', self.activation_dict)
+        ret_str = ''
+        ret_str += 'Not implemented, [todo] should raise exception instead\n'
+        ret_str += 'doc: '
+        ret_str += str(doc.__class__)
+        ret_str += '\n'
+        ret_str += 'queue: '
+        ret_str += str(_queue.__class__)
+        ret_str += '\n'
+        print(ret_str)
 
     def similar_keyword_activated(self, target: object) -> str | bool:
         """Search after similar words.
