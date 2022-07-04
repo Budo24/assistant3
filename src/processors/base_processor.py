@@ -487,9 +487,11 @@ class MonthlyPlanPlugin(BasePlugin):
         self.time_range_ = False
         self.queue = None
 
-    def give_date_from_monthly_plan(self, find_date: str) -> SingleDate:
+    def give_date_from_monthly_plan(self, find_date: str) -> SingleDate | None:
         """Give date from monthly plan, if it exist."""
         print('Date: ', find_date)
+        if self.first_date is None:
+            return None
         start = self.first_date
         find_date = str(find_date)
         print('Start date: ', start.date_in_month)
