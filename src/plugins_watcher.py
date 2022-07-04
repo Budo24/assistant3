@@ -7,30 +7,34 @@ import spacy
 
 import processors
 from common.exceptions import UidNotAssignedError
-from common.utils import bulk_assign_uuid
 from common.plugins import PluginResultType, PluginType
+from common.utils import bulk_assign_uuid
 from processors.base_processor import BasePlugin
 
 
 class FlowRecord():
     """The class where we record plugins invoking flow."""
 
-    def __init__(self):
-        self.record = []
+    def __init__(self) -> None:
+        """Create FlowRecord object."""
+        self.record: list[dict[str, object]] = []
 
-    def add_entry(self, entry):
+    def add_entry(self, entry: dict[str, object]) -> None:
+        """Empty."""
         self.record.append(entry)
-    
-    def get_last(self):
+
+    def get_last(self) -> dict[str, object] | typing.Any:
+        """Empty."""
         if self.is_empty():
             return None
-        else:
-            return self.record[-1]
+        return self.record[-1]
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
+        """Empty."""
         return len(self.record) == 0
-    
-    def printify(self):
+
+    def printify(self) -> None:
+        """Empty."""
         if self.is_empty():
             print()
             print(str('EMPTY RECORD'))
@@ -38,6 +42,7 @@ class FlowRecord():
         print()
         print(str(self.record))
         print()
+
 
 class PluginWatcher():
     """The class where we maintain Plugins initialization and running.
@@ -125,67 +130,65 @@ class PluginWatcher():
         """Check if pw has a trigger plugin."""
         return self.trigger_plugin is not None
 
-    def add_entry_to_flow_record(self, entry):
+    def add_entry_to_flow_record(self, entry: dict[str, object]) -> None:
+        """Empty."""
         self.flow_record.add_entry(entry)
-    
+
     def run(self, speech_text: str) -> list[typing.Any]:
         """Run."""
         # we transform the text from vosk to doc object (pass it to SpaCy to process it)
         self.doc = self.nlp(speech_text)
-        
-        def run_by_uid(uid):
+
+        def run_by_uid(uid: object) -> None:
             if uid == self.trigger_plugin.get_uid():
                 run_trigger()
             else:
                 run_plugins(uid)
 
-
-        def run_trigger():
+        def run_trigger() -> None:
             self.trigger_plugin.run_doc(self.doc, self.results_queue)
-        def run_plugins(uid = None):
+
+        def run_plugins(uid: object = None) -> None:
             if uid:
                 for plugin in self.plugins:
                     if uid == plugin.get_uid():
                         plugin.run_doc(self.doc, self.results_queue)
                         return
             for plugin in self.plugins:
-                    print('run_doc')
-                    plugin.run_doc(self.doc, self.results_queue)
-        def flush_result_queue_in_list():
+                print('run_doc')
+                plugin.run_doc(self.doc, self.results_queue)
+
+        def flush_result_queue_in_list() -> list[dict[str, object]]:
             res_list = []
             while self.results_queue.qsize() != 0:
                 res_list.append(self.results_queue.get())
             return res_list
-        
-        
+
         self.flow_record.printify()
 
         if self.flow_record.is_empty():
             run_trigger()
             return flush_result_queue_in_list()
 
-        else:
-            last_record = self.flow_record.get_last()
-        
-        
+        last_record = self.flow_record.get_last()
         if last_record['type'] == PluginResultType.ERROR:
             run_by_uid(last_record['uid'])
             return flush_result_queue_in_list()
 
-
         if last_record['plugin_type'] == PluginType.TRIGGER_PLUGIN:
-            print("LAST RECORD", last_record)
+            print('LAST RECORD', last_record)
             run_plugins()
             return flush_result_queue_in_list()
 
+        str_msg = ''
+        if last_record['type'] == PluginResultType.KEEP_ALIVE:
+            str_msg += '__KEEP_ALIVE'
         else:
-            match last_record['type']:
-                case 6:
-                    print("__KEEP_ALIVE")
+            str_msg += '__NORMAL'
 
-                # If an exact match is not confirmed, this last case will be used if provided
-                case _:
-                    print("__NORMAL")
+        print(str_msg)
+
+        return []
 
     def list_plugins_by_uid(self) -> None:
         """Show all assigned plugin's uids."""

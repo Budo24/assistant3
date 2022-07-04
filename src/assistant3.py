@@ -8,11 +8,27 @@ import typing
 import sounddevice as sd
 import vosk
 
-import common
 import processors
 from plugins_watcher import PluginWatcher
 
-feedback_ignore: bool = False
+
+class FeedbackIgnore():
+    """Empty."""
+
+    def __init__(self) -> None:
+        """Empty."""
+        self.feedback_ignore = False
+
+    def toggle_feedback_ignore(self) -> None:
+        """Empty."""
+        self.feedback_ignore = not self.feedback_ignore
+
+    def get_feedback_ignore(self) -> bool:
+        """Empty."""
+        return self.feedback_ignore
+
+
+feedback_ignore_obj = FeedbackIgnore()
 q: queue.Queue[bytes] = queue.Queue()
 # plugin object
 sdp = processors.base_processor.SpacyDatePlugin()
@@ -28,7 +44,7 @@ def callback(*args: typing.Iterable[typing.SupportsIndex]) -> None:
     """Push audio data to queue."""
     if args[3]:
         print(args[3], file=sys.stderr)
-    if not feedback_ignore:
+    if not feedback_ignore_obj.get_feedback_ignore():
         q.put(bytes(args[0]))
     else:
         q.put(bytes(0))
@@ -44,8 +60,6 @@ def int_or_str(text: str | int) -> str | int:
 
 def record(args: argparse.Namespace) -> None:
     """Program loop."""
-    global feedback_ignore
-    
     try:
         device_info = sd.query_devices(args.device, 'input')
         # soundfile expects an int, sounddevice provides a float:
@@ -68,8 +82,6 @@ def record(args: argparse.Namespace) -> None:
             print('#' * 80)
 
             rec = vosk.KaldiRecognizer(model, args.samplerate)
-            trigger_result = None
-            end_result = None
             while True:
                 data = q.get()
                 if rec.AcceptWaveform(data):
@@ -79,10 +91,9 @@ def record(args: argparse.Namespace) -> None:
                     print(text)
 
                     res_list = plugin_watcher.run(text)
-                    print("---->", res_list)
-                    feedback_ignore = True
+                    feedback_ignore_obj.toggle_feedback_ignore()
                     res_list[0]['result_speech_func']()
-                    feedback_ignore = False
+                    feedback_ignore_obj.toggle_feedback_ignore()
 
                     plugin_watcher.add_entry_to_flow_record(res_list[0])
 
@@ -92,51 +103,6 @@ def record(args: argparse.Namespace) -> None:
                     ret_str += '\n'
                     print(ret_str)
 
-                    """if plugin_watcher.is_trigger_plugin_enabled():
-                        if trigger_result:
-                            # if there is already a result from the trigger
-                            # run plugin_watcher.run and specify True from triggered_now_plugins
-                            # to tell it that the trigger was activated and can now
-                            # run the plugins
-                            res_list = plugin_watcher.run(text, True)
-                        else:
-                            # not yet triggered, pass False, and should run the trigger
-                            # plugin first
-                            res_list = plugin_watcher.run(text, False)
-                    else:
-                        # if trigger not even enabled, run and feed to plugins directely
-                        res_list = plugin_watcher.run(text, False)
-                    trigger_result = None
-                    for result in res_list:
-                        # if one result contains a trigger type we check it first
-                        # and set it in trigger_result
-                        if result['plugin_type'] == common.plugins.PluginType.TRIGGER_PLUGIN:
-                            trigger_result = result
-                            break
-
-                    end_result = None
-                    for result in res_list:
-                        if result['plugin_type'] == common.plugins.PluginType.SYSTEM_PLUGIN:
-                            end_result = result
-                            break
-
-                    if trigger_result:
-                        print(trigger_result)
-                        feedback_ignore = True
-                        trigger_result['result_speech_func']()
-                        feedback_ignore = False
-                        plugin_watcher.add_entry_to_flow_record(trigger_result)
-                        # trigger_result = None
-                    if end_result:
-                        print(trigger_result)
-                        feedback_ignore = True
-                        end_result['result_speech_func']()
-                        feedback_ignore = False
-                        end_result = None
-                        plugin_watcher.add_entry_to_flow_record(end_result)"""
-                    
-
-                    
                 else:
                     print(rec.PartialResult())
                 if dump_file_exist:

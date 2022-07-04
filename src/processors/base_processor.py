@@ -21,10 +21,14 @@ class BasePlugin():
         # pyttsx3 object for voice response
         self.engine = pyttsx3.init()
         # this will hold the activation/reference sentence or sentences
-        self.activation_dict: dict[str, list[typing.Any]] = {
+        self.activation_dict: dict[str, typing.Any] = {
             'docs': [],
+            'general_tts_error_message': 'please try again',
+            'flow': [{
+                'doc_no': 1,
+                'tts_error_message': 'please try again',
+            }],
         }
-        self.tts_error_message = 'please try again'
         # unique id
         self.uid: object = None
         # this is the result dict with several informations like
@@ -54,9 +58,13 @@ class BasePlugin():
         """Play response audio."""
         print('SPIT')
 
+    def get_general_tts_error_message(self) -> object:
+        """Empty."""
+        return self.activation_dict['general_tts_error_message']
+
     def error_spit(self) -> None:
         """Play error response audio."""
-        self.engine.say(self.tts_error_message)
+        self.engine.say(self.get_general_tts_error_message())
         self.engine.runAndWait()
 
     def get_activation_similarities(self, target: object) -> list[typing.Any]:
@@ -73,10 +81,7 @@ class BasePlugin():
             return False
         activation_similarities = self.get_activation_similarities(target)
         print(activation_similarities)
-        for similarity in activation_similarities:
-            if similarity > self.min_similarity:
-                return True
-        return False
+        return any(similarity > self.min_similarity for similarity in activation_similarities)
 
     def init_activation_doc(self) -> None:
         """Add a SpaCy Object to the reference phrases.
@@ -202,7 +207,7 @@ class TriggerPlugin(BasePlugin):
         super().__init__('hey assistant')
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
         self.min_similarity = 0.99
-        self.tts_error_message = 'did not match hey assistant'
+        self.activation_dict['general_tts_error_message'] = 'did not match hey assistant'
 
     def spit(self) -> None:
         """Play response audio."""
@@ -213,7 +218,7 @@ class TriggerPlugin(BasePlugin):
         """Run_doc."""
         self.queue = _queue
         activated = self.is_activated(doc)
-        print("****", activated)
+        print('****', activated)
         if not activated:
             self.end_result['type'] = PluginResultType.ERROR
             self.end_result['result'] = ''
