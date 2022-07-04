@@ -64,6 +64,7 @@ disable = [
   "wrong-import-order",
   # mccabe (pylint FAQ)
   "too-many-branches",
+  "too-many-instance-attributes",
   # fixme
   "fixme",
   # pep8-naming (pylint FAQ", keep: invalid-name)
