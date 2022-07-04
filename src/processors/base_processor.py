@@ -415,7 +415,7 @@ class SingleDate:
         self.activities: dict[str, str] = {}
         self.day_ordinal_number = day_ordinal_number
 
-    def get_activities(self, day_ordinal_number: str) -> dict:
+    def get_activities(self, day_ordinal_number: str) -> dict[str, str]:
         """Get activity in one single day."""
         if self.day_ordinal_number == day_ordinal_number:
             return self.activities
