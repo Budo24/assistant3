@@ -69,7 +69,7 @@ class BasePlugin():
         ret_str += '\n'
         print(ret_str)
 
-    def similar_keyword_activated(self, target: object) -> str | bool:
+    def similar_keyword_activated(self, target: object) -> str:
         """Search after similar words.
 
         Check if input keyword is similar to any of keywords
@@ -77,13 +77,13 @@ class BasePlugin():
         """
         if len(self.activation_dict['docs']) == 0:
             # if there is no reference phrases, not activated
-            return False
+            return 'False'
         activation_similarities = self.get_activation_similarities(target)
         for index, similarity in enumerate(activation_similarities):
             # the logic maybe changed later !
             if similarity > self.min_similarity:
                 return self.activation_dict['docs'][index]
-        return False
+        return 'False'
 
     def spit_text(self) -> None:
         """Say answer.
@@ -93,21 +93,21 @@ class BasePlugin():
         self.engine.say(self.end_result['result'])
         self.engine.runAndWait()
 
-    def exact_keyword_activated(self, target: object) -> str | bool:
+    def exact_keyword_activated(self, target: object) -> str:
         """Find exact keyword.
 
         Check if given keyword is the same compared to known known keywords
         """
         if len(self.activation_dict['docs']) == 0:
             # if there is no reference phrases, not activated
-            return False
+            return 'False'
         activation_similarities = self.get_activation_similarities(target)
         for index, similarity in enumerate(activation_similarities):
             # the logic maybe changed later !
             if similarity == self.min_similarity:
                 print('To return: ', self.activation_dict['docs'][index])
                 return self.activation_dict['docs'][index]
-        return False
+        return 'False'
 
     def get_activation_similarities(self, target: object) -> list[typing.Any]:
         """Return a similarity between 0 and 1.
