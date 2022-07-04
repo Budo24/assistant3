@@ -411,7 +411,7 @@ class SingleDate:
     def __init__(self, date_in_month: str, day_ordinal_number: str):
         """Initialize one single date values."""
         self.date_in_month = date_in_month
-        self.next = None
+        self.next: typing.Any = None
         self.activities: dict[str, str] = {}
         self.day_ordinal_number = day_ordinal_number
 
