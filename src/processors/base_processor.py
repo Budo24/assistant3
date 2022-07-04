@@ -483,8 +483,8 @@ class MonthlyPlanPlugin(BasePlugin):
         self.activity_add = False
         self.said_day = 'nothing nothing'
         self.date_exist = False
-        self.single_day = False
-        self.time_range_ = False
+        self.single_day = None
+        self.time_range_ = ''
         self.queue = None
 
     def give_date_from_monthly_plan(self, find_date: str) -> SingleDate | None:
@@ -564,7 +564,8 @@ class MonthlyPlanPlugin(BasePlugin):
         self.activity_add = False
         self.said_day = 'nothing nothing'
         self.date_exist = False
-        self.single_day = False
+        self.single_day = None
+        self.time_range_ = ''
 
     def add_activity_to_time_range(self, activated_keyword: str) -> None:
         """Add activity to created time range."""
