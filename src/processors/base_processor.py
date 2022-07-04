@@ -427,11 +427,9 @@ class SingleDate:
             self.activities[time_range] = activity
 
 
-def activity_exist(one_date: SingleDate | str | object, time_range_numbers: list[int]) -> bool:
+def activity_exist(one_date: SingleDate, time_range_numbers: list[int]) -> bool:
     """Check if activity overlap another activity."""
     print('Time range numbers: ', time_range_numbers)
-    if isinstance(one_date, str):
-        return False
     if isinstance(one_date, SingleDate):
         time_range_numbers = [int(word) for word in time_range_numbers]
         print('Works1')
@@ -472,8 +470,8 @@ class MonthlyPlanPlugin(BasePlugin):
         by dealing with activities
         """
         super().__init__('insert')
-        self.first_date = None
-        self.last_date = None
+        self.first_date = SingleDate('', '')
+        self.last_date = SingleDate('', '')
         self.actions_keywords = {
             'add_date': False,
             'delete_date': False,
@@ -483,17 +481,16 @@ class MonthlyPlanPlugin(BasePlugin):
 
         self.time_range_add = False
         self.activity_add = False
-        self.said_day = 'nothing nothing'
+        self.said_day = ''
         self.date_exist = False
-        self.single_day = typing.Any
+        self.single_day = SingleDate('', '')
         self.time_range_ = ''
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
 
-    def give_date_from_monthly_plan(self, find_date: str) -> SingleDate | None:
+    def give_date_from_monthly_plan(self, find_date: str) -> SingleDate:
         """Give date from monthly plan, if it exist."""
         print('Date: ', find_date)
-        if self.first_date is None:
-            return None
+
         start = self.first_date
         find_date = str(find_date)
 
@@ -511,7 +508,8 @@ class MonthlyPlanPlugin(BasePlugin):
                 print('Found')
                 print('Middle given')
                 return start
-            start = start.next
+            if isinstance(start.next, SingleDate):
+                start = start.next
         if start.date_in_month == find_date:
             print('Last given')
             return start
@@ -565,14 +563,14 @@ class MonthlyPlanPlugin(BasePlugin):
         """Reset all values regarding activity."""
         self.time_range_add = False
         self.activity_add = False
-        self.said_day = 'nothing nothing'
+        self.said_day = ''
         self.date_exist = False
-        self.single_day = typing.Any
+        self.single_day = SingleDate('', '')
         self.time_range_ = ''
 
     def add_activity_to_time_range(self, activated_keyword: str) -> None:
         """Add activity to created time range."""
-        if self.first_date is not None:
+        if self.first_date.date_in_month != '':
             start = self.first_date
             if start.date_in_month == self.single_day.date_in_month:
                 start.activities[self.time_range_] = activated_keyword
@@ -634,10 +632,13 @@ class MonthlyPlanPlugin(BasePlugin):
     def check_existing_dates(self, day_ordinal_number: str) -> bool:
         """Check if date exist in monthly plan."""
         date_ = self.first_date
-        while date_ is not None:
+        while date_.date_in_month != '':
             if date_.day_ordinal_number == day_ordinal_number:
                 return True
-            date_ = date_.next
+            if isinstance(date_.next, SingleDate):
+                date_ = date_.next
+            else:
+                break
         return False
 
     def check_date_before_action(
@@ -661,7 +662,7 @@ class MonthlyPlanPlugin(BasePlugin):
         print('date_number_of_days: ', date_number_of_days)
         print('day_in_past: ', day_in_past)
         print('Date to say: ', date_)
-        if date_exist and self.first_date is not None:
+        if date_exist:
             date_ = say_date(date_)
             start = self.first_date
             self.actions_keywords['delete_date'] = False
@@ -669,15 +670,18 @@ class MonthlyPlanPlugin(BasePlugin):
 
             if start.day_ordinal_number == day_ordinal_number:
                 if self.last_date == self.first_date:
-                    self.last_date = None
-                self.first_date = self.first_date.next
+                    self.last_date = SingleDate('', '')
+                    self.first_date = SingleDate('', '')
+                if isinstance(self.first_date.next, SingleDate):
+                    self.first_date = self.first_date.next
 
                 print('First')
                 return f'The first date {date_} is successfully deleted, \
                 fuction for deleting is deactivated'
 
             previous = start
-            start = start.next
+            if isinstance(start.next, SingleDate):
+                start = start.next
 
             while start.next is not None:
 
@@ -690,7 +694,8 @@ class MonthlyPlanPlugin(BasePlugin):
                     fuction for deleting is deactivated'
 
                 previous = start
-                start = start.next
+                if isinstance(start.next, SingleDate):
+                    start = start.next
 
             self.last_date = previous
             self.last_date.next = None
@@ -721,7 +726,7 @@ class MonthlyPlanPlugin(BasePlugin):
             self.min_similarity = 0.75
             return date_number_of_days
 
-        if date_exist is False and self.first_date is not None:
+        if date_exist is False:
 
             if day_in_past:
 
@@ -731,7 +736,8 @@ class MonthlyPlanPlugin(BasePlugin):
 
             date_in_month = SingleDate(date_, day_ordinal_number)
 
-            if self.last_date is None and self.first_date is None:
+            if self.last_date.date_in_month == '' and self.first_date.date_in_month == '':
+
                 self.first_date = date_in_month
                 self.last_date = date_in_month
 
@@ -754,6 +760,7 @@ class MonthlyPlanPlugin(BasePlugin):
     def add_date(self, activated_keyword: str) -> None:
         """Start adding of date."""
         if activated_keyword in constants.days_ordinal_numbers_keywords:
+            print('Keyword recognised')
             self.end_result['result'] = self.insert_date(activated_keyword)
             self.say_result_put_in_queue()
             return
@@ -825,7 +832,7 @@ class MonthlyPlanPlugin(BasePlugin):
 
     def show_dates(self) -> None:
         """Say/show dates in monthly plan."""
-        if self.first_date is None:
+        if self.first_date.date_in_month == '':
 
             self.end_result['result'] = 'Monthly plan is empty'
             self.say_result_put_in_queue()
@@ -834,13 +841,20 @@ class MonthlyPlanPlugin(BasePlugin):
 
             date_ = self.first_date
             self.end_result['result'] = ''
+            print('first: ', self.first_date)
+            print('last: ', self.last_date)
 
-            while date_ is not None:
+            while date_.date_in_month != '':
                 print('Activity: ', date_.activities)
                 print('date_.date_in_month: ', date_.date_in_month)
                 date__word = say_date(str(date_.date_in_month))
                 self.end_result['result'] += ', ' + date__word
-                date_ = date_.next
+                if isinstance(date_.next, SingleDate):
+                    print('Here')
+                    date_ = date_.next
+                else:
+                    break
+            print('Showing done')
 
             self.end_result['result'] += ', that would be your monthly plan'
             self.say_result_put_in_queue()
@@ -850,6 +864,7 @@ class MonthlyPlanPlugin(BasePlugin):
         if action_activated == 'add_date'\
             and activated_keyword in constants.days_ordinal_numbers_keywords\
                 and self.actions_keywords['add_date']:
+            print('Add_date')
             self.add_date(activated_keyword)
             return
 
@@ -906,13 +921,14 @@ class MonthlyPlanPlugin(BasePlugin):
             if activated:
                 action_activated_ = function
 
-        if action_activated_ != 'False':
+        if action_activated_ == 'False':
             self.activate_action(activated_keyword)
             return
         print('Activated keyword: ', activated_keyword)
         print('Doc: ', doc)
         if activated_keyword == 'False' and self.actions_keywords['add_activity']:
             if str(doc) != '':
-                self.check_keyword(action_activated, str(doc))
+                print('Doc will be used')
+                self.check_keyword(action_activated_, str(doc))
             return
-        self.check_keyword(action_activated, activated_keyword)
+        self.check_keyword(action_activated_, activated_keyword)
