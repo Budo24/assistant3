@@ -154,6 +154,7 @@ class PluginWatcher():
                     if uid == plugin.get_uid():
                         plugin.run_doc(self.doc, self.results_queue)
                         return
+            print("\n\n\t", self.plugins)
             for plugin in self.plugins:
                 print('run_doc')
                 plugin.run_doc(self.doc, self.results_queue)
@@ -172,12 +173,13 @@ class PluginWatcher():
 
         last_record = self.flow_record.get_last()
         
+        
+
         if last_record['type'] == PluginResultType.ERROR:
-            print('LAST RECORD', last_record)
-            print("\n\n")
-            print("ERROR")
-            print("\n\n")
-            run_by_uid(last_record['uid'])
+            if last_record['plugin_type'] == PluginType.TRIGGER_PLUGIN:
+                run_by_uid(last_record['uid'])
+                return flush_result_queue_in_list()
+            run_plugins()
             return flush_result_queue_in_list()
 
         if last_record['plugin_type'] == PluginType.TRIGGER_PLUGIN:
@@ -186,6 +188,24 @@ class PluginWatcher():
             print("FUCK")
             print("\n\n")
             run_plugins()
+            return flush_result_queue_in_list()
+        else:
+            if last_record['type'] == PluginResultType.KEEP_ALIVE:
+                run_trigger()
+                trigger_flushed =  flush_result_queue_in_list()
+                if trigger_flushed[0]['type'] != PluginResultType.ERROR:
+                    print("---------------------------_>>>>")
+                    plugins = self.plugins
+                    for plugin in plugins:
+                        print(plugin) 
+                    self.plugins = [plugin.__class__() for plugin in plugins]
+                    for plugin in self.plugins:
+                        print(plugin) 
+                    print("<<<<<<<<------------------------")
+                    return trigger_flushed
+                run_by_uid(last_record['uid'])
+                return flush_result_queue_in_list()
+            run_trigger()
             return flush_result_queue_in_list()
 
         str_msg = ''
