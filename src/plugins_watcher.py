@@ -164,19 +164,27 @@ class PluginWatcher():
                 res_list.append(self.results_queue.get())
             return res_list
 
-        self.flow_record.printify()
+        # self.flow_record.printify()
 
         if self.flow_record.is_empty():
             run_trigger()
             return flush_result_queue_in_list()
 
         last_record = self.flow_record.get_last()
+        
         if last_record['type'] == PluginResultType.ERROR:
+            print('LAST RECORD', last_record)
+            print("\n\n")
+            print("ERROR")
+            print("\n\n")
             run_by_uid(last_record['uid'])
             return flush_result_queue_in_list()
 
         if last_record['plugin_type'] == PluginType.TRIGGER_PLUGIN:
             print('LAST RECORD', last_record)
+            print("\n\n")
+            print("FUCK")
+            print("\n\n")
             run_plugins()
             return flush_result_queue_in_list()
 

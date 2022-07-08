@@ -32,10 +32,11 @@ feedback_ignore_obj = FeedbackIgnore()
 q: queue.Queue[bytes] = queue.Queue()
 # plugin object
 sdp = processors.base_processor.SpacyDatePlugin()
+mpp = processors.base_processor.MonthlyPlanPlugin()
 # trigger plugin object
 trigger = processors.base_processor.TriggerPlugin()
 # the plugin_watcher object
-plugin_watcher = PluginWatcher([sdp])
+plugin_watcher = PluginWatcher([sdp, mpp])
 # optionaly adding a trigger Plugin ("hey assistant")
 plugin_watcher.add_trigger_plugin(trigger)
 
