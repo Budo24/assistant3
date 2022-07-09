@@ -194,9 +194,9 @@ class PluginWatcher():
         """Show all assigned plugin's uids."""
         try:
             if self.is_trigger_plugin_enabled():
-                print('[ PLIGIN UID ]  ' + str(self.trigger_plugin.get_uid()))
+                print('[ PLUGIN UID ]  ' + str(self.trigger_plugin.get_uid()))
             for plugin in self.plugins:
-                print('[ PLIGIN UID ]  ' + str(plugin.get_uid()))
+                print('[ PLUGIN UID ]  ' + str(plugin.get_uid()))
             return
         except UidNotAssignedError:
             print('MALFUNCTION')
