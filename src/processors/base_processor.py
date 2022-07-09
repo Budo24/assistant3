@@ -228,7 +228,7 @@ class TriggerPlugin(BasePlugin):
             self.queue.put(self.end_result)
             return
         self.end_result['type'] = PluginResultType.TEXT
-        self.end_result['result'] = ''
+        self.end_result['result'] = 'activated'
         self.end_result['plugin_type'] = PluginType.TRIGGER_PLUGIN
         self.end_result['result_speech_func'] = self.spit
         self.queue.put(self.end_result)
