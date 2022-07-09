@@ -1,11 +1,10 @@
 """Plugin Watcher Test."""
 
-import processors
+import datetime
 import queue
-from plugins_watcher import Debug, PluginWatcher
 
-debug = Debug(2, 5)
-print(debug.run())
+import processors
+from plugins_watcher import PluginWatcher
 
 q: queue.Queue[bytes] = queue.Queue()
 # plugin object
@@ -17,25 +16,20 @@ plugin_watcher = PluginWatcher([sdp])
 # optionaly adding a trigger Plugin ("hey assistant")
 plugin_watcher.add_trigger_plugin(trigger)
 
-text = 'hey assistant'
 
-res_list = plugin_watcher.run(text)
-# res_list[0]['result_speech_func']()
+def test_activation_trigger() -> None:
+    """Test activation trigger 'hey assistant'."""
+    text = 'hey assistant'
+    res_list = plugin_watcher.run(text)
+    assert res_list[0]['result'] == 'activated'
 
-plugin_watcher.add_entry_to_flow_record(res_list[0])
 
-# ret_str = ''
-# ret_str += 'returned res_list\n'
-# ret_str += str(res_list)
-# ret_str += '\n'
-# print(ret_str)
-
-print(res_list)
-print()
-print(res_list[0]['uid'])
-print()
-print(res_list[0]['type'])
-
-def test_uid() -> None:
-    """Test uid for plugins."""
-     
+def test_date_plugin() -> None:
+    """Test date plugin."""
+    text1 = 'hey assistant'
+    text2 = 'what date is today'
+    res_list = plugin_watcher.run(text1)
+    print(res_list[0]['result'])
+    plugin_watcher.add_entry_to_flow_record(res_list[0])
+    res_list = plugin_watcher.run(text2)
+    assert res_list[0]['result'] == datetime.datetime.now()
