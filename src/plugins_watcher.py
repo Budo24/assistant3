@@ -44,6 +44,22 @@ class FlowRecord():
         print()
 
 
+class FeedbackIgnore():
+    """The class to ignore feedback noise."""
+
+    def __init__(self) -> None:
+        """Init."""
+        self.feedback_ignore = False
+
+    def toggle_feedback_ignore(self) -> None:
+        """Empty."""
+        self.feedback_ignore = not self.feedback_ignore
+
+    def get_feedback_ignore(self) -> bool:
+        """Empty."""
+        return self.feedback_ignore
+
+
 class PluginWatcher():
     """The class where we maintain Plugins initialization and running.
 
