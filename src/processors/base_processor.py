@@ -471,8 +471,7 @@ def add_to_xls(monthly_plan_to_write: xlsxwriter, date_to_xls_: SingleDate) -> N
         print('Counter:', counter)
         print('Row day: ', row_day)
         print('\n')
-        monthly_plan_to_write.write(constants.xls_sheets[counter] + row_day,
-                                    time_range_activity)
+        monthly_plan_to_write.write(constants.xls_sheets[counter] + row_day, time_range_activity)
 
 
 class MonthlyPlanPlugin(BasePlugin):
