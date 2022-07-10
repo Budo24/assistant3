@@ -7,6 +7,7 @@ from datetime import date
 
 import pyttsx3
 import spacy
+import xlsxwriter
 
 from common import constants
 from common.exceptions import UidNotAssignedError
@@ -105,7 +106,6 @@ class BasePlugin():
         for index, similarity in enumerate(activation_similarities):
             # the logic maybe changed later !
             if similarity == self.min_similarity:
-                print('To return: ', self.activation_dict['docs'][index])
                 return str(self.activation_dict['docs'][index])
         return 'False'
 
@@ -263,7 +263,8 @@ def form_time_range(activated_keyword: str) -> list[str]:
 
         time_range.append(hour_minutes)
         hour_minutes = ''
-
+    if len(time_range) == 5:
+        del time_range[0]
     return time_range
 
 
@@ -292,28 +293,22 @@ def convert_time_range_from_words_to_numbers(time_range: list[str]) -> list[int]
     It is helping function, to enable calculation in time_validy
     """
     time_range_numbers: list[int] = []
-    print('In function on begin: ', time_range)
 
     if len(time_range) != 4:
-        print('Returning')
         return time_range_numbers
 
     for index, _word in enumerate(time_range):
         for numbers, _words in constants.hour_number_to_word.items():
-            print('Numbers: ', numbers)
-            print('')
             if index in (0, 2) and _word == _words:
-                print('Index in hours: ', index)
                 time_range_numbers.append(int(numbers))
 
     for index, _word in enumerate(time_range):
         for numbers, _words in constants.minute_number_to_word.items():
             if index in (1, 3) and _word == _words:
-                print('Index in minutes: ', index)
                 time_range_numbers.append(int(numbers))
-
-    time_range_numbers[2], time_range_numbers[1] = \
-        time_range_numbers[1], time_range_numbers[2]
+    if len(time_range_numbers) > 2:
+        time_range_numbers[2], time_range_numbers[1] = \
+            time_range_numbers[1], time_range_numbers[2]
     print('Time range numbers: ', time_range_numbers)
     return time_range_numbers
 
@@ -460,6 +455,26 @@ def activity_exist(one_date: SingleDate, time_range_numbers: list[int]) -> bool:
     return False
 
 
+def add_to_xls(monthly_plan_to_write: xlsxwriter, date_to_xls_: SingleDate) -> None:
+    """Get time range and activity from dictionary and write in excel file."""
+    time_range_activity = ''
+    print('Add to xls')
+    for counter, (range_time, activity) in enumerate(date_to_xls_.activities.items()):
+        print('Counter: ', counter)
+        range_time_standard = range_time.replace(' ', '-')
+        time_range_activity = range_time_standard + '->' + activity
+        row_day = date_to_xls_.date_in_month.split('-')[-1]
+        if row_day[0] == '0':
+            row_day = row_day[-1]
+            print('\n')
+        print('time range activity: ', time_range_activity)
+        print('Counter:', counter)
+        print('Row day: ', row_day)
+        print('\n')
+        monthly_plan_to_write.write(constants.xls_sheets[counter] + row_day,
+                                    time_range_activity)
+
+
 class MonthlyPlanPlugin(BasePlugin):
     """Monthly Plan."""
 
@@ -570,17 +585,18 @@ class MonthlyPlanPlugin(BasePlugin):
 
     def add_activity_to_time_range(self, activated_keyword: str) -> None:
         """Add activity to created time range."""
-        if self.first_date.date_in_month != '':
-            start = self.first_date
+        start = self.first_date
+        while start.date_in_month != '':
             if start.date_in_month == self.single_day.date_in_month:
                 start.activities[self.time_range_] = activated_keyword
-            while start.next is not None:
-                if start.date_in_month == self.single_day.date_in_month:
-                    start.activities[self.time_range_] = activated_keyword
-            if start.date_in_month == self.single_day.date_in_month:
-                start.activities[self.time_range_] = activated_keyword
+                break
+            if isinstance(start.next, SingleDate):
+                print('Here')
+                start = start.next
+            else:
+                break
 
-    def insert_activity(self, activated_keyword: str) -> str | bool:
+    def insert_activity(self, activated_keyword: str) -> str:
         """Try to insert activity, check also if it is possible."""
         print('Inside')
         print('Activated keyword: ', activated_keyword)
@@ -612,6 +628,7 @@ class MonthlyPlanPlugin(BasePlugin):
                 adding of activity broken'
 
         if self.activity_add:
+            print('Try to add activity to time range')
             self.add_activity_to_time_range(activated_keyword)
             self.actions_keywords['add_activity'] = False
             self.min_similarity = 0.75
@@ -621,7 +638,7 @@ class MonthlyPlanPlugin(BasePlugin):
         if self.time_range_add:
             print('self.time_range_add: ', self.time_range_add)
             return self.time_range(activated_keyword)
-        return False
+        return 'Error'
 
     def say_result_put_in_queue(self) -> None:
         """Send message to queue."""
@@ -785,6 +802,7 @@ class MonthlyPlanPlugin(BasePlugin):
             self.end_result['result'] = 'Break adding of activity'
             self.say_result_put_in_queue()
             return
+        print('Trying to add')
         self.end_result['result'] = self.insert_activity(activated_keyword)
         self.say_result_put_in_queue()
         return
@@ -859,6 +877,25 @@ class MonthlyPlanPlugin(BasePlugin):
             self.end_result['result'] += ', that would be your monthly plan'
             self.say_result_put_in_queue()
 
+    def write_xls(self) -> None:
+        """Write activities and time ranges from date in monthly plan."""
+        date_to_xls = self.first_date
+        print('Inside of write')
+        monthly_plan = xlsxwriter.Workbook('monthly_plan.xlsx')
+        monthly_plan_to_write = monthly_plan.add_worksheet()
+        print('print')
+        print(date_to_xls.date_in_month)
+        while date_to_xls is not None:
+            print('Right position')
+            add_to_xls(monthly_plan_to_write, date_to_xls)
+            if isinstance(date_to_xls, SingleDate):
+                date_to_xls = date_to_xls.next
+            else:
+                break
+        monthly_plan.close()
+        self.end_result['result'] = 'All time ranges and activies are written'
+        self.say_result_put_in_queue()
+
     def check_keyword(self, action_activated: str | bool, activated_keyword: str) -> None:
         """Start contronling of plugin by given keyword."""
         if action_activated == 'add_date'\
@@ -912,6 +949,10 @@ class MonthlyPlanPlugin(BasePlugin):
 
         if activated_keyword == constants.actions_keywords[1]:
             self.show_dates()
+            return
+
+        if activated_keyword == constants.actions_keywords[6]:
+            self.write_xls()
             return
 
         action_activated = False
