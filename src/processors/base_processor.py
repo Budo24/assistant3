@@ -3,13 +3,12 @@ import datetime
 import queue
 import time
 import typing
-from datetime import date
 
 import pyttsx3
 import spacy
 import xlsxwriter
 
-from common import constants
+from common import constants, helpers
 from common.exceptions import UidNotAssignedError
 from common.plugins import PluginResultType, PluginType
 
@@ -242,164 +241,6 @@ class TriggerPlugin(BasePlugin):
         return
 
 
-def form_time_range(activated_keyword: str) -> list[str]:
-    """Form time range from said time range."""
-    activated_keyword_ = activated_keyword.split(' ')
-    hour_minutes = ''
-    time_range = []
-    skip_interation = False
-
-    for index, keyword in enumerate(activated_keyword_):
-        if skip_interation:
-            skip_interation = False
-            continue
-
-        hour_minutes += keyword
-        if ('twenty' or 'thirty') == keyword \
-            and activated_keyword_[index + 1] != 'zero' \
-                and activated_keyword_[index + 1] != 'thirty':
-            hour_minutes += ' ' + activated_keyword_[index + 1]
-            skip_interation = True
-
-        time_range.append(hour_minutes)
-        hour_minutes = ''
-    if len(time_range) == 5:
-        del time_range[0]
-    return time_range
-
-
-def create_date(ordinal_number_day: str) -> str:
-    """Create date in current month.
-
-    Create date in month using just day, given like ordinal number
-    """
-    day_created = 'not created'
-
-    for word, number in constants.ordinal_number_to_number.items():
-        if word == ordinal_number_day:
-            day_ = number
-            day_created = 'created'
-
-    today = date.today()
-    create_date_ = str(today)
-    if day_created == 'created':
-        return str(create_date_[:-2]) + str(day_)
-    return day_created
-
-
-def convert_time_range_from_words_to_numbers(time_range: list[str]) -> list[int]:
-    """Convert time range from words to numbers.
-
-    It is helping function, to enable calculation in time_validy
-    """
-    time_range_numbers: list[int] = []
-
-    if len(time_range) != 4:
-        return time_range_numbers
-
-    for index, _word in enumerate(time_range):
-        for numbers, _words in constants.hour_number_to_word.items():
-            if index in (0, 2) and _word == _words:
-                time_range_numbers.append(int(numbers))
-
-    for index, _word in enumerate(time_range):
-        for numbers, _words in constants.minute_number_to_word.items():
-            if index in (1, 3) and _word == _words:
-                time_range_numbers.append(int(numbers))
-    if len(time_range_numbers) > 2:
-        time_range_numbers[2], time_range_numbers[1] = \
-            time_range_numbers[1], time_range_numbers[2]
-    print('Time range numbers: ', time_range_numbers)
-    return time_range_numbers
-
-
-def check_number_of_days_in_month(_date: str) -> str | bool:
-    """Check if given day like ordinal number exist in month.
-
-    To avoid for example 31-06-2022
-    """
-    _date_ = _date.split('-')
-    date_days = _date_[2]
-    date_month = _date_[1]
-    date_year = int(_date_[0])
-
-    print('Date days: ', date_days)
-    print('Date month: ', date_month)
-    print('Date year: ', date_year)
-
-    for month, days in constants.month_days.items():
-        if date_days > days and date_month == month:
-
-            if date_month == '02' and date_days == '29':
-                if date_year % 4 == 0:
-                    return True
-                return f'This year february has {days} days'
-            return f'This month has {days} days'
-    return True
-
-
-def time_range_validy(time_range_numbers: list[int]) -> int:
-    """Chech if time range make sense.
-
-    To avoid activity between 16:00 - 15:00
-    """
-    time_range = -1
-    all_integers = True
-    print('Time_range_numbers', time_range_numbers)
-    for element in time_range_numbers:
-        if not isinstance(element, int):
-            all_integers = False
-
-    if len(time_range_numbers) != 4:
-        all_integers = False
-
-    if all_integers:
-        print('Time range validy: ', time_range_numbers)
-        time_range = (time_range_numbers[2] * 60 + time_range_numbers[3])\
-            - (time_range_numbers[0] * 60 + time_range_numbers[1])
-        print('time_range: ', time_range)
-
-    return time_range
-
-
-def day_today() -> str:
-    """Give day in date from today."""
-    day_today_ = str(date.today())
-    return day_today_[len(day_today_) - 2:]
-
-
-def day_past_in_monthly_plan(date_to_insert: str) -> str | bool:
-    """Check if day in date is before or after today."""
-    day = date_to_insert[len(date_to_insert) - 2:]
-    day_today_ = day_today()
-
-    if day_today_ > day:
-        return constants.answers[5]
-    if day_today_ == day:
-        return constants.answers[6]
-    return False
-
-
-def say_date(date_to_say: str) -> str:
-    """Convert from form date, to form to say.
-
-    Example 20-06-2022 -> twenty sixth 2022
-    """
-    date_to_say_ = date_to_say.split('-')
-    day = date_to_say_[2]
-    month = date_to_say_[1]
-    year = date_to_say_[0]
-
-    for number_, month_ in constants.month_number_to_word.items():
-        if number_ == month:
-            month = month_
-
-    for word_, number_ in constants.ordinal_number_to_number.items():
-        if number_ == day:
-            day = word_
-    return day + ' ' + month + ' ' + year
-
-
 class SingleDate:
     """One single date in month."""
 
@@ -563,13 +404,13 @@ class MonthlyPlanPlugin(BasePlugin):
 
     def time_range(self, activated_keyword: str) -> str:
         """Create and check if it is possible to add time range."""
-        time_range_words = form_time_range(activated_keyword)
+        time_range_words = helpers.form_time_range(activated_keyword)
         print('Time range: ', time_range_words)
         time_range_numbers = \
-            convert_time_range_from_words_to_numbers(time_range_words)
+            helpers.convert_time_range_from_words_to_numbers(time_range_words)
         print('Time range numbers: ', time_range_numbers)
         time_range_possible = \
-            time_range_validy(time_range_numbers)
+            helpers.time_range_validy(time_range_numbers)
         print('Time range possible: ', time_range_possible)
         return self.activity_in_time(time_range_possible, time_range_numbers, time_range_words)
 
@@ -614,14 +455,14 @@ class MonthlyPlanPlugin(BasePlugin):
                 print('self.said_day: ', self.said_day)
                 self.single_day = self.give_date_from_monthly_plan(self.said_day)
                 print('Self.single_day: ', self.single_day)
-                tell_date = say_date(self.said_day)
+                tell_date = helpers.say_date(self.said_day)
                 return f'Date {tell_date} exist in monthly plan, \
                     you can add time range'
 
             print('Does not exist')
             self.actions_keywords['add_activity'] = False
             self.min_similarity = 0.75
-            tell_date = say_date(self.said_day)
+            tell_date = helpers.say_date(self.said_day)
             self.reset_activity()
             return f'Date {tell_date} does not exist in monthly plan, \
                 adding of activity broken'
@@ -663,9 +504,9 @@ class MonthlyPlanPlugin(BasePlugin):
     ) -> tuple[bool, str | bool, str | bool, str]:
         """Check general informations of input, before doing a action, in monthly plan."""
         date_already_exist = self.check_existing_dates(day_ordinal_number)
-        date_ = create_date(day_ordinal_number)
-        day_in_past = day_past_in_monthly_plan(date_)
-        check_number_of_days = check_number_of_days_in_month(date_)
+        date_ = helpers.create_date(day_ordinal_number)
+        day_in_past = helpers.day_past_in_monthly_plan(date_)
+        check_number_of_days = helpers.check_number_of_days_in_month(date_)
         return date_already_exist, check_number_of_days, day_in_past, date_
 
     def delete_date_(self, day_ordinal_number: str) -> str:
@@ -679,7 +520,7 @@ class MonthlyPlanPlugin(BasePlugin):
         print('day_in_past: ', day_in_past)
         print('Date to say: ', date_)
         if date_exist:
-            date_ = say_date(date_)
+            date_ = helpers.say_date(date_)
             start = self.first_date
             self.actions_keywords['delete_date'] = False
             self.min_similarity = 0.75
@@ -718,7 +559,7 @@ class MonthlyPlanPlugin(BasePlugin):
             print('Third')
             return f'The last date {date_} in the monthly plan is deleted'
 
-        date_ = say_date(date_)
+        date_ = helpers.say_date(date_)
         self.actions_keywords['delete_date'] = False
         self.min_similarity = 0.75
         print('Fourth')
@@ -761,7 +602,7 @@ class MonthlyPlanPlugin(BasePlugin):
                 self.last_date.next = date_in_month
                 self.last_date = date_in_month
             print('We are trying to say date')
-            date_ = say_date(date_)
+            date_ = helpers.say_date(date_)
             self.actions_keywords['add_date'] = False
             self.min_similarity = 0.75
 
@@ -770,7 +611,7 @@ class MonthlyPlanPlugin(BasePlugin):
 
         self.actions_keywords['add_date'] = False
         self.min_similarity = 0.75
-        date_ = say_date(date_)
+        date_ = helpers.say_date(date_)
         return f'Date {date_} already exist in monthly plan'
 
     def add_date(self, activated_keyword: str) -> None:
@@ -864,7 +705,7 @@ class MonthlyPlanPlugin(BasePlugin):
             while date_.date_in_month != '':
                 print('Activity: ', date_.activities)
                 print('date_.date_in_month: ', date_.date_in_month)
-                date__word = say_date(str(date_.date_in_month))
+                date__word = helpers.say_date(str(date_.date_in_month))
                 self.end_result['result'] += ', ' + date__word
                 if isinstance(date_.next, SingleDate):
                     print('Here')
