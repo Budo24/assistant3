@@ -26,8 +26,10 @@ def form_time_range(activated_keyword: str) -> list[str]:
 
         time_range.append(hour_minutes)
         hour_minutes = ''
+
     if len(time_range) == 5:
         del time_range[0]
+
     return time_range
 
 
@@ -45,8 +47,10 @@ def create_date(ordinal_number_day: str) -> str:
 
     today = date.today()
     create_date_ = str(today)
+
     if day_created == 'created':
         return str(create_date_[:-2]) + str(day_)
+
     return day_created
 
 
@@ -69,10 +73,11 @@ def convert_time_range_from_words_to_numbers(time_range: list[str]) -> list[int]
         for numbers, _words in constants.minute_number_to_word.items():
             if index in (1, 3) and _word == _words:
                 time_range_numbers.append(int(numbers))
+
     if len(time_range_numbers) > 2:
         time_range_numbers[2], time_range_numbers[1] = \
             time_range_numbers[1], time_range_numbers[2]
-    print('Time range numbers: ', time_range_numbers)
+
     return time_range_numbers
 
 
@@ -86,10 +91,6 @@ def check_number_of_days_in_month(_date: str) -> str | bool:
     date_month = _date_[1]
     date_year = int(_date_[0])
 
-    print('Date days: ', date_days)
-    print('Date month: ', date_month)
-    print('Date year: ', date_year)
-
     for month, days in constants.month_days.items():
         if date_days > days and date_month == month:
 
@@ -98,6 +99,7 @@ def check_number_of_days_in_month(_date: str) -> str | bool:
                     return True
                 return f'This year february has {days} days'
             return f'This month has {days} days'
+
     return True
 
 
@@ -108,7 +110,6 @@ def time_range_validy(time_range_numbers: list[int]) -> int:
     """
     time_range = -1
     all_integers = True
-    print('Time_range_numbers', time_range_numbers)
     for element in time_range_numbers:
         if not isinstance(element, int):
             all_integers = False
@@ -117,7 +118,6 @@ def time_range_validy(time_range_numbers: list[int]) -> int:
         all_integers = False
 
     if all_integers:
-        print('Time range validy: ', time_range_numbers)
         time_range = (time_range_numbers[2] * 60 + time_range_numbers[3])\
             - (time_range_numbers[0] * 60 + time_range_numbers[1])
         print('time_range: ', time_range)
