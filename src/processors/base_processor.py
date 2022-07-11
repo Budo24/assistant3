@@ -482,7 +482,7 @@ class MonthlyPlanPlugin(BasePlugin):
 
     def say_result_put_in_queue(self) -> None:
         """Send message to queue."""
-        self.end_result['type'] = PluginResultType.TEXT
+        self.end_result['type'] = PluginResultType.KEEP_ALIVE
         self.end_result['result_speech_func'] = super().spit_text
         self.queue.put(self.end_result)
 
