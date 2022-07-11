@@ -13,11 +13,6 @@ from common.exceptions import UidNotAssignedError
 from common.plugins import PluginResultType, PluginType
 
 
-def spit() -> None:
-    """Play response audio."""
-    print('SPIT')
-
-
 class BasePlugin():
     """Base Class from which all plugins need to inherit."""
 
@@ -28,10 +23,16 @@ class BasePlugin():
         # pyttsx3 object for voice response
         self.engine = pyttsx3.init()
         # this will hold the activation/reference sentence or sentences
-        self.activation_dict: dict[str, list[typing.Any]] = {
+        self.activation_dict: dict[str, typing.Any] = {
             'docs': [],
+            'general_tts_error_message': 'please try again',
+            'flow': [{
+                'doc_no': 1,
+                'tts_error_message': 'please try again',
+            }],
         }
         # unique id
+
         self.uid: object = None
         # this is the result dict with several informations like
         # - uid
@@ -56,19 +57,6 @@ class BasePlugin():
         # this is used by SpaCy and can also be changed in each plugin
         self.min_similarity = 0.75
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
-        """Run_doc."""
-        print('self.activation_dict', self.activation_dict)
-        ret_str = ''
-        ret_str += 'Not implemented, [todo] should raise exception instead\n'
-        ret_str += 'doc: '
-        ret_str += str(doc.__class__)
-        ret_str += '\n'
-        ret_str += 'queue: '
-        ret_str += str(_queue.__class__)
-        ret_str += '\n'
-        print(ret_str)
-
     def similar_keyword_activated(self, target: object) -> str:
         """Search after similar words.
 
@@ -79,10 +67,25 @@ class BasePlugin():
             # if there is no reference phrases, not activated
             return 'False'
         activation_similarities = self.get_activation_similarities(target)
-
         for index, similarity in enumerate(activation_similarities):
             # the logic maybe changed later !
             if similarity > self.min_similarity:
+                return str(self.activation_dict['docs'][index])
+        return 'False'
+
+    def exact_keyword_activated(self, target: object) -> str:
+        """Find exact keyword.
+
+        Check if given keyword is the same compared to known known keywords
+        """
+        if len(self.activation_dict['docs']) == 0:
+            # if there is no reference phrases, not activated
+            return 'False'
+        activation_similarities = self.get_activation_similarities(target)
+        for index, similarity in enumerate(activation_similarities):
+            # the logic maybe changed later !
+            if similarity == self.min_similarity:
+                print('To return: ', self.activation_dict['docs'][index])
                 return str(self.activation_dict['docs'][index])
         return 'False'
 
@@ -94,21 +97,20 @@ class BasePlugin():
         self.engine.say(self.end_result['result'])
         self.engine.runAndWait()
 
-    def exact_keyword_activated(self, target: object) -> str:
-        """Find exact keyword.
+    def spit(self) -> None:
+        """Play response audio."""
+        if self:
+            pass
+        print('SPIT')
 
-        Check if given keyword is the same compared to known known keywords
-        """
-        if len(self.activation_dict['docs']) == 0:
-            # if there is no reference phrases, not activated
-            return 'False'
-        activation_similarities = self.get_activation_similarities(target)
+    def get_general_tts_error_message(self) -> object:
+        """Empty."""
+        return self.activation_dict['general_tts_error_message']
 
-        for index, similarity in enumerate(activation_similarities):
-            # the logic maybe changed later !
-            if similarity == self.min_similarity:
-                return str(self.activation_dict['docs'][index])
-        return 'False'
+    def error_spit(self) -> None:
+        """Play error response audio."""
+        self.engine.say(self.get_general_tts_error_message())
+        self.engine.runAndWait()
 
     def get_activation_similarities(self, target: object) -> list[typing.Any]:
         """Return a similarity between 0 and 1.
@@ -124,7 +126,7 @@ class BasePlugin():
             return False
         activation_similarities = self.get_activation_similarities(target)
         print(activation_similarities)
-        return bool(similarity > self.min_similarity for similarity in activation_similarities)
+        return any(similarity > self.min_similarity for similarity in activation_similarities)
 
     def init_activation_doc(self) -> None:
         """Add a SpaCy Object to the reference phrases.
@@ -168,6 +170,21 @@ class BasePlugin():
             return self.uid
         raise UidNotAssignedError
 
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
+        """Run_doc."""
+        if self:
+            pass
+
+        ret_str = ''
+        ret_str += 'Not implemented, [todo] should raise exception instead\n'
+        ret_str += 'doc: '
+        ret_str += str(doc.__class__)
+        ret_str += '\n'
+        ret_str += 'queue: '
+        ret_str += str(_queue.__class__)
+        ret_str += '\n'
+        print(ret_str)
+
 
 class BaseInitializationErrorPlugin(BasePlugin):
     """BaseInitializationErrorPlugin."""
@@ -176,6 +193,18 @@ class BaseInitializationErrorPlugin(BasePlugin):
         """Init."""
         self.error_details = error_details
         super().__init__(match='')
+
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
+        """Run_doc."""
+        ret_str = ''
+        ret_str += 'Not implemented, [todo] should raise exception instead\n'
+        ret_str += 'doc: '
+        ret_str += str(doc.__class__)
+        ret_str += '\n'
+        ret_str += 'queue: '
+        ret_str += str(_queue.__class__)
+        ret_str += '\n'
+        print(ret_str)
 
 
 class SpacyDatePlugin(BasePlugin):
@@ -202,13 +231,17 @@ class SpacyDatePlugin(BasePlugin):
         # check if plugin is activted
         activated = self.is_activated(doc)
         if not activated:
-            print('***')
+            self.end_result['type'] = PluginResultType.ERROR
+            self.end_result['result'] = ''
+            self.end_result['result_speech_func'] = self.error_spit
+            # here we push it to the results queue passed by pw
+            self.queue.put(self.end_result)
             return
         output_result_value = datetime.datetime.now()
         # here we set some informations in the result dict
         self.end_result['type'] = PluginResultType.TEXT
         self.end_result['result'] = output_result_value
-        self.end_result['result_speech_func'] = spit
+        self.end_result['result_speech_func'] = self.spit
         # here we push it to the results queue passed by pw
         self.queue.put(self.end_result)
         return
@@ -222,6 +255,7 @@ class TriggerPlugin(BasePlugin):
         super().__init__('hey assistant')
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
         self.min_similarity = 0.99
+        self.activation_dict['general_tts_error_message'] = 'did not match hey assistant'
 
     def spit(self) -> None:
         """Play response audio."""
@@ -232,13 +266,19 @@ class TriggerPlugin(BasePlugin):
         """Run_doc."""
         self.queue = _queue
         activated = self.is_activated(doc)
+        print('****', activated)
         if not activated:
-            print('***')
+            self.end_result['type'] = PluginResultType.ERROR
+            self.end_result['result'] = ''
+            self.end_result['plugin_type'] = PluginType.TRIGGER_PLUGIN
+            self.end_result['result_speech_func'] = self.error_spit
+            # here we push it to the results queue passed by pw
+            self.queue.put(self.end_result)
             return
         self.end_result['type'] = PluginResultType.TEXT
-        self.end_result['result'] = datetime.datetime.now()
+        self.end_result['result'] = ''
         self.end_result['plugin_type'] = PluginType.TRIGGER_PLUGIN
-        self.end_result['result_speech_func'] = spit
+        self.end_result['result_speech_func'] = self.spit
         self.queue.put(self.end_result)
         return
 
