@@ -134,6 +134,7 @@ actions_keywords = [
     'activity',
     'delete activity',
     'insert',
+    'right',
 ]
 
 answers = [
@@ -152,4 +153,32 @@ answers = [
     'Deleting of date broken',
     'Adding of activity broken',
     'Date exist in monthly plan, you can try to add time range of activity',
+]
+xls_sheets = [
+    'A',
+    'B',
+    'C',
+    'D',
+    'E',
+    'F',
+    'G',
+    'H',
+    'I',
+    'J',
+    'K',
+    'L',
+    'M',
+    'N',
+    'O',
+    'P',
+    'Q',
+    'R',
+    'S',
+    'T',
+    'U',
+    'V',
+    'W',
+    'X',
+    'Y',
+    'Z',
 ]
