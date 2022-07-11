@@ -698,18 +698,22 @@ class MonthlyPlanPlugin(BasePlugin):
             self.actions_keywords['add_date'] = True
             self.end_result['result'] = constants.answers[1]
             self.say_result_put_in_queue()
+            return
 
         if activated_keyword == constants.actions_keywords[2]:
 
             self.actions_keywords['delete_date'] = True
             self.end_result['result'] = constants.answers[2]
             self.say_result_put_in_queue()
+            return
 
         if activated_keyword == constants.actions_keywords[3]:
 
             self.actions_keywords['add_activity'] = True
             self.end_result['result'] = constants.answers[3]
             self.say_result_put_in_queue()
+            return
+        return
 
     def show_dates(self) -> None:
         """Say/show dates in monthly plan."""
@@ -819,6 +823,7 @@ class MonthlyPlanPlugin(BasePlugin):
 
         if action_activated_ == 'False':
             self.activate_action(activated_keyword)
+            print('---------------------------------------------------NOT REACHED')
             return
 
         print('Activated keyword: ', activated_keyword)
@@ -828,4 +833,5 @@ class MonthlyPlanPlugin(BasePlugin):
             if str(doc) != '':
                 self.check_keyword(action_activated_, str(doc))
             return
+        print('--------------------------------------------------------REACHED')
         self.check_keyword(action_activated_, activated_keyword)

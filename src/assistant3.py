@@ -93,11 +93,11 @@ def record(args: argparse.Namespace) -> None:
 
                     res_list = plugin_watcher.run(text)
                     feedback_ignore_obj.toggle_feedback_ignore()
-                    res_list[0]['result_speech_func']()
+                    if len(res_list) > 0:
+                        res_list[0]['result_speech_func']()
                     feedback_ignore_obj.toggle_feedback_ignore()
-
-                    plugin_watcher.add_entry_to_flow_record(res_list[0])
-
+                    if len(res_list) > 0:
+                        plugin_watcher.add_entry_to_flow_record(res_list[0])
                     ret_str = ''
                     ret_str += 'returned res_list\n'
                     ret_str += str(res_list)
