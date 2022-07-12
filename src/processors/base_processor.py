@@ -9,6 +9,7 @@ import spacy
 
 from common.exceptions import UidNotAssignedError
 from common.plugins import PluginResultType, PluginType
+from bestellung_management import OrderManager
 
 
 class BasePlugin():
@@ -16,6 +17,14 @@ class BasePlugin():
 
     def __init__(self, match: str):
         """Contain the reference initial doc passed later from each plugin."""
+        #this is hamza benkhayi
+        self.order_manager = OrderManager()
+        """self.doc_add = '0'
+        self.db_object = MakeDB()
+        self.rack_object = MakeRacks()
+        self.db_object.make_db_plugin()
+        self.db_object.make_db()"""
+        #en of hamza benkhayi
         self.init_doc = match
         self.spacy_model = spacy.blank('en')
         # pyttsx3 object for voice response
@@ -53,6 +62,10 @@ class BasePlugin():
         # default minimum similarity, for a plugin to be activated,
         # this is used by SpaCy and can also be changed in each plugin
         self.min_similarity = 0.75
+
+    ##hamza benkhayi
+
+    ##end of hamza
 
     def spit(self) -> None:
         """Play response audio."""
@@ -159,29 +172,55 @@ class BaseInitializationErrorPlugin(BasePlugin):
         print(ret_str)
 
 
-class SpacyDatePlugin(BasePlugin):
-    """SpacyDatePlugin."""
+class AddOrderPlugin(BasePlugin):
 
     def __init__(self) -> None:
-        """Pass the initial reference phrase to the parent Object (BasePlugin).
-
-        and it will take care of adding it as described
-        above
-        """
-        super().__init__('what is the date')
+        super().__init__('add new order')
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
+        self.min_similarity = 0.99
+        self.add_activation_doc('stop')
+        #self.order_manager.db_object.insert_db_plugin(['activ', '0', '0', 0])
 
     def spit(self) -> None:
         """Play response audio."""
-        print(time.strftime('%c'))
-        self.engine.say(time.strftime('%c'))
+        self.get_next_item()
+
+    def get_next_item(self):
+        """Say what i should do for the next step in the filling from plug.db"""
+        task = self.order_manager.db_object.read_db_plugin()
+        for key in task:
+            if task[key] == 'activ':
+                self.engine.say('please say' + key)
+                self.engine.runAndWait()
+                break
+        else:
+            self.interrupt_task('stop for dont save')
+
+    def interrupt_task(self, set_control: str):
+        self.order_manager.set_interrupt_control(2)
+        self.order_manager.update_db(self.order_manager.get_order_list())
+        self.engine.say(set_control)
         self.engine.runAndWait()
 
     def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
         """Run_doc."""
         self.queue = _queue
-        # check if plugin is activted
-        activated = self.is_activated(doc)
+        task = self.order_manager.db_object.read_db_plugin()
+        if self.order_manager.get_interrupt_control() == 2:
+            activated = True
+            self.order_manager.update_db(['activ', '0', '0', 1])
+        elif self.order_manager.get_interrupt_control() == 0:
+            activated = self.is_activated(doc)
+            if activated:
+                self.order_manager.update_db(['activ', '0', '0', 1])
+        elif self.order_manager.get_interrupt_control() == 1:
+            for key in task:
+                if task[key] == '0':
+                    task[key] = 'activ'
+                    break
+            self.order_manager.update_db(self.order_manager.creat_list_order(task))
+            activated = True
+        print('****', activated)
         if not activated:
             self.end_result['type'] = PluginResultType.ERROR
             self.end_result['result'] = ''
@@ -189,12 +228,10 @@ class SpacyDatePlugin(BasePlugin):
             # here we push it to the results queue passed by pw
             self.queue.put(self.end_result)
             return
-        output_result_value = datetime.datetime.now()
-        # here we set some informations in the result dict
         self.end_result['type'] = PluginResultType.TEXT
-        self.end_result['result'] = output_result_value
+        self.end_result['result'] = ''
+        self.end_result['plugin_type'] = PluginType.SYSTEM_PLUGIN
         self.end_result['result_speech_func'] = self.spit
-        # here we push it to the results queue passed by pw
         self.queue.put(self.end_result)
         return
 
@@ -211,13 +248,41 @@ class TriggerPlugin(BasePlugin):
 
     def spit(self) -> None:
         """Play response audio."""
-        self.engine.say('how can i help')
-        self.engine.runAndWait()
+        if self.order_manager.get_interrupt_control() == 0:
+            self.engine.say('how can i help')
+            self.engine.runAndWait()
+        elif self.order_manager.get_interrupt_control() == 1:
+            self.engine.say('you gave me' + str(self.order_manager.doc_add))
+            self.engine.runAndWait()
+        elif self.order_manager.get_interrupt_control() == 2:
+            self.engine.say('new order')
+            self.engine.runAndWait()
 
     def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
         """Run_doc."""
+        print("HEEEERRR", doc)
         self.queue = _queue
-        activated = self.is_activated(doc)
+        task = self.order_manager.db_object.read_db_plugin()
+        get_status = self.order_manager.check_add_order_triger(task, doc)
+        if get_status == 'task empty':
+            activated = self.is_activated(doc)
+            if activated:
+                self.order_manager.db_object.insert_db_plugin(['activ', '0', '0', 0])
+        else:
+            if get_status == 'stop is activated. remove the actually order':
+                activated = self.is_activated(doc)
+            elif get_status == 'we will add new order':
+                activated = self.order_manager.stor_task_in_racks()
+            else:
+                if get_status == 'interrupt plugin AddOrder':
+                    activated = self.is_activated(doc)
+                elif get_status == 'we will continue with this order':
+                    activated = True
+                elif get_status == 'we had an order not continued with state not activ. remove it':
+                    activated = self.is_activated(doc)
+                    if activated:
+                        self.order_manager.db_object.insert_db_plugin(['activ', '0', '0', 0])
+
         print('****', activated)
         if not activated:
             self.end_result['type'] = PluginResultType.ERROR
@@ -231,5 +296,6 @@ class TriggerPlugin(BasePlugin):
         self.end_result['result'] = ''
         self.end_result['plugin_type'] = PluginType.TRIGGER_PLUGIN
         self.end_result['result_speech_func'] = self.spit
+
         self.queue.put(self.end_result)
         return

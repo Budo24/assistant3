@@ -31,11 +31,11 @@ class FeedbackIgnore():
 feedback_ignore_obj = FeedbackIgnore()
 q: queue.Queue[bytes] = queue.Queue()
 # plugin object
-sdp = processors.base_processor.SpacyDatePlugin()
+aop = processors.base_processor.AddOrderPlugin()
 # trigger plugin object
 trigger = processors.base_processor.TriggerPlugin()
 # the plugin_watcher object
-plugin_watcher = PluginWatcher([sdp])
+plugin_watcher = PluginWatcher([aop])
 # optionaly adding a trigger Plugin ("hey assistant")
 plugin_watcher.add_trigger_plugin(trigger)
 
@@ -88,7 +88,7 @@ def record(args: argparse.Namespace) -> None:
                     res = rec.Result()
                     text = res.replace('\n', '')
                     text = text.replace('{  "text" : "', '').replace('"}', '')
-                    print(text)
+                    print("HEEEWWWWWPPPP:::::::", text)
 
                     res_list = plugin_watcher.run(text)
                     feedback_ignore_obj.toggle_feedback_ignore()
@@ -123,7 +123,8 @@ def main() -> None:
     otherwise if the sentence is not yet complete it shows it as partial result
     """
     print('-->')
-    sdp.list_activation_docs()
+    #sdp.list_activation_docs()
+    #aop.list_activation_docs()
     trigger.list_activation_docs()
     print('<--')
     plugin_watcher.list_plugins_by_uid()
@@ -161,6 +162,7 @@ def main() -> None:
 
     try:
         record(args)
+
     except KeyboardInterrupt:
         print('\nDone')
         parser.exit(0)
