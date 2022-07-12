@@ -117,6 +117,8 @@ class BasePlugin():
 
         list length is the same as how many reference phrases there is
         """
+        for doc in self.activation_dict['docs']:
+            print('doc: ', doc)
         return [doc.similarity(target) for doc in self.activation_dict['docs']]
 
     def is_activated(self, target: object) -> bool:
@@ -124,6 +126,7 @@ class BasePlugin():
         if len(self.activation_dict['docs']) == 0:
             # if there is no reference phrases, not activated
             return False
+        print('TARGET: ', target)
         activation_similarities = self.get_activation_similarities(target)
         print(activation_similarities)
         return any(similarity > self.min_similarity for similarity in activation_similarities)
@@ -217,6 +220,9 @@ class SpacyDatePlugin(BasePlugin):
         above
         """
         super().__init__('what is the date')
+        self.add_activation_doc('what is the date')
+        # self.add_activation_doc('what is the date')
+        print('IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII')
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
 
     def spit(self) -> None:
@@ -227,6 +233,7 @@ class SpacyDatePlugin(BasePlugin):
 
     def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
         """Run_doc."""
+        print('---------------------------------------------SPACE')
         self.queue = _queue
         # check if plugin is activted
         activated = self.is_activated(doc)
@@ -268,6 +275,7 @@ class TriggerPlugin(BasePlugin):
         activated = self.is_activated(doc)
         print('****', activated)
         if not activated:
+            print('--------------------------------INSIDE OF TRIGGER PLUGIN')
             self.end_result['type'] = PluginResultType.ERROR
             self.end_result['result'] = ''
             self.end_result['plugin_type'] = PluginType.TRIGGER_PLUGIN
@@ -507,7 +515,14 @@ class MonthlyPlanPlugin(BasePlugin):
 
     def say_result_put_in_queue(self) -> None:
         """Send message to queue."""
-        self.end_result['type'] = PluginResultType.KEEP_ALIVE
+        trigger_again = False
+        for _action, activated in self.actions_keywords.items():
+            if activated is True:
+                self.end_result['type'] = PluginResultType.KEEP_ALIVE
+                trigger_again = True
+                break
+        if trigger_again is False:
+            self.end_result['type'] = PluginResultType.TEXT
         self.end_result['result_speech_func'] = super().spit_text
         self.queue.put(self.end_result)
 

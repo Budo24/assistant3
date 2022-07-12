@@ -146,14 +146,21 @@ class PluginWatcher():
                 run_plugins(uid)
 
         def run_trigger() -> None:
+            print('----------------------------Budo')
+            print('self.doc, self.results_queue: ', self.doc, self.results_queue)
+            print('----------------------------Budo')
             self.trigger_plugin.run_doc(self.doc, self.results_queue)
 
         def run_plugins(uid: object = None) -> None:
+            print('run_plugins function')
             if uid:
+                print('uid', uid)
                 for plugin in self.plugins:
+                    print('plugin', plugin)
                     if uid == plugin.get_uid():
                         plugin.run_doc(self.doc, self.results_queue)
                         return
+            print('not uid')
             print("\n\n\t", self.plugins)
             for plugin in self.plugins:
                 print('run_doc')
@@ -161,8 +168,10 @@ class PluginWatcher():
 
         def flush_result_queue_in_list() -> list[dict[str, object]]:
             res_list = []
+            print('Size: ', self.results_queue.qsize())
             while self.results_queue.qsize() != 0:
                 res_list.append(self.results_queue.get())
+            print('res_list: ', res_list)
             return res_list
 
         # self.flow_record.printify()
@@ -191,6 +200,7 @@ class PluginWatcher():
             return flush_result_queue_in_list()
         else:
             if last_record['type'] == PluginResultType.KEEP_ALIVE:
+                print('Last record recognised')
                 run_trigger()
                 trigger_flushed =  flush_result_queue_in_list()
                 if trigger_flushed[0]['type'] != PluginResultType.ERROR:
@@ -198,14 +208,22 @@ class PluginWatcher():
                     plugins = self.plugins
                     for plugin in plugins:
                         print(plugin) 
+                    print('\n\n')
                     self.plugins = [plugin.__class__() for plugin in plugins]
+                    ## IHEB LINE DONE YERY IMPORTANT, UID IS IN PLUGIN WATCHER!!!
+                    self.init()
                     for plugin in self.plugins:
                         print(plugin) 
                     print("<<<<<<<<------------------------")
                     return trigger_flushed
                 run_by_uid(last_record['uid'])
                 return flush_result_queue_in_list()
-            run_trigger()
+            if speech_text == 'hey assistant':
+                print('Hey assistant said')
+                run_trigger()
+            else:
+                print('Hey assistant not said')
+                run_plugins()
             return flush_result_queue_in_list()
 
         str_msg = ''
