@@ -33,7 +33,8 @@ def int_or_str(text: str | int) -> str | int:
         return text
 
 
-def arg_parser():
+def arg_parser() -> tuple[argparse.Namespace, argparse.ArgumentParser]:
+    """Parse arguments."""
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument(
         '-l',
@@ -82,7 +83,7 @@ def record(args: argparse.Namespace) -> str:
             text = res.replace('\n', '')
             text = text.replace('{  "text" : "', '').replace('"}', '')
 
-            return text
+            return str(text)
 
         print(rec.PartialResult())
         if dump_file_exist:
@@ -90,7 +91,7 @@ def record(args: argparse.Namespace) -> str:
                 dump_fn.write(data)
 
 
-def plugin_runner(text: str, plugin_watcher) -> None:
+def plugin_runner(text: str, plugin_watcher: PluginWatcher) -> None:
     """Send text to run plugins."""
     res_list = plugin_watcher.run(text)
     feedback_ignore_obj.toggle_feedback_ignore()
