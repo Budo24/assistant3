@@ -95,15 +95,39 @@ class MakeDB:
         con = sqlite3.connect("plug.db")
         cur = con.cursor()
         cur.execute("create table if not exists Plugin (name, object, amount, interrupt)")
+        cur.execute(
+            "create table if not exists collect (object, amount, corridor, rack_number, interrupt)"
+        )
         con.close()
+
+    """def make_db_plugin_collect(self):
+        Opens new database with name Plugin
+        con = sqlite3.connect("plug.db")
+        cur = con.cursor()
+        cur.execute(
+            "create table if not exists collect (object, amount, corridor, rack_number, interrupt)"
+        )
+        con.close()"""
 
     def insert_db_plugin(self, l: list):
         con = sqlite3.connect("plug.db")
         cur = con.cursor()
         l = tuple(l)
-        cur.execute("insert into Plugin values (?, ?, ?, ?)", l)
+        if len(self.read_db_plugin()) == 0:
+            if len(l) == 4:
+                cur.execute("insert into Plugin values (?, ?, ?, ?)", l)
+            elif len(l) == 5:
+                cur.execute("insert into collect values (?, ?, ?, ?, ?)", l)
         con.commit()
         con.close()
+
+    """def insert_db_plugin_collect(self, l: list):
+        con = sqlite3.connect("plug.db")
+        cur = con.cursor()
+        l = tuple(l)
+        cur.execute("insert into collect values (?, ?, ?, ?, ?)", l)
+        con.commit()
+        con.close()"""
 
     def remove_db_plugin(self):
         os.remove('plug.db')
@@ -115,11 +139,40 @@ class MakeDB:
         plugin_order = []
         for row in cur.execute("select * from Plugin"):
             plugin_order.append(row)
+        for row in cur.execute("select * from collect"):
+            plugin_order.append(row)
+        print("Heeerr", len(plugin_order))
         con.close()
         if plugin_order != []:
-            return dict(zip(['name', 'object', 'amount', 'interrupt'], list(plugin_order[0])))
+            if len(plugin_order[0]) == 4:
+                return dict(zip(['name', 'object', 'amount', 'interrupt'], list(plugin_order[0])))
+            elif len(plugin_order[0]) == 5:
+                return dict(
+                    zip(
+                        ['object', 'amount', 'corridor', 'rack_number', 'interrupt'],
+                        list(plugin_order[0])
+                    )
+                )
+
         else:
             return plugin_order
+
+    """    def read_db_plugin_collect(self):
+        con = sqlite3.connect("plug.db")
+        cur = con.cursor()
+        plugin_order = []
+        for row in cur.execute("select * from collect"):
+            plugin_order.append(row)
+        con.close()
+        if plugin_order != []:
+            return dict(
+                zip(
+                    ['object', 'amount', 'corridor', 'rack_number', ' interrupt'],
+                    list(plugin_order[0])
+                )
+            )
+        else:
+            return plugin_order"""
 
 
 #db_object = MakeDB()
@@ -127,9 +180,18 @@ class MakeDB:
 
 if __name__ == '__main__':
     db_object = MakeDB()
-    db_object.make_db_plugin()
+    #db_object.make_db_plugin()
     #db_object.insert_db_plugin(['activ', '0', '0', 1])
     #db_object.insert_db_plugin(['hamza', '0', '0', 1])
     #print(db_object.read_db_plugin())
     #db_object.remove_db_plugin()
+    """print(db_object.read_db_plugin())
+    db_object.make_db_plugin_collect()
+    db_object.insert_db_plugin_collect(['screw', 'five', 1, 2, 4])
+    print(db_object.read_db_plugin_collect())"""
+    #db_object.remove_db_plugin
+    #db_object.make_db_plugin()
+    #db_object.remove_db_plugin()
+    #db_object.insert_db_plugin(['hamza', '0', '0', 1])
+    #db_object.insert_db_plugin(['screw', 'five', 1, 2, 4])
     print(db_object.read_db_plugin())

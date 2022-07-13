@@ -19,7 +19,7 @@ class BasePlugin():
 
     def __init__(self, match: str):
         """Contain the reference initial doc passed later from each plugin."""
-        self.order_manager = OrderManager()
+        #self.order_manager = OrderManager()
         self.init_doc = match
         self.spacy_model = spacy.blank('en')
         # pyttsx3 object for voice response
@@ -249,7 +249,13 @@ class SpacyDatePlugin(BasePlugin):
         return
 
 
-class AddOrderPlugin(BasePlugin):
+class BaseOrderPlugin(BasePlugin):
+
+    def __init__(self):
+        self.order_manager = OrderManager()
+
+
+class AddOrderPlugin(BaseOrderPlugin):
 
     def __init__(self) -> None:
         super().__init__('add new order')
@@ -283,7 +289,7 @@ class AddOrderPlugin(BasePlugin):
         """Run_doc."""
         self.queue = _queue
         task = self.order_manager.db_object.read_db_plugin()
-        if self.order_manager.get_interrupt_control() == 2:
+        if self.order_manager.get_interrupt_control() == 3:
             activated = True
             self.order_manager.update_db(['activ', '0', '0', 1])
         elif self.order_manager.get_interrupt_control() == 0:
@@ -313,19 +319,32 @@ class AddOrderPlugin(BasePlugin):
         return
 
 
-class CollectOrder(BasePlugin):
+class CollectOrder(BaseOrderPlugin):
 
     def __init__(self) -> None:
-        super().__init__('add new order')
+        super().__init__('begin collect')
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
         self.min_similarity = 0.99
-        self.add_activation_doc('stop')
 
     def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
         """Run_doc."""
         self.queue = _queue
         task = self.order_manager.db_object.read_db_plugin()
-        activated = self.is_activated(doc)
+        if self.order_manager.get_interrupt_control() == 6:
+            activated = True
+            self.order_manager.update_db(['activ', '0', '0', '0', 4])
+        elif self.order_manager.get_interrupt_control() == 0:
+            activated = self.is_activated(doc)
+            if activated:
+                self.order_manager.update_db(['activ', '0', '0', '0', 4])
+        elif self.order_manager.get_interrupt_control() == 4:
+            for key in task:
+                if task[key] == '0':
+                    task[key] = 'activ'
+                    break
+            self.order_manager.update_db(self.order_manager.creat_list_order(task))
+            activated = True
+        #activated = self.is_activated(doc)
         print('****', activated)
         if not activated:
             self.end_result['type'] = PluginResultType.ERROR
@@ -369,8 +388,6 @@ class TriggerPlugin(BasePlugin):
         get_status = self.order_manager.check_order_triger(doc)
         if not get_status:
             activated = self.is_activated(doc)
-            if activated:
-                self.order_manager.db_object.insert_db_plugin(['activ', '0', '0', 0])
         elif get_status:
             activated = True
 

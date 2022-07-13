@@ -45,6 +45,7 @@ class OrderManager:
     def set_interrupt_control(self, interrupt_contorl):
         """Set the Value of interrupt in the dictionary in plug.db"""
         task = self.db_object.read_db_plugin()
+        print("WEEEE", task)
         task['interrupt'] = interrupt_contorl
         self.update_db(self.creat_list_order(task))
 
@@ -52,13 +53,15 @@ class OrderManager:
         task = self.db_object.read_db_plugin()
         self.doc_add = doc
         if len(task) == 0:
+            self.db_object.insert_db_plugin(['activ', '0', '0', '0', 0])
             return False
         elif len(task) != 0:
             #add new order
-            if self.get_interrupt_control() in (0, 1, 2):
+            if self.get_interrupt_control() in (1, 2):
                 return self.check_add_order_triger(task)
             #creact task for collect
-            #elif self.get_interrupt_control() not in (6, 7, 8):
+            elif self.get_interrupt_control() not in (4, 5):
+                pass
 
     def check_add_order_triger(self, task):
         if self.get_interrupt_control() == 2:
@@ -66,7 +69,7 @@ class OrderManager:
                 self.db_object.remove_db_plugin()
                 return False
             else:
-                return self.stor_task_in_racks()
+                return self.store_task_in_racks()
         else:
             for key in task:
                 if task[key] == 'activ' and self.get_interrupt_control() == 1:
@@ -82,22 +85,24 @@ class OrderManager:
                 self.db_object.remove_db_plugin()
                 return False
 
-    def stor_task_in_racks(self):
+    def store_task_in_racks(self):
         ready_order = self.get_order_list()
         self.rack_object.creat_racks(ready_order[:3])
-        self.set_interrupt_control(2)
+        self.set_interrupt_control(3)
         return True
 
     def get_spit_response_triger(self):
-        if self.get_interrupt_control() in (0, 1, 2):
+        if self.get_interrupt_control() in (1, 3):
             if self.get_interrupt_control() == 1:
                 self.order_spit = 'you gave me' + str(self.doc_add)
                 return True
-            elif self.get_interrupt_control() == 2:
+            elif self.get_interrupt_control() == 3:
                 self.order_spit = 'new order'
                 return True
-            else:
-                return False
+        elif self.get_interrupt_control() in (4, 6):
+            pass
+        else:
+            return False
 
 
 if __name__ == '__main__':
