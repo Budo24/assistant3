@@ -20,6 +20,7 @@ class BasePlugin():
     def __init__(self, match: str):
         """Contain the reference initial doc passed later from each plugin."""
         #self.order_manager = OrderManager()
+        self.order_manager = OrderManager()
         self.init_doc = match
         self.spacy_model = spacy.blank('en')
         # pyttsx3 object for voice response
@@ -249,13 +250,13 @@ class SpacyDatePlugin(BasePlugin):
         return
 
 
-class BaseOrderPlugin(BasePlugin):
+"""class BaseOrderPlugin(BasePlugin):
 
     def __init__(self):
-        self.order_manager = OrderManager()
+        self.order_manager = OrderManager()"""
 
 
-class AddOrderPlugin(BaseOrderPlugin):
+class AddOrderPlugin(BasePlugin):
 
     def __init__(self) -> None:
         super().__init__('add new order')
@@ -319,7 +320,7 @@ class AddOrderPlugin(BaseOrderPlugin):
         return
 
 
-class CollectOrder(BaseOrderPlugin):
+class CollectOrder(BasePlugin):
 
     def __init__(self) -> None:
         super().__init__('begin collect')
