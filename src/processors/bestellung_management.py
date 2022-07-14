@@ -156,7 +156,7 @@ class OrderManager:
         task = self.db_object.read_db_plugin()
         if self.get_interrupt_control() == 6:
             if self.collect_object.creat_collect_task() == -1:
-                self.update_db([])
+                self.db_object.remove_db_plugin()
                 return 'no order more'
             else:
                 self.mark_corridor()
