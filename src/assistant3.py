@@ -10,6 +10,7 @@ import vosk
 
 import processors
 from plugins_watcher import PluginWatcher
+from processors.base_processor import TriggerPlugin
 
 
 class FeedbackIgnore():
@@ -32,12 +33,13 @@ feedback_ignore_obj = FeedbackIgnore()
 q: queue.Queue[bytes] = queue.Queue()
 # plugin object
 aop = processors.base_processor.AddOrderPlugin()
+cop = processors.base_processor.CollectOrder()
 sdp = processors.base_processor.SpacyDatePlugin()
 mpp = processors.base_processor.MonthlyPlanPlugin()
 # trigger plugin object
-trigger = processors.base_processor.TriggerPlugin()
+trigger = TriggerPlugin()
 # the plugin_watcher object
-plugin_watcher = PluginWatcher([aop, mpp, sdp])
+plugin_watcher = PluginWatcher([cop, aop, mpp, sdp])
 # optionaly adding a trigger Plugin ("hey assistant")
 plugin_watcher.add_trigger_plugin(trigger)
 

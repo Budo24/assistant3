@@ -75,39 +75,15 @@ class MakeDB:
 
         return dict_order
 
-    """def order_collect(self):
-        order_plugin = []
-        for order in self.read_db():
-            order_plugin.append(order[:3])
-        return order_plugin
-
-    def dict_order_plugin(self):
-        order_plugin = self.order_collect()
-        for order in order_plugin:
-            if 0 in order:
-                order_plugin = dict(zip(['name', 'amount', 'object'], order))
-                return order_plugin
-        else:
-            return order"""
-
     def make_db_plugin(self):
         """Opens new database with name Plugin"""
         con = sqlite3.connect("plug.db")
         cur = con.cursor()
         cur.execute("create table if not exists Plugin (name, object, amount, interrupt)")
         cur.execute(
-            "create table if not exists collect (object, amount, corridor, rack_number, interrupt)"
+            "create table if not exists collect (object, amount, corridor, rack_number, order_id, interrupt)"
         )
         con.close()
-
-    """def make_db_plugin_collect(self):
-        Opens new database with name Plugin
-        con = sqlite3.connect("plug.db")
-        cur = con.cursor()
-        cur.execute(
-            "create table if not exists collect (object, amount, corridor, rack_number, interrupt)"
-        )
-        con.close()"""
 
     def insert_db_plugin(self, l: list):
         con = sqlite3.connect("plug.db")
@@ -116,18 +92,12 @@ class MakeDB:
         if len(self.read_db_plugin()) == 0:
             if len(l) == 4:
                 cur.execute("insert into Plugin values (?, ?, ?, ?)", l)
-            elif len(l) == 5:
-                cur.execute("insert into collect values (?, ?, ?, ?, ?)", l)
-        con.commit()
-        con.close()
-
-    """def insert_db_plugin_collect(self, l: list):
-        con = sqlite3.connect("plug.db")
-        cur = con.cursor()
-        l = tuple(l)
-        cur.execute("insert into collect values (?, ?, ?, ?, ?)", l)
-        con.commit()
-        con.close()"""
+                con.commit()
+                con.close()
+            elif len(l) == 6:
+                cur.execute("insert into collect values (?, ?, ?, ?, ?, ?)", l)
+                con.commit()
+                con.close()
 
     def remove_db_plugin(self):
         os.remove('plug.db')
@@ -146,41 +116,23 @@ class MakeDB:
         if plugin_order != []:
             if len(plugin_order[0]) == 4:
                 return dict(zip(['name', 'object', 'amount', 'interrupt'], list(plugin_order[0])))
-            elif len(plugin_order[0]) == 5:
+            elif len(plugin_order[0]) == 6:
                 return dict(
                     zip(
-                        ['object', 'amount', 'corridor', 'rack_number', 'interrupt'],
-                        list(plugin_order[0])
+                        [
+                            'object', 'amount', 'corridor_number', 'rack_number', 'order_id',
+                            'interrupt'
+                        ], list(plugin_order[0])
                     )
                 )
 
         else:
             return plugin_order
 
-    """    def read_db_plugin_collect(self):
-        con = sqlite3.connect("plug.db")
-        cur = con.cursor()
-        plugin_order = []
-        for row in cur.execute("select * from collect"):
-            plugin_order.append(row)
-        con.close()
-        if plugin_order != []:
-            return dict(
-                zip(
-                    ['object', 'amount', 'corridor', 'rack_number', ' interrupt'],
-                    list(plugin_order[0])
-                )
-            )
-        else:
-            return plugin_order"""
-
-
-#db_object = MakeDB()
-#db_object.make_db()
 
 if __name__ == '__main__':
     db_object = MakeDB()
-    #db_object.make_db_plugin()
+    db_object.make_db_plugin()
     #db_object.insert_db_plugin(['activ', '0', '0', 1])
     #db_object.insert_db_plugin(['hamza', '0', '0', 1])
     #print(db_object.read_db_plugin())
@@ -193,5 +145,7 @@ if __name__ == '__main__':
     #db_object.make_db_plugin()
     #db_object.remove_db_plugin()
     #db_object.insert_db_plugin(['hamza', '0', '0', 1])
-    #db_object.insert_db_plugin(['screw', 'five', 1, 2, 4])
-    print(db_object.read_db_plugin())
+    #db_object.insert_db_plugin(['screw', 'five', 1, 2, 6, 5])
+    #print(db_object.read_db_plugin())
+    m = db_object.read_db_plugin()
+    print(m)

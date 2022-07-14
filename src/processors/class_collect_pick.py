@@ -1,6 +1,5 @@
 from processors.class_makeracks import MakeRacks
 from processors.class_makedb import MakeDB
-import queue
 
 
 class PickAndCollect:
@@ -77,11 +76,10 @@ class PickAndCollect:
         else:
             return self.pick_order_ability(order_id)
 
-    def creat_collect_task(self) -> queue:
-        corridor_number = 1
-        json_order = self.rack_object.read_jason_file(corridor_number)
-        collect_queue = queue.Queue(0)
+    def creat_collect_task(self):
         try:
+            corridor_number = 1
+            json_order = self.rack_object.read_jason_file(corridor_number)
             while True:
                 for to_pick_order in json_order:
                     #print("HEEE", to_pick_order)
@@ -90,19 +88,17 @@ class PickAndCollect:
                     status = self.order_status(to_pick_order['rack_number'] - 1, corridor_number)
                     if status == ['not picked', 'not collected']:
                         collect_info = self.collect_order_with_id(to_pick_order['order_id'])
-                        collect_queue.put(collect_info)
+                        #collect_queue.put(collect_info)
+                        return dict(collect_info, order_id=to_pick_order['order_id'])
                 corridor_number = corridor_number + 1
                 json_order = self.rack_object.read_jason_file(corridor_number)
         except FileNotFoundError:
-            collect_queue.put(-1)
-        return collect_queue
+            #collect_queue.put(-1)
+            collect_info = -1
+        return collect_info
 
 
 if __name__ == '__main__':
     collect_object = PickAndCollect()
     collect_task2 = collect_object.creat_collect_task()
-    while True:
-        m = collect_task2.get()
-        if m == -1:
-            break
-        print(m)
+    print(collect_task2)

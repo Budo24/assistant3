@@ -262,7 +262,6 @@ class AddOrderPlugin(BasePlugin):
         super().__init__('add new order')
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
         self.min_similarity = 0.99
-        self.add_activation_doc('stop')
         #self.order_manager.db_object.insert_db_plugin(['activ', '0', '0', 0])
 
     def spit(self) -> None:
@@ -304,6 +303,8 @@ class AddOrderPlugin(BasePlugin):
                     break
             self.order_manager.update_db(self.order_manager.creat_list_order(task))
             activated = True
+        else:
+            activated = self.is_activated(doc)
         print('****', activated)
         if not activated:
             self.end_result['type'] = PluginResultType.ERROR
@@ -327,24 +328,43 @@ class CollectOrder(BasePlugin):
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
         self.min_similarity = 0.99
 
+    def spit(self) -> None:
+        """Play response audio."""
+        self.engine.say(self.order_manager.next_object())
+        self.engine.runAndWait()
+
     def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
         """Run_doc."""
         self.queue = _queue
-        task = self.order_manager.db_object.read_db_plugin()
-        if self.order_manager.get_interrupt_control() == 6:
-            activated = True
-            self.order_manager.update_db(['activ', '0', '0', '0', 4])
-        elif self.order_manager.get_interrupt_control() == 0:
-            activated = self.is_activated(doc)
-            if activated:
-                self.order_manager.update_db(['activ', '0', '0', '0', 4])
-        elif self.order_manager.get_interrupt_control() == 4:
-            for key in task:
-                if task[key] == '0':
-                    task[key] = 'activ'
-                    break
-            self.order_manager.update_db(self.order_manager.creat_list_order(task))
-            activated = True
+        next_task = self.order_manager.collect_object.creat_collect_task()
+        if next_task == -1:
+            activated = False
+        else:
+            if self.order_manager.get_interrupt_control() == 0:
+                activated = self.is_activated(doc)
+                if activated:
+                    self.order_manager.creat_next_task()
+            elif self.order_manager.get_interrupt_control() == 4:
+                if str(doc) == 'stop':
+                    self.order_manager.db_object.remove_db_plugin()
+                    activated = self.is_activated(doc)
+                else:
+                    activated = True
+            elif self.order_manager.get_interrupt_control() == 5:
+                if str(doc) == 'stop':
+                    self.order_manager.db_object.remove_db_plugin()
+                    activated = self.is_activated(doc)
+                else:
+                    self.order_manager.set_interrupt_control(6)
+                    activated = True
+            else:
+                activated = activated = self.is_activated(doc)
+            """elif self.order_manager.get_interrupt_control() == 6:
+                #self.order_manager.mark_collected()
+                self.order_manager.mark_corridor()
+                self.order_manager.creat_next_task()
+                return True"""
+
         #activated = self.is_activated(doc)
         print('****', activated)
         if not activated:
