@@ -83,6 +83,9 @@ class MakeDB:
         cur.execute(
             "create table if not exists collect (object, amount, corridor, rack_number, order_id, interrupt)"
         )
+        cur.execute(
+            "create table if not exists pick (name, corridor, rack_number, order_id, interrupt)"
+        )
         con.close()
 
     def insert_db_plugin(self, l: list):
@@ -92,6 +95,10 @@ class MakeDB:
         if len(self.read_db_plugin()) == 0:
             if len(l) == 4:
                 cur.execute("insert into Plugin values (?, ?, ?, ?)", l)
+                con.commit()
+                con.close()
+            elif len(l) == 5:
+                cur.execute("insert into pick values (?, ?, ?, ?, ?)", l)
                 con.commit()
                 con.close()
             elif len(l) == 6:
@@ -111,7 +118,8 @@ class MakeDB:
             plugin_order.append(row)
         for row in cur.execute("select * from collect"):
             plugin_order.append(row)
-        print("Heeerr", len(plugin_order))
+        for row in cur.execute("select * from pick"):
+            plugin_order.append(row)
         con.close()
         if plugin_order != []:
             if len(plugin_order[0]) == 4:
@@ -123,6 +131,13 @@ class MakeDB:
                             'object', 'amount', 'corridor_number', 'rack_number', 'order_id',
                             'interrupt'
                         ], list(plugin_order[0])
+                    )
+                )
+            elif len(plugin_order[0]) == 5:
+                return dict(
+                    zip(
+                        ['name', 'corridor_number', 'rack_number', 'order_id', 'interrupt'],
+                        list(plugin_order[0])
                     )
                 )
 
@@ -147,5 +162,9 @@ if __name__ == '__main__':
     #db_object.insert_db_plugin(['hamza', '0', '0', 1])
     #db_object.insert_db_plugin(['screw', 'five', 1, 2, 6, 5])
     #print(db_object.read_db_plugin())
-    m = db_object.read_db_plugin()
-    print(m)
+    #db_object.insert_db_plugin(['screw', 'five', 1, 2, 6, 4])
+    #m = db_object.read_db_plugin()
+    #print(m)
+    #print(db_object.find_order_place(147220955))
+    #print(db_object.read_db())
+    print(db_object.find_order_place(157203731))

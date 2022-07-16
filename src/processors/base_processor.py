@@ -359,11 +359,62 @@ class CollectOrder(BasePlugin):
                     activated = True
             else:
                 activated = activated = self.is_activated(doc)
-            """elif self.order_manager.get_interrupt_control() == 6:
-                #self.order_manager.mark_collected()
-                self.order_manager.mark_corridor()
-                self.order_manager.creat_next_task()
-                return True"""
+
+        #activated = self.is_activated(doc)
+        print('****', activated)
+        if not activated:
+            self.end_result['type'] = PluginResultType.ERROR
+            self.end_result['result'] = ''
+            self.end_result['result_speech_func'] = self.error_spit
+            # here we push it to the results queue passed by pw
+            self.queue.put(self.end_result)
+            return
+        self.end_result['type'] = PluginResultType.TEXT
+        self.end_result['result'] = ''
+        self.end_result['plugin_type'] = PluginType.SYSTEM_PLUGIN
+        self.end_result['result_speech_func'] = self.spit
+        self.queue.put(self.end_result)
+        return
+
+
+class PickPlugin(BasePlugin):
+
+    def __init__(self) -> None:
+        super().__init__('begin pick up')
+        self.queue: queue.Queue[typing.Any] = queue.Queue(0)
+        self.min_similarity = 0.99
+
+    def spit(self) -> None:
+        """Play response audio."""
+        self.engine.say(self.order_manager.next_pick_object())
+        self.engine.runAndWait()
+
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
+        """Run_doc."""
+        self.queue = _queue
+        next_task = self.order_manager.collect_object.creat_pick_task()
+        if next_task == -1:
+            activated = False
+        else:
+            if self.order_manager.get_interrupt_control() == 0:
+                activated = self.is_activated(doc)
+                if activated:
+                    self.order_manager.creat_pick_task()
+            elif self.order_manager.get_interrupt_control() == 7:
+                if str(doc) == 'stop':
+                    self.order_manager.db_object.remove_db_plugin()
+                    activated = self.is_activated(doc)
+                else:
+                    activated = True
+            elif self.order_manager.get_interrupt_control() == 8:
+                if str(doc) == 'stop':
+                    self.order_manager.db_object.remove_db_plugin()
+                    activated = self.is_activated(doc)
+                else:
+                    self.order_manager.set_interrupt_control(9)
+                    activated = True
+            else:
+                activated = activated = self.is_activated(doc)
 
         #activated = self.is_activated(doc)
         print('****', activated)
