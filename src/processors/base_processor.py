@@ -68,8 +68,6 @@ class BasePlugin():
             return 'False'
         activation_similarities = self.get_activation_similarities(target)
         for index, similarity in enumerate(activation_similarities):
-            print(similarity)
-            print(self.min_similarity)
             # the logic maybe changed later !
             if similarity > self.min_similarity:
                 return str(self.activation_dict['docs'][index])
@@ -85,9 +83,6 @@ class BasePlugin():
             return 'False'
         activation_similarities = self.get_activation_similarities(target)
         for index, similarity in enumerate(activation_similarities):
-            print(similarity)
-            print(self.min_similarity)
-            print('\n')
             # the logic maybe changed later !
             if similarity == self.min_similarity:
                 print('To return: ', self.activation_dict['docs'][index])
@@ -122,12 +117,9 @@ class BasePlugin():
 
         list length is the same as how many reference phrases there is
         """
-        print('In get of similarities')
-        print(self.activation_dict['docs'])
-        print(self.activation_dict['docs'][0].similarity(target))
-        list_ = [doc.similarity(target) for doc in self.activation_dict['docs']]
-        print(list_)
-        return list_
+        for doc in self.activation_dict['docs']:
+            print('doc: ', doc)
+        return [doc.similarity(target) for doc in self.activation_dict['docs']]
 
     def is_activated(self, target: object) -> bool:
         """Check if a plugin is activated."""
@@ -461,7 +453,6 @@ class MonthlyPlanPlugin(BasePlugin):
         self.date_exist = False
         self.single_day = SingleDate('', '')
         self.time_range_ = ''
-        self.min_similarity = 0.75
 
     def add_activity_to_time_range(self, activated_keyword: str) -> None:
         """Add activity to created time range."""
