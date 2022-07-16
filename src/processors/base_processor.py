@@ -250,12 +250,6 @@ class SpacyDatePlugin(BasePlugin):
         return
 
 
-"""class BaseOrderPlugin(BasePlugin):
-
-    def __init__(self):
-        self.order_manager = OrderManager()"""
-
-
 class AddOrderPlugin(BasePlugin):
 
     def __init__(self) -> None:

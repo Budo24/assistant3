@@ -32,6 +32,7 @@ class FeedbackIgnore():
 feedback_ignore_obj = FeedbackIgnore()
 q: queue.Queue[bytes] = queue.Queue()
 # plugin object
+db_object = processors.class_makedb.MakeDB()
 aop = processors.base_processor.AddOrderPlugin()
 cop = processors.base_processor.CollectOrder()
 pop = processors.base_processor.PickPlugin()
@@ -168,6 +169,7 @@ def main() -> None:
         record(args)
     except KeyboardInterrupt:
         print('\nDone')
+        db_object.remove_db_plugin()
         parser.exit(0)
 
 
