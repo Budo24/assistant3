@@ -68,6 +68,8 @@ class BasePlugin():
             return 'False'
         activation_similarities = self.get_activation_similarities(target)
         for index, similarity in enumerate(activation_similarities):
+            print(similarity)
+            print(self.min_similarity)
             # the logic maybe changed later !
             if similarity > self.min_similarity:
                 return str(self.activation_dict['docs'][index])
@@ -83,6 +85,9 @@ class BasePlugin():
             return 'False'
         activation_similarities = self.get_activation_similarities(target)
         for index, similarity in enumerate(activation_similarities):
+            print(similarity)
+            print(self.min_similarity)
+            print('\n')
             # the logic maybe changed later !
             if similarity == self.min_similarity:
                 print('To return: ', self.activation_dict['docs'][index])
@@ -117,16 +122,18 @@ class BasePlugin():
 
         list length is the same as how many reference phrases there is
         """
-        for doc in self.activation_dict['docs']:
-            print('doc: ', doc)
-        return [doc.similarity(target) for doc in self.activation_dict['docs']]
+        print('In get of similarities')
+        print(self.activation_dict['docs'])
+        print(self.activation_dict['docs'][0].similarity(target))
+        list_ = [doc.similarity(target) for doc in self.activation_dict['docs']]
+        print(list_)
+        return list_
 
     def is_activated(self, target: object) -> bool:
         """Check if a plugin is activated."""
         if len(self.activation_dict['docs']) == 0:
             # if there is no reference phrases, not activated
             return False
-        print('TARGET: ', target)
         activation_similarities = self.get_activation_similarities(target)
         print(activation_similarities)
         return any(similarity > self.min_similarity for similarity in activation_similarities)
@@ -220,9 +227,6 @@ class SpacyDatePlugin(BasePlugin):
         above
         """
         super().__init__('what is the date')
-        self.add_activation_doc('what is the date')
-        # self.add_activation_doc('what is the date')
-        print('IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII')
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
 
     def spit(self) -> None:
@@ -233,7 +237,6 @@ class SpacyDatePlugin(BasePlugin):
 
     def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
         """Run_doc."""
-        print('---------------------------------------------SPACE')
         self.queue = _queue
         # check if plugin is activted
         activated = self.is_activated(doc)
@@ -275,7 +278,6 @@ class TriggerPlugin(BasePlugin):
         activated = self.is_activated(doc)
         print('****', activated)
         if not activated:
-            print('--------------------------------INSIDE OF TRIGGER PLUGIN')
             self.end_result['type'] = PluginResultType.ERROR
             self.end_result['result'] = ''
             self.end_result['plugin_type'] = PluginType.TRIGGER_PLUGIN
@@ -318,6 +320,7 @@ def activity_exist(one_date: SingleDate, time_range_numbers: list[int]) -> bool:
     if isinstance(one_date, SingleDate):
 
         time_range_numbers = [int(word) for word in time_range_numbers]
+        print('Time range numbers', time_range_numbers)
 
         starting_time_to_insert = \
             int(time_range_numbers[0]) * 60 + int(time_range_numbers[1])
@@ -388,7 +391,7 @@ class MonthlyPlanPlugin(BasePlugin):
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
 
     def give_date_from_monthly_plan(self, find_date: str) -> SingleDate:
-        """Give date from monthly plan, if it exist."""
+        """Give date from monthly plan, date exist defenetely."""
         start = self.first_date
         find_date = str(find_date)
 
@@ -419,8 +422,8 @@ class MonthlyPlanPlugin(BasePlugin):
             self.min_similarity = 0.75
             self.reset_activity()
 
-            return f'Time range {time_range_words} is not valid, try another one, \
-                adding of activity broken.'
+            return f'Time range {time_range_words} is not valid, try another one, '\
+                'adding of activity broken.'
 
         if not activity_exist(self.single_day, time_range_numbers):
             # add time_range
@@ -458,6 +461,7 @@ class MonthlyPlanPlugin(BasePlugin):
         self.date_exist = False
         self.single_day = SingleDate('', '')
         self.time_range_ = ''
+        self.min_similarity = 0.75
 
     def add_activity_to_time_range(self, activated_keyword: str) -> None:
         """Add activity to created time range."""
@@ -489,23 +493,22 @@ class MonthlyPlanPlugin(BasePlugin):
                 self.single_day = self.give_date_from_monthly_plan(self.said_day)
                 tell_date = helpers.say_date(self.said_day)
 
-                return f'Date {tell_date} exist in monthly plan, \
-                    you can add time range'
+                return f'Date {tell_date} exist in monthly plan, ' \
+                    'you can add time range'
 
             self.actions_keywords['add_activity'] = False
             self.min_similarity = 0.75
             tell_date = helpers.say_date(self.said_day)
             self.reset_activity()
-
-            return f'Date {tell_date} does not exist in monthly plan, \
-                adding of activity broken'
+            return f'Date {tell_date} does not exist in monthly plan,'\
+                'adding of activity broken'
 
         if self.activity_add:
             self.add_activity_to_time_range(activated_keyword)
             self.actions_keywords['add_activity'] = False
             self.min_similarity = 0.75
             self.reset_activity()
-
+            print('Here')
             return f'Activity {activated_keyword} successfully added'
 
         if self.time_range_add:
@@ -558,6 +561,7 @@ class MonthlyPlanPlugin(BasePlugin):
             self.check_date_before_action(day_ordinal_number)
 
         print('Date: ', date_)
+        print('Date exist: ', date_exist)
         print('date_number_of_days: ', date_number_of_days)
         print('day_in_past: ', day_in_past)
         print('Date to say: ', date_)
@@ -576,9 +580,9 @@ class MonthlyPlanPlugin(BasePlugin):
 
                 if isinstance(self.first_date.next, SingleDate):
                     self.first_date = self.first_date.next
-
-                return f'The first date {date_} is successfully deleted, \
-                fuction for deleting is deactivated'
+                print('DATE_: ', date_)
+                return f'The first date {date_} is successfully deleted,'\
+                    ' fuction for deleting is deactivated'
 
             previous = start
             if isinstance(start.next, SingleDate):
@@ -588,8 +592,8 @@ class MonthlyPlanPlugin(BasePlugin):
                 if start.day_ordinal_number == day_ordinal_number:
 
                     previous.next = start.next
-                    return f'The date {date_} is successfully deleted, \
-                    fuction for deleting is deactivated'
+                    return f'The date {date_} is successfully deleted, '\
+                        'fuction for deleting is deactivated'
 
                 previous = start
                 if isinstance(start.next, SingleDate):
@@ -603,8 +607,8 @@ class MonthlyPlanPlugin(BasePlugin):
         self.actions_keywords['delete_date'] = False
         self.min_similarity = 0.75
 
-        return f'The date {date_}  does not exist in monthly \
-        plan, so it can not be deleted'
+        return f'The date {date_}  does not exist in monthly' \
+            'plan, so it can not be deleted'
 
     def insert_date(self, day_ordinal_number: str) -> str | bool:
         """Try to insert one date in monthly plan."""
@@ -645,8 +649,8 @@ class MonthlyPlanPlugin(BasePlugin):
             self.actions_keywords['add_date'] = False
             self.min_similarity = 0.75
 
-            return f'Date {date_} is successfully inserted, function \
-            for inserting of dates is deactivated'
+            return f'Date {date_} is successfully inserted, function'\
+                ' for inserting of dates is deactivated'
 
         self.actions_keywords['add_date'] = False
         self.min_similarity = 0.75
@@ -838,7 +842,6 @@ class MonthlyPlanPlugin(BasePlugin):
 
         if action_activated_ == 'False':
             self.activate_action(activated_keyword)
-            print('---------------------------------------------------NOT REACHED')
             return
 
         print('Activated keyword: ', activated_keyword)
@@ -848,5 +851,4 @@ class MonthlyPlanPlugin(BasePlugin):
             if str(doc) != '':
                 self.check_keyword(action_activated_, str(doc))
             return
-        print('--------------------------------------------------------REACHED')
         self.check_keyword(action_activated_, activated_keyword)
