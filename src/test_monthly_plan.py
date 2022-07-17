@@ -3,10 +3,9 @@ import queue
 from datetime import date
 from unittest.mock import patch
 
-from common import constants
 from plugins_watcher import PluginWatcher
 from processors import base_processor
-from processors.base_processor import MonthlyPlanPlugin
+from processors.monthly_plan_for_testing import MonthlyPlanPlugin
 
 
 def test_activity_exist() -> None:
@@ -539,29 +538,3 @@ def test_run_doc_activity() -> None:
 
         assert monthly_plan.end_result['result'] == 'Activity'\
             ' watching tv successfully added'
-
-
-def test_exact_keyword__similar_keyword_activated() -> None:
-    """Test exact keyword activated."""
-    monthly_plan = MonthlyPlanPlugin()
-
-    plugins_watcher = PluginWatcher([monthly_plan])
-
-    with patch('common.helpers.date') as mock_date:
-        mock_date.today.return_value = date(2010, 10, 8)
-        monthly_plan.min_similarity = 1
-
-        for keyword in constants.actions_keywords:
-            monthly_plan.add_activation_doc(keyword)
-
-        for day_orindal_number_keyword in constants.days_ordinal_numbers_keywords:
-            monthly_plan.add_activation_doc(day_orindal_number_keyword)
-
-        plugins_watcher.doc = plugins_watcher.nlp('insert')
-        assert monthly_plan.exact_keyword_activated(plugins_watcher.doc) ==\
-            'insert'
-
-        monthly_plan.min_similarity = 0.5
-        plugins_watcher.doc = plugins_watcher.nlp('hu insert')
-        assert monthly_plan.similar_keyword_activated(plugins_watcher.doc) ==\
-            'insert'
