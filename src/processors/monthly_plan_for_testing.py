@@ -21,7 +21,7 @@ class BasePlugin():
         self.init_doc = match
         self.spacy_model = spacy.blank('en')
         # pyttsx3 object for voice response
-        self.engine = pyttsx3.init()
+        # self.engine = pyttsx3.init()
         # this will hold the activation/reference sentence or sentences
         self.activation_dict: dict[str, typing.Any] = {
             'docs': [],
@@ -94,8 +94,8 @@ class BasePlugin():
 
         This function sends response to command given by speaker
         """
-        self.engine.say(self.end_result['result'])
-        self.engine.runAndWait()
+        # self.engine.say(self.end_result['result'])
+        # self.engine.runAndWait()
 
     def spit(self) -> None:
         """Play response audio."""
@@ -109,8 +109,8 @@ class BasePlugin():
 
     def error_spit(self) -> None:
         """Play error response audio."""
-        self.engine.say(self.get_general_tts_error_message())
-        self.engine.runAndWait()
+        # self.engine.say(self.get_general_tts_error_message())
+        # self.engine.runAndWait()
 
     def get_activation_similarities(self, target: object) -> list[typing.Any]:
         """Return a similarity between 0 and 1.
@@ -224,8 +224,8 @@ class SpacyDatePlugin(BasePlugin):
     def spit(self) -> None:
         """Play response audio."""
         print(time.strftime('%c'))
-        self.engine.say(time.strftime('%c'))
-        self.engine.runAndWait()
+        # self.engine.say(time.strftime('%c'))
+        # self.engine.runAndWait()
 
     def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
         """Run_doc."""
@@ -261,8 +261,8 @@ class TriggerPlugin(BasePlugin):
 
     def spit(self) -> None:
         """Play response audio."""
-        self.engine.say('how can i help')
-        self.engine.runAndWait()
+        # self.engine.say('how can i help')
+        # self.engine.runAndWait()
 
     def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
         """Run_doc."""
