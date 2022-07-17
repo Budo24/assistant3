@@ -4,24 +4,23 @@ import queue
 import time
 import typing
 
-import pyttsx3
 import spacy
 import xlsxwriter
 
-from common import constants, helpers
-from common.exceptions import UidNotAssignedError
-from common.plugins import PluginResultType, PluginType
+from assistant3.common import constants, helpers
+from assistant3.common.exceptions import UidNotAssignedError
+from assistant3.common.plugins import PluginResultType, PluginType
 
 
 class BasePlugin():
     """Base Class from which all plugins need to inherit."""
 
-    def __init__(self, match: str):
+    def __init__(self, match: str = ''):
         """Contain the reference initial doc passed later from each plugin."""
         self.init_doc = match
         self.spacy_model = spacy.blank('en')
         # pyttsx3 object for voice response
-        self.engine = pyttsx3.init()
+        # self.engine = pyttsx3.init()
         # this will hold the activation/reference sentence or sentences
         self.activation_dict: dict[str, typing.Any] = {
             'docs': [],
@@ -94,8 +93,8 @@ class BasePlugin():
 
         This function sends response to command given by speaker
         """
-        self.engine.say(self.end_result['result'])
-        self.engine.runAndWait()
+        # self.engine.say(self.end_result['result'])
+        # self.engine.runAndWait()
 
     def spit(self) -> None:
         """Play response audio."""
@@ -109,8 +108,8 @@ class BasePlugin():
 
     def error_spit(self) -> None:
         """Play error response audio."""
-        self.engine.say(self.get_general_tts_error_message())
-        self.engine.runAndWait()
+        # self.engine.say(self.get_general_tts_error_message())
+        # self.engine.runAndWait()
 
     def get_activation_similarities(self, target: object) -> list[typing.Any]:
         """Return a similarity between 0 and 1.
@@ -191,10 +190,9 @@ class BasePlugin():
 class BaseInitializationErrorPlugin(BasePlugin):
     """BaseInitializationErrorPlugin."""
 
-    def __init__(self, error_details: dict[str, typing.Any]):
+    def __init__(self) -> None:
         """Init."""
-        self.error_details = error_details
-        super().__init__(match='')
+        super().__init__()
 
     def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
         """Run_doc."""
@@ -224,8 +222,8 @@ class SpacyDatePlugin(BasePlugin):
     def spit(self) -> None:
         """Play response audio."""
         print(time.strftime('%c'))
-        self.engine.say(time.strftime('%c'))
-        self.engine.runAndWait()
+        # self.engine.say(time.strftime('%c'))
+        # self.engine.runAndWait()
 
     def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
         """Run_doc."""
@@ -261,8 +259,8 @@ class TriggerPlugin(BasePlugin):
 
     def spit(self) -> None:
         """Play response audio."""
-        self.engine.say('how can i help')
-        self.engine.runAndWait()
+        # self.engine.say('how can i help')
+        # self.engine.runAndWait()
 
     def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
         """Run_doc."""
@@ -653,7 +651,7 @@ class MonthlyPlanPlugin(BasePlugin):
         if activated_keyword in constants.days_ordinal_numbers_keywords:
 
             self.end_result['result'] = self.insert_date(activated_keyword)
-            self.say_result_put_in_queue()
+            # self.say_result_put_in_queue()
             return
 
     def delete_date(self, activated_keyword: str) -> None:
@@ -661,7 +659,7 @@ class MonthlyPlanPlugin(BasePlugin):
         if activated_keyword in constants.days_ordinal_numbers_keywords:
 
             self.end_result['result'] = self.delete_date_(activated_keyword)
-            self.say_result_put_in_queue()
+            # self.say_result_put_in_queue()
             return
 
     def add_activity(self, activated_keyword: str) -> None:
@@ -673,11 +671,11 @@ class MonthlyPlanPlugin(BasePlugin):
             self.min_similarity = 0.75
             self.reset_activity()
             self.end_result['result'] = 'Break adding of activity'
-            self.say_result_put_in_queue()
+            # self.say_result_put_in_queue()
             return
 
         self.end_result['result'] = self.insert_activity(activated_keyword)
-        self.say_result_put_in_queue()
+        # self.say_result_put_in_queue()
         return
 
     def deactivate_action(self) -> None:
@@ -696,7 +694,7 @@ class MonthlyPlanPlugin(BasePlugin):
             self.actions_keywords['add_activity'] = False
             self.end_result['result'] = constants.answers[10]
 
-        self.say_result_put_in_queue()
+        # self.say_result_put_in_queue()
 
     def activate_action(self, activated_keyword: str) -> None:
         """Activate action."""
@@ -707,21 +705,21 @@ class MonthlyPlanPlugin(BasePlugin):
 
             self.actions_keywords['add_date'] = True
             self.end_result['result'] = constants.answers[1]
-            self.say_result_put_in_queue()
+            # self.say_result_put_in_queue()
             return
 
         if activated_keyword == constants.actions_keywords[2]:
 
             self.actions_keywords['delete_date'] = True
             self.end_result['result'] = constants.answers[2]
-            self.say_result_put_in_queue()
+            # self.say_result_put_in_queue()
             return
 
         if activated_keyword == constants.actions_keywords[3]:
 
             self.actions_keywords['add_activity'] = True
             self.end_result['result'] = constants.answers[3]
-            self.say_result_put_in_queue()
+            # self.say_result_put_in_queue()
             return
         return
 
@@ -730,7 +728,7 @@ class MonthlyPlanPlugin(BasePlugin):
         if self.first_date.date_in_month == '':
 
             self.end_result['result'] = 'Monthly plan is empty'
-            self.say_result_put_in_queue()
+            # self.say_result_put_in_queue()
 
         else:
 
@@ -748,7 +746,7 @@ class MonthlyPlanPlugin(BasePlugin):
                     break
 
             self.end_result['result'] += ', that would be your monthly plan'
-            self.say_result_put_in_queue()
+            # self.say_result_put_in_queue()
 
     def write_xls(self) -> None:
         """Write activities and time ranges from date in monthly plan."""
@@ -764,7 +762,7 @@ class MonthlyPlanPlugin(BasePlugin):
                 break
         monthly_plan.close()
         self.end_result['result'] = 'All time ranges and activies are written'
-        self.say_result_put_in_queue()
+        # self.say_result_put_in_queue()
 
     def check_keyword(self, action_activated: str | bool, activated_keyword: str) -> None:
         """Start contronling of plugin by given keyword."""
@@ -785,14 +783,14 @@ class MonthlyPlanPlugin(BasePlugin):
                 and activated_keyword not in constants.days_ordinal_numbers_keywords:
             self.actions_keywords['add_date'] = False
             self.end_result['result'] = 'Input is wrong, try again with insert'
-            self.say_result_put_in_queue()
+            # self.say_result_put_in_queue()
             return
 
         if action_activated == 'delete_date'\
                 and activated_keyword not in constants.days_ordinal_numbers_keywords:
             self.actions_keywords['delete_date'] = False
             self.end_result['result'] = 'Input is wrong, try again with deleting'
-            self.say_result_put_in_queue()
+            # self.say_result_put_in_queue()
             return
 
         if action_activated == 'add_activity'\

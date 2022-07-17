@@ -1,4 +1,4 @@
-"""Read constants."""
+"""Defined constants."""
 ordinal_number_to_number = {
     'first': '01',
     'second': '02',

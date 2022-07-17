@@ -3,7 +3,7 @@ from enum import Enum
 
 
 class PluginResultType(Enum):
-    """PluginResultType."""
+    """Define PluginResultType type."""
 
     UNDEFINED = 1
     TEXT = 2
@@ -14,7 +14,7 @@ class PluginResultType(Enum):
 
 
 class PluginType(Enum):
-    """PluginType."""
+    """Define PluginType type."""
 
     SYSTEM_PLUGIN = 1
     ONLINE_PLUGIN = 2

@@ -2,7 +2,7 @@
 from datetime import date
 from unittest.mock import patch
 
-from common import constants, helpers
+from assistant3.common import constants, helpers
 
 
 def test_form_time_range() -> None:
@@ -34,7 +34,7 @@ def test_create_date() -> None:
     """Test creation of date."""
     ordinal_number_day = 'thirty'
 
-    with patch('common.helpers.date') as mock_date:
+    with patch('assistant3.common.helpers.date') as mock_date:
         mock_date.today.return_value = date(2010, 10, 8)
         assert helpers.create_date(ordinal_number_day) == '2010-10-30'
 
@@ -102,7 +102,7 @@ def test_time_range_validy() -> None:
 
 def test_day_today() -> None:
     """Test day today."""
-    with patch('common.helpers.date') as mock_date:
+    with patch('assistant3.common.helpers.date') as mock_date:
         mock_date.today.return_value = date(2010, 10, 8)
 
         date_date = helpers.day_today()
@@ -111,7 +111,7 @@ def test_day_today() -> None:
 
 def test_day_past_in_monthly_plan() -> None:
     """Test of day is in the past or in the future in monthly plan."""
-    with patch('common.helpers.date') as mock_date:
+    with patch('assistant3.common.helpers.date') as mock_date:
         mock_date.today.return_value = date(2010, 10, 8)
 
         date_to_insert = '2010-10-07'

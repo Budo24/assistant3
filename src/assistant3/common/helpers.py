@@ -2,11 +2,19 @@
 
 from datetime import date
 
-from common import constants
+from . import constants
 
 
 def form_time_range(activated_keyword: str) -> list[str]:
-    """Form time range from said time range."""
+    """Form time range from said time range.
+
+    Args:
+        activated_keyword: Text to parse.
+
+    Returns:
+        Time ranges.
+
+    """
     activated_keyword_ = activated_keyword.split(' ')
     hour_minutes = ''
     time_range = []
@@ -36,7 +44,15 @@ def form_time_range(activated_keyword: str) -> list[str]:
 def create_date(ordinal_number_day: str) -> str:
     """Create date in current month.
 
-    Create date in month using just day, given like ordinal number
+    Args:
+        ordinal_number_day: Text containing day.
+
+    Returns:
+        String containing today's date.
+
+    Note:
+        Create date in month using just day, given like ordinal number
+
     """
     day_created = 'not created'
 
@@ -57,7 +73,12 @@ def create_date(ordinal_number_day: str) -> str:
 def convert_time_range_from_words_to_numbers(time_range: list[str]) -> list[int]:
     """Convert time range from words to numbers.
 
-    It is helping function, to enable calculation in time_validy
+    Args:
+        time_range: Time ranges as strings.
+
+    Returns:
+        Time ranges as numbers.
+
     """
     time_range_numbers: list[int] = []
 
@@ -84,7 +105,15 @@ def convert_time_range_from_words_to_numbers(time_range: list[str]) -> list[int]
 def check_number_of_days_in_month(_date: str) -> str | bool:
     """Check if given day like ordinal number exist in month.
 
-    To avoid for example 31-06-2022
+    Args:
+        _date: Day string to check.
+
+    Returns:
+        True if day exist in month.
+
+    Note:
+        To avoid for example 31-06-2022
+
     """
     _date_ = _date.split('-')
     date_days = _date_[2]
@@ -104,9 +133,17 @@ def check_number_of_days_in_month(_date: str) -> str | bool:
 
 
 def time_range_validy(time_range_numbers: list[int]) -> int:
-    """Chech if time range make sense.
+    """Check if time range make sense.
 
-    To avoid activity between 16:00 - 15:00
+    Args:
+        time_range_numbers: List of time range numbers.
+
+    Returns:
+        Time range.
+
+    Note:
+        To avoid activity between 16:00 - 15:00
+
     """
     time_range = -1
     all_integers = True
@@ -126,13 +163,26 @@ def time_range_validy(time_range_numbers: list[int]) -> int:
 
 
 def day_today() -> str:
-    """Give day in date from today."""
+    """Give day in date from today.
+
+    Returns:
+        Day from today's date.
+
+    """
     day_today_ = str(date.today())
     return day_today_[len(day_today_) - 2:]
 
 
 def day_past_in_monthly_plan(date_to_insert: str) -> str | bool:
-    """Check if day in date is before or after today."""
+    """Check if day in date is before or after today.
+
+    Args:
+        date_to_insert: Date string.
+
+    Returns:
+        Answer.
+
+    """
     day = date_to_insert[len(date_to_insert) - 2:]
     day_today_ = day_today()
 
@@ -144,9 +194,14 @@ def day_past_in_monthly_plan(date_to_insert: str) -> str | bool:
 
 
 def say_date(date_to_say: str) -> str:
-    """Convert from form date, to form to say.
+    """Convert from string date to vocal equivalent.
 
-    Example 20-06-2022 -> twenty sixth 2022
+    Args:
+        date_to_say: Date string.
+
+    Returns:
+        Vocal equivalent.
+
     """
     date_to_say_ = date_to_say.split('-')
     day = date_to_say_[2]
