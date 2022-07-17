@@ -10,7 +10,7 @@ from plugins_watcher import PluginWatcher
 from processors import base_processor
 from processors.base_processor import MonthlyPlanPlugin
 
-engine_ = pyttsx3.init('')
+engine_ = pyttsx3.init()
 
 
 def test_activity_exist() -> None:
