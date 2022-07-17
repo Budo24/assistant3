@@ -6,6 +6,7 @@ from unittest.mock import patch
 from common import constants
 from plugins_watcher import PluginWatcher
 from processors import base_processor
+from processors.base_processor import MonthlyPlanPlugin
 
 
 def test_activity_exist() -> None:
@@ -40,7 +41,7 @@ def test_activity_exist() -> None:
 
 def test_write_xls() -> None:
     """Test writing into xls."""
-    monthly_plan = base_processor.MonthlyPlanPlugin()
+    monthly_plan = MonthlyPlanPlugin()
 
     with patch('common.helpers.date') as mock_date:
         mock_date.today.return_value = date(2010, 10, 8)
@@ -93,7 +94,7 @@ def test_give_date_from_monthly_plan() -> None:
 
     This function will NOT be executed, if date does not exist in monthly plan !
     """
-    monthly_plan = base_processor.MonthlyPlanPlugin()
+    monthly_plan = MonthlyPlanPlugin()
     with patch('common.helpers.date') as mock_date:
         mock_date.today.return_value = date(2010, 10, 8)
 
@@ -114,7 +115,7 @@ def test_give_date_from_monthly_plan() -> None:
 def test_activity_in_time() -> None:
     """Test activity in time."""
     print('Start')
-    monthly_plan = base_processor.MonthlyPlanPlugin()
+    monthly_plan = MonthlyPlanPlugin()
     with patch('common.helpers.date') as mock_date:
         mock_date.today.return_value = date(2010, 10, 8)
 
@@ -161,7 +162,7 @@ def test_add_activity_to_time_range() -> None:
     """Test adding of activity to time range."""
     activity = 'playing football'
 
-    monthly_plan = base_processor.MonthlyPlanPlugin()
+    monthly_plan = MonthlyPlanPlugin()
 
     with patch('common.helpers.date') as mock_date:
         mock_date.today.return_value = date(2010, 10, 8)
@@ -188,7 +189,7 @@ def test_add_activity_to_time_range() -> None:
 
 def test_insert_activity() -> None:
     """Test inserting of activity."""
-    monthly_plan = base_processor.MonthlyPlanPlugin()
+    monthly_plan = MonthlyPlanPlugin()
 
     with patch('common.helpers.date') as mock_date:
         mock_date.today.return_value = date(2010, 10, 8)
@@ -214,7 +215,7 @@ def test_insert_activity() -> None:
 
 def test_check_existing_date() -> None:
     """Check existing dates."""
-    monthly_plan = base_processor.MonthlyPlanPlugin()
+    monthly_plan = MonthlyPlanPlugin()
 
     with patch('common.helpers.date') as mock_date:
         mock_date.today.return_value = date(2010, 10, 8)
@@ -233,7 +234,7 @@ def test_check_existing_date() -> None:
 
 def test_delete_date_() -> None:
     """Test deleting of dates."""
-    monthly_plan = base_processor.MonthlyPlanPlugin()
+    monthly_plan = MonthlyPlanPlugin()
 
     with patch('common.helpers.date') as mock_date:
         mock_date.today.return_value = date(2010, 10, 8)
@@ -266,7 +267,7 @@ def test_delete_date_() -> None:
 
 def test_insert_date() -> None:
     """Check existing dates."""
-    monthly_plan = base_processor.MonthlyPlanPlugin()
+    monthly_plan = MonthlyPlanPlugin()
 
     with patch('common.helpers.date') as mock_date:
         mock_date.today.return_value = date(2010, 10, 8)
@@ -281,7 +282,7 @@ def test_insert_date() -> None:
 
 def test_add_date() -> None:
     """Test control function for switching to add date."""
-    monthly_plan = base_processor.MonthlyPlanPlugin()
+    monthly_plan = MonthlyPlanPlugin()
 
     with patch('common.helpers.date') as mock_date:
         mock_date.today.return_value = date(2010, 10, 8)
@@ -300,7 +301,7 @@ def test_add_date() -> None:
 
 def test_delete_date() -> None:
     """Test deleting of date."""
-    monthly_plan = base_processor.MonthlyPlanPlugin()
+    monthly_plan = MonthlyPlanPlugin()
 
     with patch('common.helpers.date') as mock_date:
         mock_date.today.return_value = date(2010, 10, 8)
@@ -324,7 +325,7 @@ def test_delete_date() -> None:
 
 def test_add_activity() -> None:
     """Test control function to add activity."""
-    monthly_plan = base_processor.MonthlyPlanPlugin()
+    monthly_plan = MonthlyPlanPlugin()
 
     with patch('common.helpers.date') as mock_date:
         mock_date.today.return_value = date(2010, 10, 8)
@@ -360,7 +361,7 @@ def test_add_activity() -> None:
 
 def test_deactivate_action() -> None:
     """Test deactivate action."""
-    monthly_plan = base_processor.MonthlyPlanPlugin()
+    monthly_plan = MonthlyPlanPlugin()
     monthly_plan.actions_keywords['add_date'] = True
 
     monthly_plan.deactivate_action()
@@ -372,7 +373,7 @@ def test_deactivate_action() -> None:
 
 def test_activate_action() -> None:
     """Test activate action."""
-    monthly_plan = base_processor.MonthlyPlanPlugin()
+    monthly_plan = MonthlyPlanPlugin()
 
     monthly_plan.activate_action('insert')
 
@@ -382,7 +383,7 @@ def test_activate_action() -> None:
 
 def test_show_dates() -> None:
     """Test showing of dates."""
-    monthly_plan = base_processor.MonthlyPlanPlugin()
+    monthly_plan = MonthlyPlanPlugin()
 
     monthly_plan.show_dates()
     print(monthly_plan.end_result['result'])
@@ -402,7 +403,7 @@ def test_show_dates() -> None:
 
 def test_check_keyword() -> None:
     """Test checking from keywords."""
-    monthly_plan = base_processor.MonthlyPlanPlugin()
+    monthly_plan = MonthlyPlanPlugin()
     monthly_plan.actions_keywords['add_date'] = True
 
     monthly_plan.check_keyword('add_date', 'thirty')
@@ -419,7 +420,7 @@ def test_check_keyword() -> None:
 
 def test_run_doc_without_activity() -> None:
     """Test run_doc."""
-    monthly_plan = base_processor.MonthlyPlanPlugin()
+    monthly_plan = MonthlyPlanPlugin()
 
     plugins_watcher = PluginWatcher([monthly_plan])
 
@@ -486,7 +487,7 @@ def test_run_doc_without_activity() -> None:
 
 def test_run_doc_activity() -> None:
     """Test run_doc."""
-    monthly_plan = base_processor.MonthlyPlanPlugin()
+    monthly_plan = MonthlyPlanPlugin()
 
     plugins_watcher = PluginWatcher([monthly_plan])
 
@@ -542,7 +543,7 @@ def test_run_doc_activity() -> None:
 
 def test_exact_keyword__similar_keyword_activated() -> None:
     """Test exact keyword activated."""
-    monthly_plan = base_processor.MonthlyPlanPlugin()
+    monthly_plan = MonthlyPlanPlugin()
 
     plugins_watcher = PluginWatcher([monthly_plan])
 
