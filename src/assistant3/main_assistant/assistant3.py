@@ -40,10 +40,12 @@ class Assistant3():
         # plugin object
         self.sdp = processors.base_processor.SpacyDatePlugin()
         self.mpp = processors.base_processor.MonthlyPlanPlugin()
+        self.wik = processors.base_processor.Wikipedia()
+        self.loc = processors.base_processor.Location()
         # trigger plugin object
         self.trigger = processors.base_processor.TriggerPlugin()
         # the plugin_watcher object
-        self.plugin_watcher = PluginWatcher([self.sdp, self.mpp])
+        self.plugin_watcher = PluginWatcher([self.sdp, self.mpp, self.wik, self.loc])
         # optionaly adding a trigger Plugin ("hey assistant")
         self.plugin_watcher.add_trigger_plugin(self.trigger)
 
