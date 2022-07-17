@@ -181,8 +181,8 @@ class PluginWatcher():
             return flush_result_queue_in_list()
 
         last_record = self.flow_record.get_last()
-        
-        
+
+
 
         if last_record['type'] == PluginResultType.ERROR:
             if last_record['plugin_type'] == PluginType.TRIGGER_PLUGIN:
@@ -193,9 +193,6 @@ class PluginWatcher():
 
         if last_record['plugin_type'] == PluginType.TRIGGER_PLUGIN:
             print('LAST RECORD', last_record)
-            print("\n\n")
-            print("FUCK")
-            print("\n\n")
             run_plugins()
             return flush_result_queue_in_list()
         else:
@@ -207,13 +204,13 @@ class PluginWatcher():
                     print("---------------------------_>>>>")
                     plugins = self.plugins
                     for plugin in plugins:
-                        print(plugin) 
+                        print(plugin)
                     print('\n\n')
                     self.plugins = [plugin.__class__() for plugin in plugins]
                     ## IHEB LINE DONE YERY IMPORTANT, UID IS IN PLUGIN WATCHER!!!
                     self.init()
                     for plugin in self.plugins:
-                        print(plugin) 
+                        print(plugin)
                     print("<<<<<<<<------------------------")
                     return trigger_flushed
                 run_by_uid(last_record['uid'])
