@@ -472,149 +472,146 @@ def test_run_doc_without_activity() -> None:
     """Test run_doc."""
     with patch('common.helpers.date') as mock_date:
         mock_date.today.return_value = date(2010, 10, 8)
-        with patch('processors.base_processor.BasePlugin') as plugin:
-            plugin.engine.return_value = engine_
-            monthly_plan = MonthlyPlanPlugin()
 
-            plugins_watcher = PluginWatcher([monthly_plan])
+        monthly_plan = MonthlyPlanPlugin()
 
-            plugins_watcher.run('insert')
-            monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
+        plugins_watcher = PluginWatcher([monthly_plan])
 
-            assert monthly_plan.end_result['result'] == \
-                'Which date do you want to insert, say me'\
-                ' just ordinal number of day in date'
+        plugins_watcher.run('insert')
+        monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
 
-            plugins_watcher.run('thirty')
-            monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
-            assert monthly_plan.end_result['result'] == \
-                'Date thirty october 2010 is successfully inserted,'\
-                ' function for inserting of dates is deactivated'
+        assert monthly_plan.end_result['result'] == \
+            'Which date do you want to insert, say me'\
+            ' just ordinal number of day in date'
 
-            plugins_watcher.run('insert')
-            monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
-            plugins_watcher.run('hello')
-            monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
+        plugins_watcher.run('thirty')
+        monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
+        assert monthly_plan.end_result['result'] == \
+            'Date thirty october 2010 is successfully inserted,'\
+            ' function for inserting of dates is deactivated'
 
-            assert monthly_plan.end_result['result'] == \
-                'Input is wrong, try again with insert'
+        plugins_watcher.run('insert')
+        monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
+        plugins_watcher.run('hello')
+        monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
 
-            plugins_watcher.run('insert')
-            monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
-            plugins_watcher.run('twenty first')
-            monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
+        assert monthly_plan.end_result['result'] == \
+            'Input is wrong, try again with insert'
 
-            plugins_watcher.run('delete')
-            monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
+        plugins_watcher.run('insert')
+        monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
+        plugins_watcher.run('twenty first')
+        monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
 
-            assert monthly_plan.end_result['result'] ==\
-                'Which date do you want to delete'
+        plugins_watcher.run('delete')
+        monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
 
-            plugins_watcher.run('fifteenth')
-            monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
+        assert monthly_plan.end_result['result'] ==\
+            'Which date do you want to delete'
 
-            print(monthly_plan.end_result['result'])
+        plugins_watcher.run('fifteenth')
+        monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
 
-            assert monthly_plan.end_result['result'] == \
-                'The date fifteenth october 2010  does'\
-                ' not exist in monthlyplan, so it can not be deleted'
+        print(monthly_plan.end_result['result'])
 
-            plugins_watcher.run('delete')
-            monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
-            plugins_watcher.run('hello')
-            monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
+        assert monthly_plan.end_result['result'] == \
+            'The date fifteenth october 2010  does'\
+            ' not exist in monthlyplan, so it can not be deleted'
 
-            assert monthly_plan.end_result['result'] == \
-                'Input is wrong, try again with deleting'
+        plugins_watcher.run('delete')
+        monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
+        plugins_watcher.run('hello')
+        monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
 
-            plugins_watcher.run('delete')
-            monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
-            plugins_watcher.run('twenty first')
-            monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
+        assert monthly_plan.end_result['result'] == \
+            'Input is wrong, try again with deleting'
 
-            assert monthly_plan.end_result['result'] == 'The last date'\
-                ' twenty first october 2010 in the monthly plan is deleted'
+        plugins_watcher.run('delete')
+        monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
+        plugins_watcher.run('twenty first')
+        monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
+
+        assert monthly_plan.end_result['result'] == 'The last date'\
+            ' twenty first october 2010 in the monthly plan is deleted'
 
 
 def test_run_doc_activity() -> None:
     """Test run_doc."""
     with patch('common.helpers.date') as mock_date:
         mock_date.today.return_value = date(2010, 10, 8)
-        with patch('processors.base_processor.BasePlugin') as plugin:
-            plugin.engine.return_value = engine_
-            monthly_plan = MonthlyPlanPlugin()
 
-            plugins_watcher = PluginWatcher([monthly_plan])
+        monthly_plan = MonthlyPlanPlugin()
 
-            plugins_watcher.run('insert')
-            monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
-            plugins_watcher.run('thirty')
-            monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
+        plugins_watcher = PluginWatcher([monthly_plan])
 
-            plugins_watcher.run('activity')
-            monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
+        plugins_watcher.run('insert')
+        monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
+        plugins_watcher.run('thirty')
+        monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
 
-            assert monthly_plan.end_result['result'] == \
-                'On which date you want to add activity'
-            plugins_watcher.run('hello')
-            monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
+        plugins_watcher.run('activity')
+        monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
 
-            assert monthly_plan.end_result['result'] == \
-                'Break adding of activity'
-            plugins_watcher.run('activity')
-            monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
-            plugins_watcher.run('thirty')
-            monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
+        assert monthly_plan.end_result['result'] == \
+            'On which date you want to add activity'
+        plugins_watcher.run('hello')
+        monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
 
-            assert monthly_plan.end_result['result'] == \
-                'Date thirty october 2010 exist in monthly plan, you can add time range'
+        assert monthly_plan.end_result['result'] == \
+            'Break adding of activity'
+        plugins_watcher.run('activity')
+        monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
+        plugins_watcher.run('thirty')
+        monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
 
-            plugins_watcher.run('hello')
-            monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
+        assert monthly_plan.end_result['result'] == \
+            'Date thirty october 2010 exist in monthly plan, you can add time range'
 
-            assert monthly_plan.end_result['result'] == \
-                "Time range ['hello'] is not valid,"\
-                ' try another one, adding of activity broken.'
+        plugins_watcher.run('hello')
+        monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
 
-            plugins_watcher.run('activity')
-            monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
-            plugins_watcher.run('thirty')
-            monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
-            plugins_watcher.run('six zero seven zero')
-            monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
+        assert monthly_plan.end_result['result'] == \
+            "Time range ['hello'] is not valid,"\
+            ' try another one, adding of activity broken.'
 
-            assert monthly_plan.end_result['result'] == \
-                'Time range [6, 0, 7, 0] available, you can try to add an activity'
+        plugins_watcher.run('activity')
+        monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
+        plugins_watcher.run('thirty')
+        monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
+        plugins_watcher.run('six zero seven zero')
+        monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
 
-            plugins_watcher.run('watching tv')
-            monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
+        assert monthly_plan.end_result['result'] == \
+            'Time range [6, 0, 7, 0] available, you can try to add an activity'
 
-            assert monthly_plan.end_result['result'] == 'Activity'\
-                ' watching tv successfully added'
+        plugins_watcher.run('watching tv')
+        monthly_plan.run_doc(plugins_watcher.doc, queue.Queue())
+
+        assert monthly_plan.end_result['result'] == 'Activity'\
+            ' watching tv successfully added'
 
 
 def test_exact_keyword__similar_keyword_activated() -> None:
     """Test exact keyword activated."""
     with patch('common.helpers.date') as mock_date:
         mock_date.today.return_value = date(2010, 10, 8)
-        with patch('processors.base_processor.BasePlugin') as plugin:
-            plugin.engine.return_value = engine_
-            monthly_plan = MonthlyPlanPlugin()
 
-            plugins_watcher = PluginWatcher([monthly_plan])
-            monthly_plan.min_similarity = 1
+        monthly_plan = MonthlyPlanPlugin()
 
-            for keyword in constants.actions_keywords:
-                monthly_plan.add_activation_doc(keyword)
+        plugins_watcher = PluginWatcher([monthly_plan])
+        monthly_plan.min_similarity = 1
 
-            for day_orindal_number_keyword in constants.days_ordinal_numbers_keywords:
-                monthly_plan.add_activation_doc(day_orindal_number_keyword)
+        for keyword in constants.actions_keywords:
+            monthly_plan.add_activation_doc(keyword)
 
-            plugins_watcher.doc = plugins_watcher.nlp('insert')
-            assert monthly_plan.exact_keyword_activated(plugins_watcher.doc) ==\
-                'insert'
+        for day_orindal_number_keyword in constants.days_ordinal_numbers_keywords:
+            monthly_plan.add_activation_doc(day_orindal_number_keyword)
 
-            monthly_plan.min_similarity = 0.5
-            plugins_watcher.doc = plugins_watcher.nlp('hu insert')
-            assert monthly_plan.similar_keyword_activated(plugins_watcher.doc) ==\
-                'insert'
+        plugins_watcher.doc = plugins_watcher.nlp('insert')
+        assert monthly_plan.exact_keyword_activated(plugins_watcher.doc) ==\
+            'insert'
+
+        monthly_plan.min_similarity = 0.5
+        plugins_watcher.doc = plugins_watcher.nlp('hu insert')
+        assert monthly_plan.similar_keyword_activated(plugins_watcher.doc) ==\
+            'insert'
