@@ -45,7 +45,6 @@ def test_activity_exist() -> None:
 
 def test_write_xls() -> None:
     """Test writing into xls."""
-
     with patch('common.helpers.date') as mock_date:
         mock_date.today.return_value = date(2010, 10, 8)
 
@@ -131,7 +130,7 @@ def test_activity_in_time() -> None:
         mock_date.today.return_value = date(2010, 10, 8)
         with patch('processors.base_processor.BasePlugin') as plugin:
             plugin.engine.return_value = engine_
-        
+
             monthly_plan = MonthlyPlanPlugin()
 
             monthly_plan.insert_date('ninth')
@@ -141,7 +140,7 @@ def test_activity_in_time() -> None:
             time_range_words = ['sixteen', 'zero', 'seventeen', 'zero']
 
             assert monthly_plan.activity_in_time(time_range_possible,
-                                                time_range_numbers, time_range_words)\
+                                                 time_range_numbers, time_range_words)\
                 == 'Time range [16, 0, 17, 0] available, you can try to add an activity'
 
             # because of previous line
@@ -158,7 +157,7 @@ def test_activity_in_time() -> None:
             time_range_words = ['sixteen', 'zero', 'sixteen', 'thirty']
 
             assert monthly_plan.activity_in_time(time_range_possible,
-                                                time_range_numbers, time_range_words)\
+                                                 time_range_numbers, time_range_words)\
                 == 'In that time range already exist activity'
 
             monthly_plan.reset_activity()
@@ -168,7 +167,7 @@ def test_activity_in_time() -> None:
             time_range_words = ['seventeen', 'zero', 'sixteen', 'zero']
 
             assert monthly_plan.activity_in_time(time_range_possible,
-                                                time_range_numbers, time_range_words)\
+                                                 time_range_numbers, time_range_words)\
                 == "Time range ['seventeen', 'zero', 'sixteen', 'zero'] is not valid,"\
                 ' try another one, adding of activity broken.'
 
@@ -181,7 +180,7 @@ def test_add_activity_to_time_range() -> None:
         mock_date.today.return_value = date(2010, 10, 8)
         with patch('processors.base_processor.BasePlugin') as plugin:
             plugin.engine.return_value = engine_
-        
+
             monthly_plan = MonthlyPlanPlugin()
             monthly_plan.insert_date('ninth')
             monthly_plan.insert_date('eleventh')
@@ -210,7 +209,7 @@ def test_insert_activity() -> None:
         mock_date.today.return_value = date(2010, 10, 8)
         with patch('processors.base_processor.BasePlugin') as plugin:
             plugin.engine.return_value = engine_
-        
+
             monthly_plan = MonthlyPlanPlugin()
             monthly_plan.insert_date('ninth')
             monthly_plan.insert_date('eleventh')
@@ -238,7 +237,7 @@ def test_check_existing_date() -> None:
         mock_date.today.return_value = date(2010, 10, 8)
         with patch('processors.base_processor.BasePlugin') as plugin:
             plugin.engine.return_value = engine_
-        
+
             monthly_plan = MonthlyPlanPlugin()
             monthly_plan.insert_date('ninth')
             monthly_plan.insert_date('eleventh')
@@ -259,9 +258,9 @@ def test_delete_date_() -> None:
         mock_date.today.return_value = date(2010, 10, 8)
         with patch('processors.base_processor.BasePlugin') as plugin:
             plugin.engine.return_value = engine_
-        
+
             monthly_plan = MonthlyPlanPlugin()
-            
+
             monthly_plan.insert_date('ninth')
 
             assert monthly_plan.delete_date_('ninth') == 'The first date ninth october'\
@@ -295,7 +294,7 @@ def test_insert_date() -> None:
         mock_date.today.return_value = date(2010, 10, 8)
         with patch('processors.base_processor.BasePlugin') as plugin:
             plugin.engine.return_value = engine_
-        
+
             monthly_plan = MonthlyPlanPlugin()
 
             assert monthly_plan.insert_date('ninth') == 'Date ninth'\
@@ -312,7 +311,7 @@ def test_add_date() -> None:
         mock_date.today.return_value = date(2010, 10, 8)
         with patch('processors.base_processor.BasePlugin') as plugin:
             plugin.engine.return_value = engine_
-        
+
             monthly_plan = MonthlyPlanPlugin()
 
             monthly_plan.add_date('thirty')
@@ -333,7 +332,7 @@ def test_delete_date() -> None:
         mock_date.today.return_value = date(2010, 10, 8)
         with patch('processors.base_processor.BasePlugin') as plugin:
             plugin.engine.return_value = engine_
-        
+
             monthly_plan = MonthlyPlanPlugin()
 
             monthly_plan.insert_date('ninth')
@@ -359,7 +358,7 @@ def test_add_activity() -> None:
         mock_date.today.return_value = date(2010, 10, 8)
         with patch('processors.base_processor.BasePlugin') as plugin:
             plugin.engine.return_value = engine_
-        
+
             monthly_plan = MonthlyPlanPlugin()
 
             monthly_plan.insert_date('ninth')
@@ -397,7 +396,7 @@ def test_deactivate_action() -> None:
         mock_date.today.return_value = date(2010, 10, 8)
         with patch('processors.base_processor.BasePlugin') as plugin:
             plugin.engine.return_value = engine_
-        
+
             monthly_plan = MonthlyPlanPlugin()
             monthly_plan.actions_keywords['add_date'] = True
 
@@ -414,7 +413,7 @@ def test_activate_action() -> None:
         mock_date.today.return_value = date(2010, 10, 8)
         with patch('processors.base_processor.BasePlugin') as plugin:
             plugin.engine.return_value = engine_
-        
+
             monthly_plan = MonthlyPlanPlugin()
 
             monthly_plan.activate_action('insert')
@@ -452,12 +451,11 @@ def test_check_keyword() -> None:
             monthly_plan = MonthlyPlanPlugin()
             monthly_plan.actions_keywords['add_date'] = True
 
-
             monthly_plan.check_keyword('add_date', 'hello')
 
             assert monthly_plan.end_result['result'] == 'Input'\
                 ' is wrong, try again with insert'
-            
+
             monthly_plan.actions_keywords['add_date'] = True
 
             print('Here is good')
