@@ -673,7 +673,7 @@ class MonthlyPlanPlugin(BasePlugin):
             self.min_similarity = 0.75
             self.reset_activity()
             self.end_result['result'] = 'Break adding of activity'
-            self.say_result_put_in_queue()
+            # self.say_result_put_in_queue()
             return
 
         self.end_result['result'] = self.insert_activity(activated_keyword)
@@ -707,14 +707,14 @@ class MonthlyPlanPlugin(BasePlugin):
 
             self.actions_keywords['add_date'] = True
             self.end_result['result'] = constants.answers[1]
-            self.say_result_put_in_queue()
+            # self.say_result_put_in_queue()
             return
 
         if activated_keyword == constants.actions_keywords[2]:
 
             self.actions_keywords['delete_date'] = True
             self.end_result['result'] = constants.answers[2]
-            self.say_result_put_in_queue()
+            # self.say_result_put_in_queue()
             return
 
         if activated_keyword == constants.actions_keywords[3]:
@@ -730,7 +730,7 @@ class MonthlyPlanPlugin(BasePlugin):
         if self.first_date.date_in_month == '':
 
             self.end_result['result'] = 'Monthly plan is empty'
-            self.say_result_put_in_queue()
+            # self.say_result_put_in_queue()
 
         else:
 
@@ -764,7 +764,7 @@ class MonthlyPlanPlugin(BasePlugin):
                 break
         monthly_plan.close()
         self.end_result['result'] = 'All time ranges and activies are written'
-        self.say_result_put_in_queue()
+        # self.say_result_put_in_queue()
 
     def check_keyword(self, action_activated: str | bool, activated_keyword: str) -> None:
         """Start contronling of plugin by given keyword."""
