@@ -2,37 +2,43 @@
   {
     "name": "hamza",
     "order_id": 177234328,
-    "rack_number": 1,
-    "corridor_number": -1
+    "rack_number": -1,
+    "corridor_number": 1
   },
   {
     "name": "michael",
     "order_id": 177234411,
-    "rack_number": 2,
-    "corridor_number": -1
+    "rack_number": -1,
+    "corridor_number": 1
   },
   {
     "name": "michelle",
     "order_id": 177234453,
-    "rack_number": 3,
-    "corridor_number": -1
+    "rack_number": -1,
+    "corridor_number": 1
   },
   {
     "name": "i've read do",
     "order_id": 187011935,
-    "rack_number": 4,
-    "corridor_number": -1
+    "rack_number": -1,
+    "corridor_number": 1
   },
   {
-    "name": "anastasia",
-    "order_id": 177234610,
+    "name": "michelle",
+    "order_id": 187024753,
     "rack_number": -1,
     "corridor_number": 1
   },
   {
     "name": "i frieda",
     "order_id": 177234648,
-    "rack_number": 6,
-    "corridor_number": -1
+    "rack_number": -1,
+    "corridor_number": 1
+  },
+  {
+    "name": "frank",
+    "order_id": 187024831,
+    "rack_number": -1,
+    "corridor_number": 1
   }
 ]

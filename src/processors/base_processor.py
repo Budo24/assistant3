@@ -447,11 +447,11 @@ class MeetClient(BasePlugin):
                 self.engine.say(self.order_manager.next_client_object())
                 self.engine.runAndWait()
         elif self.order_manager.get_interrupt_control() in (14, 16):
-            self.engine.say(self.order_manager.next_client_collect())
-            self.engine.runAndWait()
-            """if self.order_manager.client_spit == 'stop':
+            if self.order_manager.client_spit == 'stop':
                 self.order_manager.db_object.remove_db_plugin()
-                else:"""
+            else:
+                self.engine.say(self.order_manager.next_client_collect())
+                self.engine.runAndWait()
 
     def get_next_item(self):
         """Say what i should do for the next step in the filling from plug.db"""

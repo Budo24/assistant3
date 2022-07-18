@@ -370,8 +370,12 @@ class OrderManager:
     def next_client_collect(self):
         task = self.db_object.read_db_plugin()
         if self.get_interrupt_control() == 16:
-            self.mark_corridor()
-            return 'save completed. next order'
+            if str(self.client_spit) == 'stop':
+                self.db_object.remove_db_plugin()
+                return 'stop'
+            else:
+                self.mark_corridor()
+                return 'save completed. next order'
 
         elif self.get_interrupt_control() == 14:
             for key in task:
@@ -445,12 +449,4 @@ if __name__ == '__main__':
     #manager_objectk = OrderManager()
     #manager_objectk.mark_corridor()
     #print(manager_objectk.get_interrupt_control())
-    """if self.get_interrupt_control() == 6:
-                if self.collect_object.creat_collect_task() == -1:
-                    self.order_spit = 'no order more'
-                    self.update_db(['0', '0', '0', '0', '0', 0])
-                    return True
-                else:
-                    self.order_spit = 'save completed. next order'
-                    self.creat_next_task()
-                    return True"""
+    pass
