@@ -37,7 +37,7 @@ loc = processors.base_processor.Location()
 # trigger plugin object
 trigger = processors.base_processor.TriggerPlugin()
 # the plugin_watcher object
-plugin_watcher = PluginWatcher([sdp, loc])
+plugin_watcher = PluginWatcher([sdp, wik])
 # optionaly adding a trigger Plugin ("hey assistant")
 plugin_watcher.add_trigger_plugin(trigger)
 

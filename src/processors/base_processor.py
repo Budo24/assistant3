@@ -298,6 +298,7 @@ class Wikipedia(BasePlugin):
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
         self.min_similarity = 0.99
         self.search_result = []
+        self.show_result = []
 
     def run_doc(self, doc: object, queue_: queue.Queue[typing.Any]) -> None:
         """Run doc."""
@@ -307,6 +308,10 @@ class Wikipedia(BasePlugin):
         self.queue = queue_
 
         activated = self.is_activated(doc)
+        print(self.search_result)
+        print('------')
+        print(self.show_result)
+        print('------')
 
         # if not activated:
         #     self.end_result['type'] = PluginResultType.ERROR
@@ -322,34 +327,30 @@ class Wikipedia(BasePlugin):
             self.end_result['result_speech_func'] = super().spit_text
             self.queue.put(self.end_result)
             return
-
-        if activated and self.search_result:
-
+        if self.search_result:
             if doc[0].text == 'first':
-                print()
                 print(self.search_result[1])
                 final = wikihelp.wiki_summary(self.search_result[1])
-
                 self.end_result['type'] = PluginResultType.TEXT
                 self.end_result['result'] = final
                 self.end_result['result_speech_func'] = super().spit_text
+                self.show_result.pop()
                 self.queue.put(self.end_result)
                 return
-
             elif doc[0].text == 'second':
                 final = wikihelp.wiki_summary(self.search_result[2])
-
                 self.end_result['type'] = PluginResultType.TEXT
                 self.end_result['result'] = final
                 self.end_result['result_speech_func'] = super().spit_text
+                self.show_result.pop()
                 self.queue.put(self.end_result)
                 return
-
             elif doc[0].text == 'third':
                 final = wikihelp.wiki_summary(self.search_result[3])
                 self.end_result['type'] = PluginResultType.TEXT
                 self.end_result['result'] = final
                 self.end_result['result_speech_func'] = super().spit_text
+                self.show_result.pop()
                 self.queue.put(self.end_result)
                 return
 
@@ -360,24 +361,27 @@ class Wikipedia(BasePlugin):
                 self.queue.put(self.end_result)
                 return
 
-        
-        self.search_result = wikihelp.wiki_search(doc.text)
-        if len(self.search_result) == 0:
-            self.end_result['type'] = PluginResultType.TEXT
-            self.end_result['result'] = 'no result found'
-            self.end_result['result_speech_func'] = super().spit_text
-            self.queue.put(self.end_result)
-            return
         else:
-            first_res = f'here are the results: first is {self.search_result[1]} \
-            second is {self.search_result[2]} third is {self.search_result[3]}'
+            self.search_result = wikihelp.wiki_search(doc.text)
+            print(self.search_result)
+            if len(self.search_result) == 0:
+                self.end_result['type'] = PluginResultType.TEXT
+                self.end_result['result'] = 'no result found'
+                self.end_result['result_speech_func'] = super().spit_text
+                self.queue.put(self.end_result)
+                return
+            else:
+                first_res = f'here are the results: first is {self.search_result[1]} \
+                second is {self.search_result[2]} third is {self.search_result[3]} \
+                which one do you want to chose? tell me first second or third'
 
-            self.end_result['type'] = PluginResultType.KEEP_ALIVE
-            self.end_result['result'] = first_res
-            self.end_result['result_speech_func'] = super().spit_text
-            self.queue.put(self.end_result)
+                self.end_result['type'] = PluginResultType.KEEP_ALIVE
+                self.end_result['result'] = first_res
+                self.end_result['result_speech_func'] = super().spit_text
+                self.show_result.append('search')
+                self.queue.put(self.end_result)
+                return self.show_result, self.search_result
 
-        return
 
 
 class Location(BasePlugin):
