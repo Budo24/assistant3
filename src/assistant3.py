@@ -170,7 +170,7 @@ def main() -> None:
         record(args)
     except KeyboardInterrupt:
         print('\nDone')
-        #db_object.remove_db_plugin()
+        db_object.remove_db_plugin()
         parser.exit(0)
 
 
