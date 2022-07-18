@@ -857,23 +857,13 @@ class Wikipedia(BasePlugin):
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
         self.min_similarity = 0.99
         self.search_result = []
+        self.show_result = []
 
     def run_doc(self, doc: object, queue_: queue.Queue[typing.Any]) -> None:
         """Run doc."""
-        # for keyword in constants.actions_keywords:
-        #     self.add_activation_doc(keyword)
-
         self.queue = queue_
 
         activated = self.is_activated(doc)
-
-        if not activated:
-            self.end_result['type'] = PluginResultType.ERROR
-            self.end_result['result'] = ''
-            self.end_result['result_speech_func'] = super().error_spit
-            # here we push it to the results queue passed by pw
-            #self.queue.put(self.end_result)
-            return
 
         if activated and not self.search_result:
             self.end_result['type'] = PluginResultType.KEEP_ALIVE
@@ -881,34 +871,30 @@ class Wikipedia(BasePlugin):
             self.end_result['result_speech_func'] = super().spit_text
             self.queue.put(self.end_result)
             return
-
-        elif activated and self.search_result:
-
+        if self.search_result:
             if doc[0].text == 'first':
-                print()
                 print(self.search_result[1])
                 final = wikihelp.wiki_summary(self.search_result[1])
-
                 self.end_result['type'] = PluginResultType.TEXT
                 self.end_result['result'] = final
                 self.end_result['result_speech_func'] = super().spit_text
+                self.show_result.pop()
                 self.queue.put(self.end_result)
                 return
-
             elif doc[0].text == 'second':
                 final = wikihelp.wiki_summary(self.search_result[2])
-
                 self.end_result['type'] = PluginResultType.TEXT
                 self.end_result['result'] = final
                 self.end_result['result_speech_func'] = super().spit_text
+                self.show_result.pop()
                 self.queue.put(self.end_result)
                 return
-
             elif doc[0].text == 'third':
                 final = wikihelp.wiki_summary(self.search_result[3])
                 self.end_result['type'] = PluginResultType.TEXT
                 self.end_result['result'] = final
                 self.end_result['result_speech_func'] = super().spit_text
+                self.show_result.pop()
                 self.queue.put(self.end_result)
                 return
 
@@ -921,15 +907,24 @@ class Wikipedia(BasePlugin):
 
         else:
             self.search_result = wikihelp.wiki_search(doc.text)
-            first_res = f'here are the results: first is {self.search_result[1]} \
-            second is {self.search_result[2]} third is {self.search_result[3]}'
+            print(self.search_result)
+            if len(self.search_result) == 0:
+                self.end_result['type'] = PluginResultType.TEXT
+                self.end_result['result'] = 'no result found'
+                self.end_result['result_speech_func'] = super().spit_text
+                self.queue.put(self.end_result)
+                return
+            else:
+                first_res = f'here are the results: first is {self.search_result[1]} \
+                second is {self.search_result[2]} third is {self.search_result[3]} \
+                which one do you want to chose? tell me first second or third'
 
-            self.end_result['type'] = PluginResultType.KEEP_ALIVE
-            self.end_result['result'] = first_res
-            self.end_result['result_speech_func'] = super().spit_text
-            self.queue.put(self.end_result)
-
-        return
+                self.end_result['type'] = PluginResultType.KEEP_ALIVE
+                self.end_result['result'] = first_res
+                self.end_result['result_speech_func'] = super().spit_text
+                self.show_result.append('search')
+                self.queue.put(self.end_result)
+                return self.show_result, self.search_result
 
 
 class Location(BasePlugin):
@@ -941,9 +936,9 @@ class Location(BasePlugin):
         and it will take care of adding it as described
         above
         """
-        super().__init__('where am i')
-        #self.add_activation_doc('where am i')
-        self.activation_dict['general_tts_error_message'] = 'wiki error'
+        super().__init__('location')
+        self.add_activation_doc('location')
+        self.activation_dict['general_tts_error_message'] = 'location error'
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
 
     def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
@@ -970,4 +965,3 @@ class Location(BasePlugin):
             # here we push it to the results queue passed by pw
             self.queue.put(self.end_result)
         return
-
