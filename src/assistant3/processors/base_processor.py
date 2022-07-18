@@ -940,17 +940,15 @@ class Location(BasePlugin):
         """Run_doc."""
         self.queue = _queue
         # check if plugin is activted
-        activated = self.is_activated(doc)
-        if activated:
-            loc = location_help.locator()
-            loc = loc.split()
-            final_loc = f'your are in the city {loc[8]} in {loc[9]} in the country {loc[11]}'
-            # here we set some informations in the result dict
-            self.end_result['type'] = PluginResultType.TEXT
-            self.end_result['result'] = final_loc
-            self.end_result['result_speech_func'] = super().spit_text
-            # here we push it to the results queue passed by pw
-            self.queue.put(self.end_result)
+        loc = location_help.locator()
+        loc = loc.split()
+        final_loc = f'your are in the city {loc[8]} in {loc[9]} in the country {loc[11]}'
+        # here we set some informations in the result dict
+        self.end_result['type'] = PluginResultType.TEXT
+        self.end_result['result'] = final_loc
+        self.end_result['result_speech_func'] = super().spit_text
+        # here we push it to the results queue passed by pw
+        self.queue.put(self.end_result)
         return
 
 
