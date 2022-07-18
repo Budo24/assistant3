@@ -35,9 +35,9 @@ class PickAndCollect:
             corridor_number = order_place[1]
             json_order = self.rack_object.read_jason_file(corridor_number)
             pick_info = [json_order[rack_number]['name'], corridor_number, rack_number + 1]
-            return zip(['name', 'corridor_number', 'rack_number'], pick_info)
+            return dict(zip(['name', 'corridor_number', 'rack_number'], pick_info))
         else:
-            self.pick_order_ability(order_id)
+            return self.pick_order_ability(order_id)
 
     def order_status(self, rack_number, corridor_number):
         """Give general state of order"""
@@ -150,9 +150,11 @@ class PickAndCollect:
 
 if __name__ == '__main__':
     collect_object = PickAndCollect()
-    collect_task2 = collect_object.creat_collect_task()
-    print(collect_task2)
+    """collect_task2 = collect_object.creat_collect_task()
+    print(collect_task2)"""
     #collect_object.collect_one_order(147221034)
     #print(collect_object.rack_object.read_jason_file(1))
     #print("ja", collect_object.creat_pick_task())
     #print("hier", collect_object.creat_collect_task())
+    #print(collect_object.pick_order_info(187011935))
+    print(collect_object.collect_order_with_id(187011935))

@@ -36,12 +36,13 @@ db_object = processors.class_makedb.MakeDB()
 aop = processors.base_processor.AddOrderPlugin()
 cop = processors.base_processor.CollectOrder()
 pop = processors.base_processor.PickPlugin()
+mcp = processors.base_processor.MeetClient()
 sdp = processors.base_processor.SpacyDatePlugin()
 mpp = processors.base_processor.MonthlyPlanPlugin()
 # trigger plugin object
 trigger = TriggerPlugin()
 # the plugin_watcher object
-plugin_watcher = PluginWatcher([pop, cop, aop, mpp, sdp])
+plugin_watcher = PluginWatcher([mcp, aop, mpp, sdp])
 # optionaly adding a trigger Plugin ("hey assistant")
 plugin_watcher.add_trigger_plugin(trigger)
 
@@ -169,7 +170,7 @@ def main() -> None:
         record(args)
     except KeyboardInterrupt:
         print('\nDone')
-        db_object.remove_db_plugin()
+        #db_object.remove_db_plugin()
         parser.exit(0)
 
 

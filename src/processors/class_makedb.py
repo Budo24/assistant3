@@ -158,7 +158,7 @@ if __name__ == '__main__':
     print(db_object.read_db_plugin_collect())"""
     #db_object.remove_db_plugin
     #db_object.make_db_plugin()
-    #db_object.remove_db_plugin()
+    db_object.remove_db_plugin()
     #db_object.insert_db_plugin(['hamza', '0', '0', 1])
     #db_object.insert_db_plugin(['screw', 'five', 1, 2, 6, 5])
     #print(db_object.read_db_plugin())

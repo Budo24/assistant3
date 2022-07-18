@@ -123,4 +123,4 @@ if __name__ == '__main__':
     """new_order = ['3_10', 'bike', 1]
     rack.delete_order_racks(97232922)
     rack.creat_racks(new_order)"""
-    print(db.read_db())
+    #print(db.read_db())

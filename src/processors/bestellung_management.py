@@ -11,6 +11,7 @@ class OrderManager:
     def __init__(self):
         self.doc_add = '0'
         self.order_spit = 'nothing'
+        self.client_spit = 'nothing'
         self.db_object = MakeDB()
         self.rack_object = MakeRacks()
         self.db_object.make_db_plugin()
@@ -69,8 +70,10 @@ class OrderManager:
             elif self.get_interrupt_control() in (4, 6, 5):
                 return self.check_collect_plugin(task)
             #plugin for pick order from racks
-            elif self.get_interrupt_control() in (7, 8, 9, -2):
+            elif self.get_interrupt_control() in (7, 8, 9):
                 return self.check_pick_plugin(task)
+            elif self.get_interrupt_control() in (10, 11, 12, 13, 14, 15, 16):
+                return self.check_client_triger(task)
 
     def check_pick_plugin(self, task):
         if self.get_interrupt_control() == 8:
@@ -108,6 +111,62 @@ class OrderManager:
         else:
             return -1
 
+    def check_client_triger(self, task):
+        if self.get_interrupt_control() == 13:
+            #13 means pick is completed and we will get next clien
+            if str(self.doc_add) == 'stop':
+                self.db_object.remove_db_plugin()
+                return False
+            else:
+                self.update_db(['0', '0', '0', -1, 10])
+                return True
+        elif self.get_interrupt_control() == 16:
+            # means collect is completed and we will get next client
+            if str(self.doc_add) == 'stop':
+                self.db_object.remove_db_plugin()
+                return False
+            else:
+                self.update_db(['0', '0', '0', -1, 10])
+                return True
+        elif self.get_interrupt_control() == 10:
+            #10 means we take id number from client
+            try:
+                for key in task:
+                    if task[key] == 'activ':
+                        if str(self.doc_add) == 'stop':
+                            self.db_object.remove_db_plugin()
+                            return False
+                        else:
+                            task[key] = str(self.doc_add)
+                            print("id number", w2n.word_to_num(task[key]))
+                            self.update_db(self.creat_list_order(task))
+                            return True
+            except ValueError:
+                self.db_object.remove_db_plugin()
+                return False
+        elif self.get_interrupt_control() == 11:
+            #11 means we take infomations about the place from order to pick
+            for key in task:
+                if task[key] != 'collected' and key != 'order_id' and key != 'interrupt':
+                    if str(self.doc_add) == 'stop':
+                        self.db_object.remove_db_plugin()
+                        return False
+                    else:
+                        return True
+            else:
+                return True
+        elif self.get_interrupt_control() == 14:
+            #11 means we take infomations about the place from order to pick
+            for key in task:
+                if task[key] != 'collected' and key != 'order_id' and key != 'interrupt':
+                    if str(self.doc_add) == 'stop':
+                        self.db_object.remove_db_plugin()
+                        return False
+                    else:
+                        return True
+            else:
+                return True
+
     def check_add_order_triger(self, task):
         if self.get_interrupt_control() == 2:
             if str(self.doc_add) == 'stop':
@@ -125,11 +184,6 @@ class OrderManager:
                         task[key] = str(self.doc_add)
                         self.update_db(self.creat_list_order(task))
                         return True
-            else:
-                #continue with the state, that we get with break ctrl+c during the introduction of elements in dictionary from plug
-                if len(task) == 4:
-                    self.db_object.remove_db_plugin()
-                return False
 
     def store_task_in_racks(self):
         ready_order = self.get_order_list()
@@ -281,6 +335,66 @@ class OrderManager:
     def interrupt_pick_task(self):
         self.set_interrupt_control(8)
 
+    def next_client_object(self):
+        task = self.db_object.read_db_plugin()
+        if self.get_interrupt_control() == 13:
+            if str(self.client_spit) == 'stop':
+                self.db_object.remove_db_plugin()
+                return 'stop'
+            else:
+                self.mark_pick_corridor()
+                return 'save completed. next order'
+
+        elif self.get_interrupt_control() == 11:
+            for key in task:
+                if str(task[key]) != 'collected' and key != 'interrupt' and key != 'order_id':
+                    order = str(task[key])
+                    task[key] = 'collected'
+                    self.update_db(self.creat_list_order(task))
+                    return self.creat_sentence(key) + order
+            else:
+                return 'stop for dont save'
+
+    def next_client_element(self):
+        task = self.db_object.read_db_plugin()
+        for key in task:
+            if str(task[key]) != 'collected' and key != 'interrupt' and key != 'order_id' and task[
+                'interrupt'] == 11:
+                return 'next'
+        else:
+            return 'stop for dont save'
+
+    def interrupt_client_task(self):
+        self.set_interrupt_control(12)
+
+    def next_client_collect(self):
+        task = self.db_object.read_db_plugin()
+        if self.get_interrupt_control() == 16:
+            self.mark_corridor()
+            return 'save completed. next order'
+
+        elif self.get_interrupt_control() == 14:
+            for key in task:
+                if str(task[key]) != 'collected' and key != 'interrupt' and key != 'order_id':
+                    order = str(task[key])
+                    task[key] = 'collected'
+                    self.update_db(self.creat_list_order(task))
+                    return self.creat_sentence(key) + order
+            else:
+                return 'stop for dont save'
+
+    def next_collect_client(self):
+        task = self.db_object.read_db_plugin()
+        for key in task:
+            if str(task[key]) != 'collected' and key != 'interrupt' and key != 'order_id' and task[
+                'interrupt'] == 14:
+                return 'next'
+        else:
+            return 'stop for dont save'
+
+    def interrupt_client_collect(self):
+        self.set_interrupt_control(15)
+
     def get_spit_response_triger(self):
         if self.get_interrupt_control() in (1, 3):
             if self.get_interrupt_control() == 1:
@@ -300,6 +414,25 @@ class OrderManager:
             if self.next_pick_element() == 'stop for dont save':
                 self.order_spit = 'stop for dont save'
                 self.interrupt_pick_task()
+                return True
+            else:
+                self.order_spit = 'next'
+                return True
+        elif self.get_interrupt_control() == 10:
+            self.order_spit = 'you gave me' + str(self.doc_add)
+            return True
+        elif self.get_interrupt_control() in (11, 12, 13):
+            if self.next_client_element() == 'stop for dont save':
+                self.order_spit = 'stop for dont save'
+                self.interrupt_client_task()
+                return True
+            else:
+                self.order_spit = 'next'
+                return True
+        elif self.get_interrupt_control() in (14, 15, 16):
+            if self.next_collect_client() == 'stop for dont save':
+                self.order_spit = 'stop for dont save'
+                self.interrupt_client_collect()
                 return True
             else:
                 self.order_spit = 'next'
