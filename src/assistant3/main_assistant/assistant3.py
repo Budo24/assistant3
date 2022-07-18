@@ -39,7 +39,7 @@ class Assistant3():
         self.primary_audio_buffer: queue.Queue[bytes] = queue.Queue()
         # plugin object
         self.sdp = processors.base_processor.SpacyDatePlugin()
-        self.mpp = processors.base_processor.MonthlyPlanPlugin()
+        self.mpp = processors.monthly_plan_plugin.MonthlyPlanPlugin()
         # trigger plugin object
         self.trigger = processors.base_processor.TriggerPlugin()
         # the plugin_watcher object
