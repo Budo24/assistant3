@@ -270,6 +270,24 @@ class PluginWatcher():
             self.run_plugins()
         return self.flush_result_queue_in_list()
 
+    def run2(self, speech_text: str) -> list[typing.Any]:
+        self.doc = self.nlp(speech_text)
+        
+
+        last_record = self.flow_record.get_last()
+        if not last_record:
+            self.run_trigger()
+            return self.flush_result_queue_in_list()
+        elif last_record['plugin_type'] == PluginType.TRIGGER_PLUGIN:
+            self.run_plugins()
+            return self.flush_result_queue_in_list()
+        else:
+            self.run_trigger()
+            return self.flush_result_queue_in_list()
+
+
+
+
     def list_plugins_by_uid(self) -> None:
         """List plugins by uid."""
         try:

@@ -7,10 +7,12 @@ import typing
 import pyttsx3
 import spacy
 import xlsxwriter
+from word2number import w2n
 
 from ..common import constants, helpers
 from ..common.exceptions import UidNotAssignedError
 from ..common.plugins import PluginResultType, PluginType
+from .bestellung_management import OrderManager
 
 
 class BasePlugin():
@@ -837,3 +839,333 @@ class MonthlyPlanPlugin(BasePlugin):
                 self.check_keyword(action_activated_, str(doc))
             return
         self.check_keyword(action_activated_, activated_keyword)
+
+class AddOrderPlugin(BasePlugin):
+    """Create new order and store it in racks."""
+
+    def __init__(self: object) -> None:
+        """Pass the initial reference phrase to the parent Object (BasePlugin).
+
+        and it will take care of adding it as described
+        above.
+        """
+        super().__init__('add new order')
+        self.queue: queue.Queue[typing.Any] = queue.Queue(0)
+        self.min_similarity = 0.99
+        self.order_manager = OrderManager()
+
+    def spit(self: object) -> None:
+        """Play response audio."""
+        self.get_next_item()
+
+    def get_next_item(self: object) -> None:
+        """Say what to do for next step by filling of plug.db."""
+        task = self.order_manager.db_object.read_db_plugin()
+        for key in task:
+            if task[key] == 'activ':
+                self.engine.say('please say' + key)
+                self.engine.runAndWait()
+                break
+        else:
+            self.interrupt_task('stop for dont save')
+
+    def interrupt_task(self: object, set_control: str) -> None:
+        """Set interrupt in plug.db after adding order.
+
+        Args:
+            set_control: Sentence to say when add order is done.
+        """
+        self.order_manager.set_interrupt_control(2)
+        self.order_manager.update_db(self.order_manager.get_order_list())
+        self.engine.say(set_control)
+        self.engine.runAndWait()
+
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
+        """Run_doc.
+
+        Args:
+            doc: Text from speech recognition.
+            _queue: Endresult.
+        """
+        self.queue = _queue
+        task = self.order_manager.db_object.read_db_plugin()
+        if self.order_manager.get_interrupt_control() == 3:
+            activated = True
+            self.order_manager.update_db(['activ', '0', '0', 1])
+        elif self.order_manager.get_interrupt_control() == 0:
+            activated = self.is_activated(doc)
+            if activated:
+                self.order_manager.update_db(['activ', '0', '0', 1])
+        elif self.order_manager.get_interrupt_control() == 1:
+            for key in task:
+                if task[key] == '0':
+                    task[key] = 'activ'
+                    break
+            _l = self.order_manager.creat_list_order(task)
+            self.order_manager.update_db(_l)
+            activated = True
+        else:
+            activated = self.is_activated(doc)
+        print('****', activated)
+        if not activated:
+            self.end_result['type'] = PluginResultType.ERROR
+            self.end_result['result'] = ''
+            self.end_result['result_speech_func'] = self.error_spit
+            # here we push it to the results queue passed by pw
+            self.queue.put(self.end_result)
+            return
+        self.end_result['type'] = PluginResultType.TEXT
+        self.end_result['result'] = ''
+        self.end_result['plugin_type'] = PluginType.SYSTEM_PLUGIN
+        self.end_result['result_speech_func'] = self.spit
+        self.queue.put(self.end_result)
+        return
+
+
+class CollectOrder(BasePlugin):
+    """Collect all orders that should be collected."""
+
+    def __init__(self: object) -> None:
+        """Init."""
+        super().__init__('begin collect')
+        self.queue: queue.Queue[typing.Any] = queue.Queue(0)
+        self.min_similarity = 0.99
+        self.order_manager = OrderManager()
+
+    def spit(self: object) -> None:
+        """Play response audio."""
+        self.engine.say(self.order_manager.next_object())
+        self.engine.runAndWait()
+
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
+        """Run_doc.
+
+        Args:
+            doc: Text from speech recognition.
+            _queue: Endresult.
+        """
+        self.queue = _queue
+        next_task = self.order_manager.collect_object.creat_collect_task()
+        if next_task == -1:
+            activated = False
+        else:
+            if self.order_manager.get_interrupt_control() == 0:
+                activated = self.is_activated(doc)
+                if activated:
+                    self.order_manager.creat_next_task()
+            elif self.order_manager.get_interrupt_control() == 4:
+                if str(doc) == 'stop':
+                    self.order_manager.db_object.remove_db_plugin()
+                    activated = self.is_activated(doc)
+                else:
+                    activated = True
+            elif self.order_manager.get_interrupt_control() == 5:
+                if str(doc) == 'stop':
+                    self.order_manager.db_object.remove_db_plugin()
+                    activated = self.is_activated(doc)
+                else:
+                    self.order_manager.set_interrupt_control(6)
+                    activated = True
+            else:
+                activated = self.is_activated(doc)
+        print('****', activated)
+        if not activated:
+            self.end_result['type'] = PluginResultType.ERROR
+            self.end_result['result'] = ''
+            self.end_result['result_speech_func'] = self.error_spit
+            # here we push it to the results queue passed by pw
+            self.queue.put(self.end_result)
+            return
+        self.end_result['type'] = PluginResultType.TEXT
+        self.end_result['result'] = ''
+        self.end_result['plugin_type'] = PluginType.SYSTEM_PLUGIN
+        self.end_result['result_speech_func'] = self.spit
+        self.queue.put(self.end_result)
+        return
+
+
+class PickPlugin(BasePlugin):
+    """Remove all orders that have not been picked up by the client."""
+
+    def __init__(self: object) -> None:
+        super().__init__('begin pick up')
+        self.queue: queue.Queue[typing.Any] = queue.Queue(0)
+        self.min_similarity = 0.99
+        self.order_manager = OrderManager()
+
+    def spit(self: object) -> None:
+        """Play response audio."""
+        self.engine.say(self.order_manager.next_pick_object())
+        self.engine.runAndWait()
+
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
+        """Run_doc."""
+        self.queue = _queue
+        next_task = self.order_manager.collect_object.creat_pick_task()
+        if next_task == -1:
+            activated = False
+        else:
+            if self.order_manager.get_interrupt_control() == 0:
+                activated = self.is_activated(doc)
+                if activated:
+                    self.order_manager.creat_pick_task()
+            elif self.order_manager.get_interrupt_control() == 7:
+                if str(doc) == 'stop':
+                    self.order_manager.db_object.remove_db_plugin()
+                    activated = self.is_activated(doc)
+                else:
+                    activated = True
+            elif self.order_manager.get_interrupt_control() == 8:
+                if str(doc) == 'stop':
+                    self.order_manager.db_object.remove_db_plugin()
+                    activated = self.is_activated(doc)
+                else:
+                    self.order_manager.set_interrupt_control(9)
+                    activated = True
+            else:
+                activated = self.is_activated(doc)
+        print('****', activated)
+        if not activated:
+            self.end_result['type'] = PluginResultType.ERROR
+            self.end_result['result'] = ''
+            self.end_result['result_speech_func'] = self.error_spit
+            # here we push it to the results queue passed by pw
+            self.queue.put(self.end_result)
+            return
+        self.end_result['type'] = PluginResultType.TEXT
+        self.end_result['result'] = ''
+        self.end_result['plugin_type'] = PluginType.SYSTEM_PLUGIN
+        self.end_result['result_speech_func'] = self.spit
+        self.queue.put(self.end_result)
+        return
+
+
+class MeetClient(BasePlugin):
+
+    def __init__(self: object) -> None:
+        """Inint."""
+        super().__init__('welcome client')
+        self.queue: queue.Queue[typing.Any] = queue.Queue(0)
+        self.min_similarity = 0.99
+        self.order_manager = OrderManager()
+
+    def spit(self: object) -> None:
+        """Play response audio."""
+        if self.order_manager.get_interrupt_control() == 10:
+            self.get_next_item()
+        elif self.order_manager.get_interrupt_control() in (11, 13):
+            if self.order_manager.client_spit == 'stop':
+                self.order_manager.db_object.remove_db_plugin()
+            else:
+                self.engine.say(self.order_manager.next_client_object())
+                self.engine.runAndWait()
+        elif self.order_manager.get_interrupt_control() in (14, 16):
+            if self.order_manager.client_spit == 'stop':
+                self.order_manager.db_object.remove_db_plugin()
+            else:
+                self.engine.say(self.order_manager.next_client_collect())
+                self.engine.runAndWait()
+
+    def get_next_item(self: object) -> None:
+        """Say what to do for next step in the filling from plug.db."""
+        task = self.order_manager.db_object.read_db_plugin()
+        for key in task:
+            if task[key] == 'activ':
+                self.engine.say('please say' + 'identification number')
+                self.engine.runAndWait()
+                break
+        else:
+            self.interrupt_task()
+
+    def interrupt_task(self: object) -> None:
+        """Say what to do for next step in the filling from plug.db."""
+        pick_order = self.check_pick_ability()
+        order_id_pick = self.set_order_id()
+        if pick_order == 'not found':
+            self.order_manager.db_object.remove_db_plugin()
+            self.engine.say('sorry there is no order with this id')
+            self.engine.runAndWait()
+        elif type(pick_order) == dict:
+            _po = order_id_pick[3]
+            _lo = self.order_manager.collect_object.pick_order_info(_po)
+            order_to_pick = _lo
+            order_to_pick = dict(_lo, order_id=order_id_pick[3], interrupt=11)
+            _ko = self.order_manager.creat_list_order(order_to_pick)
+            self.order_manager.update_db(_ko)
+            self.engine.say('your order ready to pick')
+            self.engine.runAndWait()
+        elif pick_order == 'not collected':
+            _zo = order_id_pick[3]
+            _k = self.order_manager.collect_object.collect_order_with_id(_zo)
+            collect_task = dict(_k, order_id=order_id_pick[3], interrupt=14)
+            _xy = self.order_manager.creat_list_order(collect_task)
+            self.order_manager.update_db(_xy)
+            self.engine.say('sorry we should collect your order')
+            self.engine.runAndWait()
+
+    def check_pick_ability(self: object) -> list:
+        """Give informations about order to pick.
+
+        Returns:
+            Return list about order.
+        """
+        order_id = self.set_order_id()
+        _c = order_id[3]
+        return self.order_manager.collect_object.pick_order_info(_c)
+
+    def set_order_id(self: object) -> int:
+        """Give order id.
+
+        Returns:
+            Return order_id.
+        """
+        order_id = self.order_manager.get_order_list()
+        for i in range(3):
+            order_id[i] = w2n.word_to_num(order_id[i])
+        _v = str(order_id[0]) + str(order_id[1]) + str(order_id[2])
+        order_id[3] = int(_v)
+        return order_id
+
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
+        """Run_doc."""
+        self.queue = _queue
+        self.order_manager.client_spit = doc
+        task = self.order_manager.db_object.read_db_plugin()
+        _m = self.order_manager.get_interrupt_control() == 11
+        _n = self.order_manager.get_interrupt_control() == 14
+        if _m or _n:
+            activated = True
+        elif self.order_manager.get_interrupt_control() == 12:
+            self.order_manager.set_interrupt_control(13)
+            activated = True
+        elif self.order_manager.get_interrupt_control() == 15:
+            self.order_manager.set_interrupt_control(16)
+            activated = True
+        elif self.order_manager.get_interrupt_control() == 0:
+            activated = self.is_activated(doc)
+            if activated:
+                self.order_manager.update_db(['activ', '0', '0', -1, 10])
+        elif self.order_manager.get_interrupt_control() == 10:
+            for key in task:
+                if task[key] == '0':
+                    task[key] = 'activ'
+                    break
+            _f = self.order_manager.creat_list_order(task)
+            self.order_manager.update_db(_f)
+            activated = True
+        else:
+            activated = self.is_activated(doc)
+        print('****', activated)
+        if not activated:
+            self.end_result['type'] = PluginResultType.ERROR
+            self.end_result['result'] = ''
+            self.end_result['result_speech_func'] = self.error_spit
+            # here we push it to the results queue passed by pw
+            self.queue.put(self.end_result)
+            return
+        self.end_result['type'] = PluginResultType.TEXT
+        self.end_result['result'] = ''
+        self.end_result['plugin_type'] = PluginType.SYSTEM_PLUGIN
+        self.end_result['result_speech_func'] = self.spit
+        self.queue.put(self.end_result)
+        return

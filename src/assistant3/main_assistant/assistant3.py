@@ -36,14 +36,20 @@ class Assistant3():
     def __init__(self) -> None:
         """Create Assistant3 object."""
         self.feedback_ignore_obj = False
+        self.db_object = processors.make_db.MakeDB()
         self.primary_audio_buffer: queue.Queue[bytes] = queue.Queue()
         # plugin object
+        self.aop = processors.base_processor.AddOrderPlugin()
+        self.cop = processors.base_processor.CollectOrder()
+        self.pop = processors.base_processor.PickPlugin()
+        self.mcp = processors.base_processor.MeetClient()
         self.sdp = processors.base_processor.SpacyDatePlugin()
         self.mpp = processors.base_processor.MonthlyPlanPlugin()
+
         # trigger plugin object
         self.trigger = processors.base_processor.TriggerPlugin()
         # the plugin_watcher object
-        self.plugin_watcher = PluginWatcher([self.sdp, self.mpp])
+        self.plugin_watcher = PluginWatcher([self.aop, self.sdp, self.mpp])
         # optionaly adding a trigger Plugin ("hey assistant")
         self.plugin_watcher.add_trigger_plugin(self.trigger)
 
