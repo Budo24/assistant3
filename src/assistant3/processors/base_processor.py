@@ -4,11 +4,14 @@ import queue
 import time
 import typing
 
+import pyjokes
 import pyttsx3
 import spacy
+import wikipedia
 
-from ..common.exceptions import UidNotAssignedError
-from ..common.plugins import PluginResultType, PluginType
+from assistant3.common import calcu_help, location_help
+from assistant3.common.exceptions import UidNotAssignedError
+from assistant3.common.plugins import PluginResultType, PluginType
 
 
 class BasePlugin():
@@ -21,7 +24,8 @@ class BasePlugin():
             match: Text to process.
 
         Returns:
-            New BasePlugin instance
+            New BasePlugin instance.
+
         """
         self.init_doc = match
         self.spacy_model = spacy.blank('en')
@@ -167,7 +171,7 @@ class BasePlugin():
             return self.uid
         raise UidNotAssignedError
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
         """Run_doc."""
         if self:
             pass
@@ -190,7 +194,7 @@ class BaseInitializationErrorPlugin(BasePlugin):
         """Init."""
         super().__init__()
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
         """Run_doc."""
         ret_str = ''
         ret_str += 'Not implemented, [todo] should raise exception instead\n'
@@ -220,7 +224,7 @@ class SpacyDatePlugin(BasePlugin):
         self.engine.say(time.strftime('%A %-d of %B'))
         self.engine.runAndWait()
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
         """Run_doc."""
         self.queue = _queue
         # check if plugin is activted
@@ -257,7 +261,7 @@ class TriggerPlugin(BasePlugin):
         self.engine.say('how can i help')
         self.engine.runAndWait()
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
         """Run_doc."""
         self.queue = _queue
         activated = self.is_activated(doc)
@@ -276,3 +280,205 @@ class TriggerPlugin(BasePlugin):
         self.end_result['result_speech_func'] = self.spit
         self.queue.put(self.end_result)
         return
+
+
+class Wikipedia(BasePlugin):
+    """Plugin for searching something in wikipedia."""
+
+    def __init__(self) -> None:
+        """Initialize values."""
+        super().__init__('wiki')
+        self.activation_dict['general_tts_error_message'] = 'wiki error'
+        self.queue: queue.Queue[typing.Any] = queue.Queue(0)
+        self.min_similarity = 0.99
+        self.search_result: list[str] = []
+        self.flow: list[str] = []
+
+    def run_doc(self, doc: object, queue_: queue.Queue[typing.Any], by_uid=False) -> None:
+        """Run doc."""
+        self.queue = queue_
+
+        if self.is_activated(doc) or by_uid:
+            if not self.search_result and not self.flow:
+                self.end_result['type'] = PluginResultType.KEEP_ALIVE
+                self.end_result['result'] = 'what do you want to search in wikipedia'
+                self.end_result['result_speech_func'] = super().spit_text
+                self.queue.put(self.end_result)
+                self.flow.append('one')
+                return
+            if self.search_result and self.flow:
+                if doc[0].text == 'first':
+                    print(self.search_result[1])
+                    final = wikipedia.summary(self.search_result[1], sentences=2)
+                    self.end_result['type'] = PluginResultType.TEXT
+                    self.end_result['result'] = final
+                    self.end_result['result_speech_func'] = super().spit_text
+                    self.search_result.clear()
+                    self.flow.clear()
+                    self.queue.put(self.end_result)
+                    return
+                elif doc[0].text == 'second':
+                    final = wikipedia.summary(self.search_result[2], sentences=2)
+                    self.end_result['type'] = PluginResultType.TEXT
+                    self.end_result['result'] = final
+                    self.end_result['result_speech_func'] = super().spit_text
+                    self.search_result.clear()
+                    self.flow.clear()
+                    self.queue.put(self.end_result)
+                    return
+                elif doc[0].text == 'third':
+                    final = wikipedia.summary(self.search_result[3], sentences=2)
+                    self.end_result['type'] = PluginResultType.TEXT
+                    self.end_result['result'] = final
+                    self.end_result['result_speech_func'] = super().spit_text
+                    self.search_result.clear()
+                    self.flow.clear()
+                    self.queue.put(self.end_result)
+                    return
+
+                else:
+                    self.end_result['type'] = PluginResultType.TEXT
+                    self.end_result['result'] = 'Result not clear please search again'
+                    self.end_result['result_speech_func'] = super().spit_text
+                    self.search_result.clear()
+                    self.flow.clear()
+                    self.queue.put(self.end_result)
+                    return
+            if not self.search_result and self.flow:
+                self.search_result = wikipedia.search(doc.text, results=4)
+                if len(self.search_result) == 0:
+                    self.end_result['type'] = PluginResultType.TEXT
+                    self.end_result['result'] = 'no result found'
+                    self.end_result['result_speech_func'] = super().spit_text
+                    self.search_result.clear()
+                    self.flow.clear()
+                    self.queue.put(self.end_result)
+                    return
+                else:
+                    first_res = f'here are the results: first is {self.search_result[1]} \
+                    , second is {self.search_result[2]}, third is {self.search_result[3]} \
+                    . which one do you want to chose? tell me first second or third'
+
+                    self.end_result['type'] = PluginResultType.KEEP_ALIVE
+                    self.end_result['result'] = first_res
+                    self.end_result['result_speech_func'] = super().spit_text
+                    self.queue.put(self.end_result)
+                    return
+
+
+class Location(BasePlugin):
+    """Location Plugin."""
+
+    def __init__(self) -> None:
+        """Pass the initial reference phrase to the parent Object (BasePlugin).
+
+        and it will take care of adding it as described
+        above
+        """
+        super().__init__('location')
+        self.add_activation_doc('location')
+        self.activation_dict['general_tts_error_message'] = 'location error'
+        self.queue: queue.Queue[typing.Any] = queue.Queue(0)
+
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
+        """Run_doc."""
+        if self.is_activated(doc) or by_uid:
+            self.queue = _queue
+            # check if plugin is activted
+            loc = location_help.locator()
+            address = loc
+            final_loc = f'your are in {address}'
+            # here we set some informations in the result dict
+            self.end_result['type'] = PluginResultType.TEXT
+            self.end_result['result'] = final_loc
+            self.end_result['result_speech_func'] = super().spit_text
+            # here we push it to the results queue passed by pw
+            self.queue.put(self.end_result)
+
+
+class Jokes(BasePlugin):
+    """Gives a random Joke Plugin."""
+
+    def __init__(self) -> None:
+        """Pass the initial reference phrase to the parent Object (BasePlugin).
+
+        and it will take care of adding it as described
+        above
+        """
+        super().__init__('i need a joke')
+        self.activation_dict['general_tts_error_message'] = 'joke error'
+        self.queue: queue.Queue[typing.Any] = queue.Queue(0)
+        self.min_similarity = 0.95
+
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
+        """Run_doc."""
+        self.queue = _queue
+        # check if plugin is activted
+        activated = self.is_activated(doc) or by_uid
+        if activated:
+            joke = pyjokes.get_joke(language="en", category="neutral")
+            # here we set some informations in the result dict
+            self.end_result['type'] = PluginResultType.TEXT
+            self.end_result['result'] = joke
+            self.end_result['result_speech_func'] = super().spit_text
+            # here we push it to the results queue passed by pw
+            self.queue.put(self.end_result)
+
+
+class Calculator(BasePlugin):
+    """Calculator Plugin."""
+
+    def __init__(self) -> None:
+        """Pass the initial reference phrase to the parent Object (BasePlugin).
+
+        and it will take care of adding it as described
+        above
+        """
+        super().__init__('calculator')
+        self.activation_dict['general_tts_error_message'] = 'calc error'
+        self.queue: queue.Queue[typing.Any] = queue.Queue(0)
+        self.stack = []
+        self.activation = []
+        self.min_similarity = 0.99
+
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
+        """Run_doc."""
+        self.queue = _queue
+        if self.is_activated(doc) or by_uid:
+            if len(self.stack) == 0 and not self.activation:
+                start_text = 'This is calculator plugin, we start by initializing two numbers \
+                                and then we intialize the operator. please say the first number'
+                self.end_result['type'] = PluginResultType.KEEP_ALIVE
+                self.end_result['result'] = start_text
+                self.end_result['result_speech_func'] = super().spit_text
+                self.activation.append('activate')
+                self.queue.put(self.end_result)
+                return
+            if len(self.stack) == 0 and self.activation:
+                value = calcu_help.word_conv(doc.text)
+                self.stack.append(value)
+                self.end_result['type'] = PluginResultType.KEEP_ALIVE
+                self.end_result['result'] = 'please say the second number'
+                self.end_result['result_speech_func'] = super().spit_text
+                self.queue.put(self.end_result)
+                return
+            if len(self.stack) == 1 and self.activation:
+                value = calcu_help.word_conv(doc.text)
+                self.stack.append(value)
+                text = f'first number is {self.stack[0]}, and second number is {self.stack[1]} \
+                    which operator do you want?'
+                self.end_result['type'] = PluginResultType.KEEP_ALIVE
+                self.end_result['result'] = text
+                self.end_result['result_speech_func'] = super().spit_text
+                self.queue.put(self.end_result)
+                return
+            if len(self.stack) == 2 and self.activation:
+                res = calcu_help.run(doc.text, self.stack[0], self.stack[1])
+                text = f'calculation result is {res}'
+                self.stack.clear()
+                self.end_result['type'] = PluginResultType.TEXT
+                self.end_result['result'] = text
+                self.end_result['result_speech_func'] = super().spit_text
+                self.activation.append('activate')
+                self.queue.put(self.end_result)
+                return

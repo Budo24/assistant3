@@ -27,6 +27,9 @@ class FlowRecord():
         """
         self.record.append(entry)
 
+    def reset(self):
+        self.record.clear()
+
     def get_last(self) -> dict[str, object] | typing.Any:
         """Get last entry / result object to record.
 
@@ -205,7 +208,7 @@ class PluginWatcher():
             for plugin in self.plugins:
                 print('plugin', plugin)
                 if uid == plugin.get_uid():
-                    plugin.run_doc(self.doc, self.results_queue)
+                    plugin.run_doc(self.doc, self.results_queue, True)
                     return
         print('not uid')
         print('\n\n\t', self.plugins)
@@ -262,21 +265,19 @@ class PluginWatcher():
                 return trigger_flushed
             self.run_by_uid(last_record['uid'])
             return self.flush_result_queue_in_list()
-        if speech_text == 'hey assistant':
-            print('Hey assistant said')
-            self.run_trigger()
-        else:
-            print('Hey assistant not said')
-            self.run_plugins()
-        return self.flush_result_queue_in_list()
+        if last_record['type'] == PluginResultType.TEXT:
+            self.flow_record.reset()
+            return []
+
+        
 
     def list_plugins_by_uid(self) -> None:
         """List plugins by uid."""
         try:
             if self.is_trigger_plugin_enabled():
-                print('[ PLIGIN UID ]  ' + str(self.trigger_plugin.get_uid()))
+                print('[ PLUGIN UID ]  ' + str(self.trigger_plugin.get_uid()))
             for plugin in self.plugins:
-                print('[ PLIGIN UID ]  ' + str(plugin.get_uid()))
+                print('[ PLUGIN UID ]  ' + str(plugin.get_uid()))
             return
         except UidNotAssignedError:
             print('MALFUNCTION')
