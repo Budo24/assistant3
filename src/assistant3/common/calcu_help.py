@@ -1,39 +1,43 @@
 """Helper for Calculator Plugin."""
 
-def word_conv(textnum, numwords={}):
-    """Function that converts words to numbers"""
+import typing
+
+
+def word_conv(textnum: str, numwords: dict[typing.Any, typing.Any]) -> int | str:
+    """Convert words to numbers."""
+    numwords = {}
     if not numwords:
         units = [
-            "zero",
-            "one",
-            "two",
-            "three",
-            "four",
-            "five",
-            "six",
-            "seven",
-            "eight",
-            "nine",
-            "ten",
-            "eleven",
-            "twelve",
-            "thirteen",
-            "fourteen",
-            "fifteen",
-            "sixteen",
-            "seventeen",
-            "eighteen",
-            "nineteen",
+            'zero',
+            'one',
+            'two',
+            'three',
+            'four',
+            'five',
+            'six',
+            'seven',
+            'eight',
+            'nine',
+            'ten',
+            'eleven',
+            'twelve',
+            'thirteen',
+            'fourteen',
+            'fifteen',
+            'sixteen',
+            'seventeen',
+            'eighteen',
+            'nineteen',
         ]
 
         tens = [
-            "", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy",
-            "eighty", "ninety"
+            '', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy',
+            'eighty', 'ninety',
         ]
 
-        scales = ["hundred", "thousand", "million", "billion", "trillion"]
+        scales = ['hundred', 'thousand', 'million', 'billion', 'trillion']
 
-        numwords["and"] = (1, 0)
+        numwords['and'] = (1, 0)
         for idx, word in enumerate(units):
             numwords[word] = (1, idx)
         for idx, word in enumerate(tens):
@@ -44,7 +48,7 @@ def word_conv(textnum, numwords={}):
     current = result = 0
     for word in textnum.split():
         if word not in numwords:
-            error_text = "Illegal word: "
+            error_text = 'Illegal word: '
             return error_text
 
         scale, increment = numwords[word]
@@ -56,7 +60,7 @@ def word_conv(textnum, numwords={}):
     return result + current
 
 
-def add(left: float, right: float)-> float:
+def add(left: float, right: float) -> float:
     """Add two operands.
 
     Args:
@@ -67,10 +71,10 @@ def add(left: float, right: float)-> float:
         Sum of both operands.
 
     """
-
     return left + right
 
-def sub(left: float, right: float)-> float:
+
+def sub(left: float, right: float) -> float:
     """Subtract Second operand from the First operand.
 
     Args:
@@ -81,8 +85,8 @@ def sub(left: float, right: float)-> float:
         Subtraction of the first operand from the second operand.
 
     """
-
     return left - right
+
 
 def mul(left: float, right: float) -> float:
     """Multiplies first operand with the second operand.
@@ -97,6 +101,7 @@ def mul(left: float, right: float) -> float:
     """
     return left * right
 
+
 def div(left: float, right: float) -> float:
     """Divides first operand with the second operand.
 
@@ -110,19 +115,16 @@ def div(left: float, right: float) -> float:
     """
     return left / right
 
-def run(operator, left: float, right: float)-> float:
-    """Execute the calculation"""
+
+def run(operator: str, left: float, right: float) -> float:
+    """Execute the calculation."""
+    res = 0
     if operator == 'add':
-        res = add(left, right)
-        return res
-    elif operator == 'sub':
-        res = sub(left, right)
-        return res
-    elif operator == 'multiply':
-        res = mul(left, right)
-        return res
-    elif operator == 'division':
-        res = div(left, right)
-        return res
-
-
+        return float(res == add(left, right))
+    if operator == 'sub':
+        return float(res == sub(left, right))
+    if operator == 'multiply':
+        return float(res == mul(left, right))
+    if operator == 'division':
+        return float(res == div(left, right))
+    return res

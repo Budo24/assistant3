@@ -1,18 +1,17 @@
-"""All helping function for Location plugin"""
+"""All helping function for Location plugin."""
 
-from geopy.geocoders import Nominatim
 import geocoder
+from geopy.geocoders import Nominatim
 
 
-def locator():
-    """Function to determine the users location."""
-    nomi_locator = Nominatim(user_agent="Location Plugin")
+def locator() -> str:
+    """Determine the user location."""
+    nomi_locator = Nominatim(user_agent='Location Plugin')
 
     current_loc = geocoder.ip('me')
 
     latitude = current_loc.geojson['features'][0]['properties']['lat']
     longitude = current_loc.geojson['features'][0]['properties']['lng']
 
-    location = nomi_locator.reverse(f"{latitude}, {longitude}")
-    final_location = str(location)
-    return final_location
+    location = nomi_locator.reverse(f'{latitude}, {longitude}')
+    return str(location)

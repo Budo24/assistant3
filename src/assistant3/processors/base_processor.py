@@ -8,16 +8,17 @@ import pyjokes
 import pyttsx3
 import spacy
 import xlsxwriter
+import wikipedia
 
-from ..common import constants, helpers, location_help, wikihelp, calcu_help
+from ..common import calcu_help, constants, helpers, location_help
 from ..common.exceptions import UidNotAssignedError
 from ..common.plugins import PluginResultType, PluginType
 
 
 class BasePlugin():
-    """BasePlugin type"""
+    """BasePlugin type."""
 
-    def __init__(self, match : str= ''):
+    def __init__(self, match: str = ''):
         """Create new BasePlugin object.
 
         Args:
@@ -25,6 +26,7 @@ class BasePlugin():
 
         Returns:
             New BasePlugin instance
+
         """
         self.init_doc = match
         self.spacy_model = spacy.blank('en')
@@ -227,14 +229,6 @@ class SpacyDatePlugin(BasePlugin):
         """Run_doc."""
         self.queue = _queue
         # check if plugin is activted
-        activated = self.is_activated(doc)
-        if not activated:
-            self.end_result['type'] = PluginResultType.TEXT
-            self.end_result['result'] = ''
-            self.end_result['result_speech_func'] = self.error_spit
-            # here we push it to the results queue passed by pw
-            #self.queue.put(self.end_result)
-            return
         output_result_value = datetime.datetime.now()
         # here we set some informations in the result dict
         self.end_result['type'] = PluginResultType.TEXT
@@ -850,8 +844,8 @@ class Wikipedia(BasePlugin):
         self.activation_dict['general_tts_error_message'] = 'wiki error'
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
         self.min_similarity = 0.99
-        self.search_result = []
-        self.flow = []
+        self.search_result: list[str] = []
+        self.flow: list[str] = []
 
     def run_doc(self, doc: object, queue_: queue.Queue[typing.Any]) -> None:
         """Run doc."""
@@ -867,7 +861,7 @@ class Wikipedia(BasePlugin):
         if self.search_result and self.flow:
             if doc[0].text == 'first':
                 print(self.search_result[1])
-                final = wikihelp.wiki_summary(self.search_result[1])
+                final = wikipedia.summary(self.search_result[1], sentences=2)
                 self.end_result['type'] = PluginResultType.TEXT
                 self.end_result['result'] = final
                 self.end_result['result_speech_func'] = super().spit_text
@@ -876,7 +870,7 @@ class Wikipedia(BasePlugin):
                 self.queue.put(self.end_result)
                 return
             elif doc[0].text == 'second':
-                final = wikihelp.wiki_summary(self.search_result[2])
+                final = wikipedia.summary(self.search_result[1], sentences=2)
                 self.end_result['type'] = PluginResultType.TEXT
                 self.end_result['result'] = final
                 self.end_result['result_speech_func'] = super().spit_text
@@ -885,7 +879,7 @@ class Wikipedia(BasePlugin):
                 self.queue.put(self.end_result)
                 return
             elif doc[0].text == 'third':
-                final = wikihelp.wiki_summary(self.search_result[3])
+                final = wikipedia.summary(self.search_result[1], sentences=2)
                 self.end_result['type'] = PluginResultType.TEXT
                 self.end_result['result'] = final
                 self.end_result['result_speech_func'] = super().spit_text
@@ -903,12 +897,13 @@ class Wikipedia(BasePlugin):
                 self.queue.put(self.end_result)
                 return
         if not self.search_result and self.flow:
-            self.search_result = wikihelp.wiki_search(doc.text)
+            self.search_result = wikipedia.search(doc.text, results=4)
             if len(self.search_result) == 0:
                 self.end_result['type'] = PluginResultType.TEXT
                 self.end_result['result'] = 'no result found'
                 self.end_result['result_speech_func'] = super().spit_text
                 self.search_result.clear()
+                self.flow.clear()
                 self.queue.put(self.end_result)
                 return
             else:
@@ -950,7 +945,6 @@ class Location(BasePlugin):
         self.end_result['result_speech_func'] = super().spit_text
         # here we push it to the results queue passed by pw
         self.queue.put(self.end_result)
-        return
 
 
 class Jokes(BasePlugin):
@@ -979,7 +973,6 @@ class Jokes(BasePlugin):
             self.end_result['result_speech_func'] = super().spit_text
             # here we push it to the results queue passed by pw
             self.queue.put(self.end_result)
-        return
 
 
 class Calculator(BasePlugin):
@@ -997,7 +990,6 @@ class Calculator(BasePlugin):
         self.stack = []
         self.activation = []
         self.min_similarity = 0.99
-        self
 
     def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
         """Run_doc."""
