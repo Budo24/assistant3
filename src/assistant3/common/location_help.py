@@ -4,7 +4,7 @@ import geocoder
 from geopy.geocoders import Nominatim
 
 
-def locator() -> str:
+def locator() -> None:
     """Determine the user location."""
     nomi_locator = Nominatim(user_agent='Location Plugin')
 
@@ -14,4 +14,12 @@ def locator() -> str:
     longitude = current_loc.geojson['features'][0]['properties']['lng']
 
     location = nomi_locator.reverse(f'{latitude}, {longitude}')
+    print(type(location))
+    debug = str(location)
+    print(debug)
+    print(type(debug))
+    splits = debug.split()
+    print(splits)
     return location
+
+locator()
