@@ -10,9 +10,14 @@ import vosk
 
 import assistant3.data
 
-from .. import processors
+from   processors import class_makedb
 from ..processors import monthly_plan_plugin
+from ..processors.base_processor import SpacyDatePlugin, TriggerPlugin
 from .plugins_watcher import PluginWatcher
+from ..processors.base_processor import AddOrderPlugin, CollectOrder, PickPlugin, MeetClient
+
+
+
 
 
 def int_or_str(text: str | int) -> int:
@@ -39,10 +44,15 @@ class Assistant3():
         self.feedback_ignore_obj = False
         self.primary_audio_buffer: queue.Queue[bytes] = queue.Queue()
         # plugin object
-        self.sdp = processors.base_processor.SpacyDatePlugin()
+        self.db_object = class_makedb.MakeDB()
+        self.aop = AddOrderPlugin()
+        self.cop = CollectOrder()
+        self.pop = PickPlugin()
+        self.mcp = MeetClient()
+        self.sdp = SpacyDatePlugin()
         self.mpp = monthly_plan_plugin.MonthlyPlanPlugin()
         # trigger plugin object
-        self.trigger = processors.base_processor.TriggerPlugin()
+        self.trigger = TriggerPlugin()
         # the plugin_watcher object
         self.plugin_watcher = PluginWatcher([self.sdp, self.mpp])
         # optionaly adding a trigger Plugin ("hey assistant")
