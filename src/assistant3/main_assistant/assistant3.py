@@ -49,7 +49,7 @@ class Assistant3():
         # trigger plugin object
         self.trigger = processors.base_processor.TriggerPlugin()
         # the plugin_watcher object
-        self.plugin_watcher = PluginWatcher([self.aop, self.sdp, self.mpp])
+        self.plugin_watcher = PluginWatcher([self.aop])
         # optionaly adding a trigger Plugin ("hey assistant")
         self.plugin_watcher.add_trigger_plugin(self.trigger)
 
@@ -107,13 +107,13 @@ class Assistant3():
                         text = text.replace('{  "text" : "', '').replace('"}', '')
                         print(text)
 
-                        res_list = self.plugin_watcher.run(text)
+                        res_list = self.plugin_watcher.run2(text)
                         self.feedback_ignore_obj = True
-                        if len(res_list) > 0:
-                            res_list[0]['result_speech_func']()
+                        res_list[0]['result_speech_func']()
                         self.feedback_ignore_obj = False
-                        if len(res_list) > 0:
-                            self.plugin_watcher.add_entry_to_flow_record(res_list[0])
+
+                        self.plugin_watcher.add_entry_to_flow_record(res_list[0])
+
                         ret_str = ''
                         ret_str += 'returned res_list\n'
                         ret_str += str(res_list)

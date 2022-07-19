@@ -271,19 +271,123 @@ class PluginWatcher():
         return self.flush_result_queue_in_list()
 
     def run2(self, speech_text: str) -> list[typing.Any]:
+        """Run."""
+        # we transform the text from vosk to doc object (pass it to SpaCy to process it)
         self.doc = self.nlp(speech_text)
-        
+
+        def run_by_uid(uid: object) -> None:
+            if uid == self.trigger_plugin.get_uid():
+                run_trigger()
+            else:
+                run_plugins(uid)
+
+        def run_trigger() -> None:
+            self.trigger_plugin.run_doc(self.doc, self.results_queue)
+
+        def run_plugins(uid: object = None) -> None:
+            if uid:
+                for plugin in self.plugins:
+                    if uid == plugin.get_uid():
+                        plugin.run_doc(self.doc, self.results_queue)
+                        return
+            print("\n\n\t", self.plugins)
+            for plugin in self.plugins:
+                print('run_doc')
+                plugin.run_doc(self.doc, self.results_queue)
+
+        def flush_result_queue_in_list() -> list[dict[str, object]]:
+            res_list = []
+            while self.results_queue.qsize() != 0:
+                res_list.append(self.results_queue.get())
+            return res_list
+
+        # self.flow_record.printify()
+
+        if self.flow_record.is_empty():
+            run_trigger()
+            return flush_result_queue_in_list()
 
         last_record = self.flow_record.get_last()
-        if not last_record:
-            self.run_trigger()
-            return self.flush_result_queue_in_list()
-        elif last_record['plugin_type'] == PluginType.TRIGGER_PLUGIN:
-            self.run_plugins()
-            return self.flush_result_queue_in_list()
+
+        if last_record['type'] == PluginResultType.ERROR:
+            if last_record['plugin_type'] == PluginType.TRIGGER_PLUGIN:
+                run_by_uid(last_record['uid'])
+                return flush_result_queue_in_list()
+            run_plugins()
+            return flush_result_queue_in_list()
+
+        if last_record['plugin_type'] == PluginType.TRIGGER_PLUGIN:
+            print('LAST RECORD', last_record)
+            print("\n\n")
+            print("FUCK")
+            print("\n\n")
+            run_plugins()
+            return flush_result_queue_in_list()
         else:
-            self.run_trigger()
-            return self.flush_result_queue_in_list()
+            if last_record['type'] == PluginResultType.KEEP_ALIVE:
+                run_trigger()
+                trigger_flushed = flush_result_queue_in_list()
+                if trigger_flushed[0]['type'] != PluginResultType.ERROR:
+                    print("---------------------------_>>>>")
+                    plugins = self.plugins
+                    for plugin in plugins:
+                        print(plugin)
+                    self.plugins = [plugin.__class__() for plugin in plugins]
+                    for plugin in self.plugins:
+                        print(plugin)
+                    print("<<<<<<<<------------------------")
+                    return trigger_flushed
+                run_by_uid(last_record['uid'])
+                return flush_result_queue_in_list()
+            run_trigger()
+            return flush_result_queue_in_list()
+
+        str_msg = ''
+        if last_record['type'] == PluginResultType.KEEP_ALIVE:
+            str_msg += '__KEEP_ALIVE'
+        else:
+            str_msg += '__NORMAL'
+
+        print(str_msg)
+
+        return []
+
+        """Run."""
+        # we transform the text from vosk to doc object (pass it to SpaCy to process it)
+        self.doc = self.nlp(speech_text)
+
+        def run_by_uid(uid: object) -> None:
+            if uid == self.trigger_plugin.get_uid():
+                run_trigger()
+            else:
+                run_plugins(uid)
+
+        def run_trigger() -> None:
+            self.trigger_plugin.run_doc(self.doc, self.results_queue)
+
+        def run_plugins(uid: object = None) -> None:
+            if uid:
+                for plugin in self.plugins:
+                    if uid == plugin.get_uid():
+                        plugin.run_doc(self.doc, self.results_queue)
+                        return
+            print("\n\n\t", self.plugins)
+            for plugin in self.plugins:
+                print('run_doc')
+                plugin.run_doc(self.doc, self.results_queue)
+
+        def flush_result_queue_in_list() -> list[dict[str, object]]:
+            res_list = []
+            while self.results_queue.qsize() != 0:
+                res_list.append(self.results_queue.get())
+            return res_list
+
+        run_trigger()
+        run_plugins()
+        return flush_result_queue_in_list()
+
+        
+
 
 
 
