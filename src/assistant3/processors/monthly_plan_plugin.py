@@ -530,7 +530,8 @@ class MonthlyPlanPlugin(BasePlugin):
             return
         return
 
-    def run_doc(self, doc: object, queue_: queue.Queue[typing.Any]) -> None:
+    def run_doc(self, doc: object, queue_: queue.Queue[typing.Any],
+                by_uid: bool = False) -> None:
         """Run doc."""
         for keyword in constants.actions_keywords:
             self.add_activation_doc(keyword)
