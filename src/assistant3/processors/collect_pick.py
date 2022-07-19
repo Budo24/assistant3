@@ -102,12 +102,14 @@ class PickAndCollect:
 
         Returns:
             Return state from order.
+
         """
         rack_number = _m
         corridor_number = _n
-        json_order = self.rack_object.read_jason_file(corridor_number)
-        if json_order[rack_number]['corridor_number'] == -1:
-            return True
+        if _m >= 0:
+            json_order = self.rack_object.read_jason_file(corridor_number)
+            if json_order[rack_number]['corridor_number'] == -1:
+                return True
         return False
 
     def collect_order_with_id(self: object, order_id: int) -> dict:
