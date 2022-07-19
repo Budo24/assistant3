@@ -218,8 +218,7 @@ class SpacyDatePlugin(BasePlugin):
 
     def spit(self) -> None:
         """Play response audio."""
-        print(time.strftime('%c'))
-        self.engine.say(time.strftime('%c'))
+        self.engine.say(time.strftime('%A %-d of %B'))
         self.engine.runAndWait()
 
     def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
@@ -232,7 +231,7 @@ class SpacyDatePlugin(BasePlugin):
             self.end_result['result'] = ''
             self.end_result['result_speech_func'] = self.error_spit
             # here we push it to the results queue passed by pw
-            #self.queue.put(self.end_result)
+            # self.queue.put(self.end_result)
             return
         output_result_value = datetime.datetime.now()
         # here we set some informations in the result dict
