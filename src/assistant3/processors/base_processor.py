@@ -9,7 +9,7 @@ import pyttsx3
 import spacy
 import xlsxwriter
 
-from ..common import constants, helpers, location_help, wikihelp
+from ..common import constants, helpers, location_help, wikihelp, calcu_help
 from ..common.exceptions import UidNotAssignedError
 from ..common.plugins import PluginResultType, PluginType
 
@@ -849,7 +849,7 @@ class Wikipedia(BasePlugin):
         super().__init__('wiki')
         self.activation_dict['general_tts_error_message'] = 'wiki error'
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
-        self.min_similarity = 1
+        self.min_similarity = 0.99
         self.search_result = []
         self.flow = []
 
@@ -899,6 +899,7 @@ class Wikipedia(BasePlugin):
                 self.end_result['result'] = 'Result not clear please search again'
                 self.end_result['result_speech_func'] = super().spit_text
                 self.search_result.clear()
+                self.flow.clear()
                 self.queue.put(self.end_result)
                 return
         if not self.search_result and self.flow:
@@ -979,3 +980,63 @@ class Jokes(BasePlugin):
             # here we push it to the results queue passed by pw
             self.queue.put(self.end_result)
         return
+
+
+class Calculator(BasePlugin):
+    """Calculator Plugin."""
+
+    def __init__(self) -> None:
+        """Pass the initial reference phrase to the parent Object (BasePlugin).
+
+        and it will take care of adding it as described
+        above
+        """
+        super().__init__('calculator')
+        self.activation_dict['general_tts_error_message'] = 'calc error'
+        self.queue: queue.Queue[typing.Any] = queue.Queue(0)
+        self.stack = []
+        self.activation = []
+        self.min_similarity = 0.99
+        self
+
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
+        """Run_doc."""
+        self.queue = _queue
+
+        if len(self.stack) == 0 and not self.activation:
+            start_text = 'This is calculator plugin, we start by initializing two numbers \
+                            and then we intialize the operator. please say the first number'
+            self.end_result['type'] = PluginResultType.KEEP_ALIVE
+            self.end_result['result'] = start_text
+            self.end_result['result_speech_func'] = super().spit_text
+            self.activation.append('activate')
+            self.queue.put(self.end_result)
+            return
+        if len(self.stack) == 0 and self.activation:
+            value = calcu_help.word_conv(doc.text)
+            self.stack.append(value)
+            self.end_result['type'] = PluginResultType.KEEP_ALIVE
+            self.end_result['result'] = 'please say the second number'
+            self.end_result['result_speech_func'] = super().spit_text
+            self.queue.put(self.end_result)
+            return
+        if len(self.stack) == 1 and self.activation:
+            value = calcu_help.word_conv(doc.text)
+            self.stack.append(value)
+            text = f'first number is {self.stack[0]}, and second number is {self.stack[1]} \
+                which operator do you want?'
+            self.end_result['type'] = PluginResultType.KEEP_ALIVE
+            self.end_result['result'] = text
+            self.end_result['result_speech_func'] = super().spit_text
+            self.queue.put(self.end_result)
+            return
+        if len(self.stack) == 2 and self.activation:
+            res = calcu_help.run(doc.text, self.stack[0], self.stack[1])
+            text = f'calculation result is {res}'
+            self.stack.clear()
+            self.end_result['type'] = PluginResultType.TEXT
+            self.end_result['result'] = text
+            self.end_result['result_speech_func'] = super().spit_text
+            self.activation.append('activate')
+            self.queue.put(self.end_result)
+            return
