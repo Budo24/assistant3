@@ -1,11 +1,19 @@
-"""Generate pick_id and order_id"""
-import spacy
+"""Generate pick_id and order_id."""
 import datetime
 import typing
 
+import spacy
+
 
 def order_id_generate(day_time_func: typing.Any) -> int:
-    """give order_id"""
+    """Give order_id.
+
+    Args:
+        day_time_func: day and time that we become with datetime modul.
+
+    Returns:
+        Return order_id.
+    """
     nlp = spacy.load('en_core_web_md')
     day_time_text = str(day_time_func)
     day_time_doc = nlp(day_time_text)
@@ -27,9 +35,16 @@ def order_id_generate(day_time_func: typing.Any) -> int:
     return int(id_day_time)
 
 
-def pick_time_generate(order_id_generate: int) -> int:
-    """give pick_time"""
-    time_str = str(order_id_generate)
+def pick_time_generate(order_id: int) -> int:
+    """Give pick_time.
+
+    Args:
+        order_id: Use order id to generate pick time.
+
+    Returns:
+        Return pick time. It is one day after store order.
+    """
+    time_str = str(order_id)
     time_str = time_str[-6:]
     month_day = month_day_generate()
     if month_day[2] is True:
@@ -40,18 +55,22 @@ def pick_time_generate(order_id_generate: int) -> int:
 
 
 def month_day_generate() -> list:
-    """Give list of month and day
-    use for pick_time_generate"""
+    """Give list of month and day. use for pick_time_generate.
+
+    Returns:
+        Return month and day.
+    """
     nlp = spacy.load('en_core_web_md')
     date_time_func = datetime.datetime.now()
     day_time_text = str(date_time_func)
     day_time_doc = nlp(day_time_text)
     split_day_time = [token.text for token in day_time_doc]
     month_day = [int(split_day_time[4]), int(split_day_time[2])]
-    month_31_day = bool(month_day[0] in (7, 8, 10, 12, 1, 3, 5))
-    month_february = bool(month_day[0] == 2)
-    if (month_day[0] + 1 > 30 and
-        not month_31_day) or (month_day[0] + 1 > 31) or (month_day[0] + 1 > 28 and month_february):
+    month_31_day = month_day[0] in (7, 8, 10, 12, 1, 3, 5)
+    month_february = month_day[0] == 2
+    _m = (month_day[0] + 1 > 28 and month_february)
+    _n = (month_day[0] + 1 > 30 and not month_31_day)
+    if _n or (month_day[0] + 1 > 31) or _m:
         if month_day[1] + 1 > 12:
             month_day[1] = 1
         else:
@@ -60,9 +79,3 @@ def month_day_generate() -> list:
         return [month_day[0], month_day[1], True]
     else:
         return [month_day[0], month_day[1], False]
-
-
-if __name__ == '__main__':
-    day_time_func = datetime.datetime.now()
-    print("order_id= ", order_id_generate(day_time_func))
-    print("pick_time= ", pick_time_generate(order_id_generate(day_time_func)))

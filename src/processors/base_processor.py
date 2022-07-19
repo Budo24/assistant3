@@ -7,12 +7,12 @@ import typing
 import pyttsx3
 import spacy
 import xlsxwriter
+from word2number import w2n
 
 from common import constants, helpers
 from common.exceptions import UidNotAssignedError
 from common.plugins import PluginResultType, PluginType
 from processors.bestellung_management import OrderManager
-from word2number import w2n
 
 
 class BasePlugin():
@@ -214,7 +214,7 @@ class BaseInitializationErrorPlugin(BasePlugin):
 class SpacyDatePlugin(BasePlugin):
     """SpacyDatePlugin."""
 
-    def __init__(self) -> None:
+    def __init__(self: object) -> None:
         """Pass the initial reference phrase to the parent Object (BasePlugin).
 
         and it will take care of adding it as described
@@ -223,7 +223,7 @@ class SpacyDatePlugin(BasePlugin):
         super().__init__('what is the date')
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
 
-    def spit(self) -> None:
+    def spit(self: object) -> None:
         """Play response audio."""
         print(time.strftime('%c'))
         self.engine.say(time.strftime('%c'))
@@ -252,19 +252,24 @@ class SpacyDatePlugin(BasePlugin):
 
 
 class AddOrderPlugin(BasePlugin):
+    """Create new order and store it in racks."""
 
-    def __init__(self) -> None:
+    def __init__(self: object) -> None:
+        """Pass the initial reference phrase to the parent Object (BasePlugin).
+
+        and it will take care of adding it as described
+        above.
+        """
         super().__init__('add new order')
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
         self.min_similarity = 0.99
-        #self.order_manager.db_object.insert_db_plugin(['activ', '0', '0', 0])
 
-    def spit(self) -> None:
+    def spit(self: object) -> None:
         """Play response audio."""
         self.get_next_item()
 
-    def get_next_item(self):
-        """Say what i should do for the next step in the filling from plug.db"""
+    def get_next_item(self: object) -> None:
+        """Say what to do for next step by filling of plug.db."""
         task = self.order_manager.db_object.read_db_plugin()
         for key in task:
             if task[key] == 'activ':
@@ -274,14 +279,24 @@ class AddOrderPlugin(BasePlugin):
         else:
             self.interrupt_task('stop for dont save')
 
-    def interrupt_task(self, set_control: str):
+    def interrupt_task(self: object, set_control: str) -> None:
+        """Set interrupt in plug.db after adding order.
+
+        Args:
+            set_control: Sentence to say when add order is done.
+        """
         self.order_manager.set_interrupt_control(2)
         self.order_manager.update_db(self.order_manager.get_order_list())
         self.engine.say(set_control)
         self.engine.runAndWait()
 
     def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
-        """Run_doc."""
+        """Run_doc.
+
+        Args:
+            doc: Text from speech recognition.
+            _queue: Endresult.
+        """
         self.queue = _queue
         task = self.order_manager.db_object.read_db_plugin()
         if self.order_manager.get_interrupt_control() == 3:
@@ -296,7 +311,8 @@ class AddOrderPlugin(BasePlugin):
                 if task[key] == '0':
                     task[key] = 'activ'
                     break
-            self.order_manager.update_db(self.order_manager.creat_list_order(task))
+            _l = self.order_manager.creat_list_order(task)
+            self.order_manager.update_db(_l)
             activated = True
         else:
             activated = self.is_activated(doc)
@@ -317,19 +333,26 @@ class AddOrderPlugin(BasePlugin):
 
 
 class CollectOrder(BasePlugin):
+    """Collect all orders that should be collected."""
 
-    def __init__(self) -> None:
+    def __init__(self: object) -> None:
+        """Init."""
         super().__init__('begin collect')
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
         self.min_similarity = 0.99
 
-    def spit(self) -> None:
+    def spit(self: object) -> None:
         """Play response audio."""
         self.engine.say(self.order_manager.next_object())
         self.engine.runAndWait()
 
     def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
-        """Run_doc."""
+        """Run_doc.
+
+        Args:
+            doc: Text from speech recognition.
+            _queue: Endresult.
+        """
         self.queue = _queue
         next_task = self.order_manager.collect_object.creat_collect_task()
         if next_task == -1:
@@ -353,9 +376,7 @@ class CollectOrder(BasePlugin):
                     self.order_manager.set_interrupt_control(6)
                     activated = True
             else:
-                activated = activated = self.is_activated(doc)
-
-        #activated = self.is_activated(doc)
+                activated = self.is_activated(doc)
         print('****', activated)
         if not activated:
             self.end_result['type'] = PluginResultType.ERROR
@@ -373,13 +394,14 @@ class CollectOrder(BasePlugin):
 
 
 class PickPlugin(BasePlugin):
+    """Remove all orders that have not been picked up by the client."""
 
-    def __init__(self) -> None:
+    def __init__(self: object) -> None:
         super().__init__('begin pick up')
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
         self.min_similarity = 0.99
 
-    def spit(self) -> None:
+    def spit(self: object) -> None:
         """Play response audio."""
         self.engine.say(self.order_manager.next_pick_object())
         self.engine.runAndWait()
@@ -409,9 +431,7 @@ class PickPlugin(BasePlugin):
                     self.order_manager.set_interrupt_control(9)
                     activated = True
             else:
-                activated = activated = self.is_activated(doc)
-
-        #activated = self.is_activated(doc)
+                activated = self.is_activated(doc)
         print('****', activated)
         if not activated:
             self.end_result['type'] = PluginResultType.ERROR
@@ -430,13 +450,13 @@ class PickPlugin(BasePlugin):
 
 class MeetClient(BasePlugin):
 
-    def __init__(self) -> None:
+    def __init__(self: object) -> None:
+        """Inint."""
         super().__init__('welcome client')
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
         self.min_similarity = 0.99
-        #self.order_manager.db_object.insert_db_plugin(['activ', '0', '0', 0])
 
-    def spit(self) -> None:
+    def spit(self: object) -> None:
         """Play response audio."""
         if self.order_manager.get_interrupt_control() == 10:
             self.get_next_item()
@@ -453,8 +473,8 @@ class MeetClient(BasePlugin):
                 self.engine.say(self.order_manager.next_client_collect())
                 self.engine.runAndWait()
 
-    def get_next_item(self):
-        """Say what i should do for the next step in the filling from plug.db"""
+    def get_next_item(self: object) -> None:
+        """Say what to do for next step in the filling from plug.db."""
         task = self.order_manager.db_object.read_db_plugin()
         for key in task:
             if task[key] == 'activ':
@@ -464,7 +484,8 @@ class MeetClient(BasePlugin):
         else:
             self.interrupt_task()
 
-    def interrupt_task(self):
+    def interrupt_task(self: object) -> None:
+        """Say what to do for next step in the filling from plug.db."""
         pick_order = self.check_pick_ability()
         order_id_pick = self.set_order_id()
         if pick_order == 'not found':
@@ -472,32 +493,44 @@ class MeetClient(BasePlugin):
             self.engine.say('sorry there is no order with this id')
             self.engine.runAndWait()
         elif type(pick_order) == dict:
-            order_to_pick = self.order_manager.collect_object.pick_order_info(order_id_pick[3])
-            #setze interupt auf 11 um mit pick anzufangen
-            order_to_pick = dict(order_to_pick, order_id=order_id_pick[3], interrupt=11)
-            self.order_manager.update_db(self.order_manager.creat_list_order(order_to_pick))
+            _po = order_id_pick[3]
+            _lo = self.order_manager.collect_object.pick_order_info(_po)
+            order_to_pick = _lo
+            order_to_pick = dict(_lo, order_id=order_id_pick[3], interrupt=11)
+            _ko = self.order_manager.creat_list_order(order_to_pick)
+            self.order_manager.update_db(_ko)
             self.engine.say('your order ready to pick')
             self.engine.runAndWait()
         elif pick_order == 'not collected':
-            collect_task = self.order_manager.collect_object.collect_order_with_id(order_id_pick[3])
-            collect_task = dict(collect_task, order_id=order_id_pick[3], interrupt=14)
-            self.order_manager.update_db(self.order_manager.creat_list_order(collect_task))
+            _zo = order_id_pick[3]
+            _k = self.order_manager.collect_object.collect_order_with_id(_zo)
+            collect_task = dict(_k, order_id=order_id_pick[3], interrupt=14)
+            _xy = self.order_manager.creat_list_order(collect_task)
+            self.order_manager.update_db(_xy)
             self.engine.say('sorry we should collect your order')
             self.engine.runAndWait()
 
-    def check_pick_ability(self):
-        order_id = self.set_order_id()
-        pick_ability = self.order_manager.collect_object.pick_order_info(order_id[3])
-        print("check_pick_ability", pick_ability)
-        return pick_ability
+    def check_pick_ability(self: object) -> list:
+        """Give informations about order to pick.
 
-    def set_order_id(self):
+        Returns:
+            Return list about order.
+        """
+        order_id = self.set_order_id()
+        _c = order_id[3]
+        return self.order_manager.collect_object.pick_order_info(_c)
+
+    def set_order_id(self: object) -> int:
+        """Give order id.
+
+        Returns:
+            Return order_id.
+        """
         order_id = self.order_manager.get_order_list()
         for i in range(3):
             order_id[i] = w2n.word_to_num(order_id[i])
-            print("set_order_id", order_id[i])
-        order_id[3] = int(str(order_id[0]) + str(order_id[1]) + str(order_id[2]))
-        print("set_order_id", order_id)
+        _v = str(order_id[0]) + str(order_id[1]) + str(order_id[2])
+        order_id[3] = int(_v)
         return order_id
 
     def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
@@ -505,9 +538,9 @@ class MeetClient(BasePlugin):
         self.queue = _queue
         self.order_manager.client_spit = doc
         task = self.order_manager.db_object.read_db_plugin()
-        if self.order_manager.get_interrupt_control() == 11:
-            activated = True
-        elif self.order_manager.get_interrupt_control() == 14:
+        _m = self.order_manager.get_interrupt_control() == 11
+        _n = self.order_manager.get_interrupt_control() == 14
+        if _m or _n:
             activated = True
         elif self.order_manager.get_interrupt_control() == 12:
             self.order_manager.set_interrupt_control(13)
@@ -524,7 +557,8 @@ class MeetClient(BasePlugin):
                 if task[key] == '0':
                     task[key] = 'activ'
                     break
-            self.order_manager.update_db(self.order_manager.creat_list_order(task))
+            _f = self.order_manager.creat_list_order(task)
+            self.order_manager.update_db(_f)
             activated = True
         else:
             activated = self.is_activated(doc)

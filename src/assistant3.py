@@ -42,7 +42,7 @@ mpp = processors.base_processor.MonthlyPlanPlugin()
 # trigger plugin object
 trigger = TriggerPlugin()
 # the plugin_watcher object
-plugin_watcher = PluginWatcher([mcp, aop, mpp, sdp])
+plugin_watcher = PluginWatcher([aop, mpp, sdp])
 # optionaly adding a trigger Plugin ("hey assistant")
 plugin_watcher.add_trigger_plugin(trigger)
 

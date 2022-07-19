@@ -1,23 +1,19 @@
-import nlp_key
-import datetime
+"""Give content from order."""
 
 
 class Order:
+    """Give all members from Order."""
 
-    def __init__(self, name, object, amount, order_id, pick_time, rack_number):
-        self.name = name
-        self.object = object
-        self.amount = amount
-        self.order_id = order_id
-        self.pick_time = pick_time
-        self.rack_number = rack_number
-        self.tuple_of_order = (name, object, amount, order_id, pick_time, rack_number)
+    def __init__(self: object, *_li: list) -> None:
+        """Initilize order.
 
-
-if __name__ == '__main__':
-    day_time_func = datetime.datetime.now()
-    x = Order(
-        'hamza', 'screw', 15, nlp_key.order_id_generate(day_time_func),
-        nlp_key.pick_time_generate(nlp_key.order_id_generate(day_time_func)), 15
-    )
-    print(x.tuple_of_order)
+        Args:
+            _li: List with informations about order.
+        """
+        self.name = _li[0]
+        self.object = _li[1]
+        self.amount = _li[2]
+        self.order_id = _li[3]
+        self.pick_time = _li[4]
+        self.rack_number = _li[5]
+        self.tuple_of_order = tuple(_li)

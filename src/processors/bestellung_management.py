@@ -1,14 +1,18 @@
+"""Control all order plugins that inherit from BasePlugin."""
+import typing
+
+from word2number import w2n
+
+from processors.class_collect_pick import PickAndCollect
 from processors.class_makedb import MakeDB
 from processors.class_makeracks import MakeRacks
-from processors.class_collect_pick import PickAndCollect
-#print w2n.word_to_num("two million three thousand nine hundred and eighty four")
-from word2number import w2n
 
 
 class OrderManager:
-    """Manage how the Values from dictionary in plug.db with assistent 3 be obtained"""
+    """Control plugins for order by values set in dictionary from plug.db."""
 
-    def __init__(self):
+    def __init__(self: object) -> None:
+        """Create different databases that are needed."""
         self.doc_add = '0'
         self.order_spit = 'nothing'
         self.client_spit = 'nothing'
@@ -17,157 +21,114 @@ class OrderManager:
         self.db_object.make_db_plugin()
         self.db_object.make_db()
         self.collect_object = PickAndCollect()
-        #self.mark_collect = 0
-        #get the dictionary in plug.db
 
-    def get_order_list(self):
-        """Unpack the contents of the dictionary in plug.db and paste them into list"""
+    def get_order_list(self: object) -> list:
+        """Unpack the contents of the dictionary in plug.db.
+
+        Returns:
+            List of values from the dictionary in plug.db.
+        """
         task = self.db_object.read_db_plugin()
         plug_order = []
         for key in task:
             plug_order.append(task[key])
         return plug_order
 
-    def creat_list_order(self, get_task: dict):
-        """get dictionary get_task and unpack its content in list"""
+    def creat_list_order(self: object, get_task: dict) -> list:
+        """Unpack the contents of the dictionary get_task.
+
+        Dictionary get_task comes from plug.db.
+
+        Args:
+            get_task: A dictionary will be in plug.db inserted.
+
+        Returns:
+            List of Values from the dictionary in plug.db.
+        """
         plug_order = []
         for key in get_task:
             plug_order.append(get_task[key])
         return plug_order
 
-    def update_db(self, plug_order: list):
-        """Remove the older dictionary in plug.db and Input a new update"""
+    def update_db(self: object, plug_order: list) -> None:
+        """Remove the older dictionary in plug.db and Input a new update.
+
+        List plug_order comes from plug.db.
+
+        Args:
+            plug_order: A list will be in plug.db inserted.
+        """
         self.db_object.remove_db_plugin()
         self.db_object.insert_db_plugin(plug_order)
 
-    def get_interrupt_control(self):
-        """Get the Value of interrupt in the dictionary in plug.db"""
+    def get_interrupt_control(self: object) -> int:
+        """Get the Value of interrupt in the dictionary in plug.db.
+
+        Returns:
+            Value from interrupt.
+        """
         task = self.db_object.read_db_plugin()
         if len(task) == 0:
             return False
         else:
             return task['interrupt']
 
-    def set_interrupt_control(self, interrupt_contorl):
-        """Set the Value of interrupt in the dictionary in plug.db"""
+    def set_interrupt_control(self: object, interrupt_contorl: int) -> None:
+        """Set the Value of interrupt in the dictionary in plug.db.
+
+        This integer value comes from plug.db.
+        With this value we can determine the states of the conversation.
+
+        Args:
+            interrupt_contorl: A integer Value.
+        """
         task = self.db_object.read_db_plugin()
-        print("WEEEE", task)
         if len(task) != 0:
             task['interrupt'] = interrupt_contorl
             self.update_db(self.creat_list_order(task))
 
-    def check_order_triger(self, doc):
+    def check_order_triger(self: object, doc: typing.Any) -> bool:
+        """Control the Trigger Plugin to begin conversation.
+
+        We use the value of interrupt_controll from plug.db
+        to determinate which plugin will be activated.
+
+        Args:
+            doc: Speech text that we recieve from speech recognition.
+
+        Returns:
+            Return to trigger plugin True to stay active and False
+            to check its similarity sentense.
+        """
         task = self.db_object.read_db_plugin()
         self.doc_add = doc
         if len(task) == 0:
             self.db_object.insert_db_plugin(['activ', '0', '0', '0', '0', 0])
             return False
         elif len(task) != 0:
-            #plugin for add new order
             if self.get_interrupt_control() in (1, 2):
                 return self.check_add_order_triger(task)
-            #plugin for collect order
             elif self.get_interrupt_control() in (4, 6, 5):
                 return self.check_collect_plugin(task)
-            #plugin for pick order from racks
             elif self.get_interrupt_control() in (7, 8, 9):
                 return self.check_pick_plugin(task)
             elif self.get_interrupt_control() in (10, 11, 12, 13, 14, 15, 16):
                 return self.check_client_triger(task)
+        return False
 
-    def check_pick_plugin(self, task):
-        if self.get_interrupt_control() == 8:
-            if str(self.doc_add) == 'stop':
-                self.db_object.remove_db_plugin()
-                return False
-            else:
-                self.mark_pick_corridor()
-                self.set_interrupt_control(9)
-                return True
-        else:
-            for key in task:
-                if task[key] != 'collected' and self.get_interrupt_control(
-                ) == 7 and key != 'order_id' and key != 'interrupt':
-                    if str(self.doc_add) == 'stop':
-                        self.db_object.remove_db_plugin()
-                        return False
-                    else:
-                        return True
-                elif self.get_interrupt_control() == 9:
-                    if self.collect_object.creat_pick_task() == -1:
-                        return False
-                    else:
-                        return True
-            else:
-                #continue with the state, that we get with break ctrl+c during the introduction of elements in dictionary from plug
-                self.interrupt_pick_task()
-                return True
+    def check_add_order_triger(self: object, task: dict) -> bool:
+        """Add new order in Database expl.db and store it in the appropriate place.
 
-    def creat_pick_task(self):
-        collect_item = self.collect_object.creat_pick_task()
-        if collect_item != -1:
-            collect_item = dict(collect_item, interrupt=7)
-            self.update_db(self.creat_list_order(collect_item))
-        else:
-            return -1
+        We use Value from interrupt_controll in plug.db
+        to determinate which state our plugin have.
 
-    def check_client_triger(self, task):
-        if self.get_interrupt_control() == 13:
-            #13 means pick is completed and we will get next clien
-            if str(self.doc_add) == 'stop':
-                self.db_object.remove_db_plugin()
-                return False
-            else:
-                self.update_db(['0', '0', '0', -1, 10])
-                return True
-        elif self.get_interrupt_control() == 16:
-            # means collect is completed and we will get next client
-            if str(self.doc_add) == 'stop':
-                self.db_object.remove_db_plugin()
-                return False
-            else:
-                self.update_db(['0', '0', '0', -1, 10])
-                return True
-        elif self.get_interrupt_control() == 10:
-            #10 means we take id number from client
-            try:
-                for key in task:
-                    if task[key] == 'activ':
-                        if str(self.doc_add) == 'stop':
-                            self.db_object.remove_db_plugin()
-                            return False
-                        else:
-                            task[key] = str(self.doc_add)
-                            print("id number", w2n.word_to_num(task[key]))
-                            self.update_db(self.creat_list_order(task))
-                            return True
-            except ValueError:
-                self.db_object.remove_db_plugin()
-                return False
-        elif self.get_interrupt_control() == 11:
-            #11 means we take infomations about the place from order to pick
-            for key in task:
-                if task[key] != 'collected' and key != 'order_id' and key != 'interrupt':
-                    if str(self.doc_add) == 'stop':
-                        self.db_object.remove_db_plugin()
-                        return False
-                    else:
-                        return True
-            else:
-                return True
-        elif self.get_interrupt_control() == 14:
-            #11 means we take infomations about the place from order to pick
-            for key in task:
-                if task[key] != 'collected' and key != 'order_id' and key != 'interrupt':
-                    if str(self.doc_add) == 'stop':
-                        self.db_object.remove_db_plugin()
-                        return False
-                    else:
-                        return True
-            else:
-                return True
+        Args:
+            task: Dictionary in plug.db.
 
-    def check_add_order_triger(self, task):
+        Returns:
+            Return to trigger plugin True to stay active and false
+            to check its similarity sentense.
+        """
         if self.get_interrupt_control() == 2:
             if str(self.doc_add) == 'stop':
                 self.db_object.remove_db_plugin()
@@ -184,14 +145,32 @@ class OrderManager:
                         task[key] = str(self.doc_add)
                         self.update_db(self.creat_list_order(task))
                         return True
+        return False
 
-    def store_task_in_racks(self):
+    def store_task_in_racks(self: object) -> bool:
+        """Store order in racks.
+
+        Returns:
+            Return True after store.
+        """
         ready_order = self.get_order_list()
         self.rack_object.creat_racks(ready_order[:3])
         self.set_interrupt_control(3)
         return True
 
-    def check_collect_plugin(self, task):
+    def check_collect_plugin(self: object, task: dict) -> bool:
+        """Give the employees the orders that still need to be done.
+
+        We use value from interrupt_controll in plug.db
+        to determinate which state our plugin have.
+
+        Args:
+            task: Dictionary in plug.db.
+
+        Returns:
+            Return to trigger plugin True to stay active and false
+            to check its similarity sentense.
+        """
         if self.get_interrupt_control() == 5:
             if str(self.doc_add) == 'stop':
                 self.db_object.remove_db_plugin()
@@ -210,32 +189,29 @@ class OrderManager:
                     else:
                         return True
                 elif self.get_interrupt_control() == 6:
+                    bool_value = bool()
                     if self.collect_object.creat_collect_task() == -1:
-                        return False
+                        bool_value = False
                     else:
-                        return True
-            else:
-                #continue with the state, that we get with break ctrl+c during the introduction of elements in dictionary from plug
-                self.interrupt_task()
-                return True
+                        bool_value = True
+                    return bool_value
+            self.interrupt_task()
+            return True
 
-    def mark_corridor(self):
-        """Mark Order with collected if you finish collect"""
+    def mark_corridor(self: object) -> None:
+        """Mark Order with collected if you finish collect."""
         corridor_info = self.finde_corridor()
         json_order = self.rack_object.read_jason_file(corridor_info[1])
         json_order[corridor_info[0]]['corridor_number'] = -1
         self.rack_object.open_file([json_order, corridor_info[1]])
 
-    def mark_pick_corridor(self):
-        corridor_info = self.finde_corridor()
-        if corridor_info != -1:
-            json_order = self.rack_object.read_jason_file(corridor_info[1])
-            json_order[corridor_info[0]]['corridor_number'] = corridor_info[1]
-            json_order[corridor_info[0]]['rack_number'] = -1
-            self.rack_object.open_file([json_order, corridor_info[1]])
+    def finde_corridor(self: object) -> list:
+        """Use this to finde order with id in plug.db.
 
-    def finde_corridor(self):
-        """Use this to finde order with id"""
+        Returns:
+            Return rack_number and corridor_number from order with
+            order_id = id that we get from plug.db.
+        """
         task = self.db_object.read_db_plugin()
         corridor_info = self.rack_object.find_order_place(task['order_id'])
         if corridor_info != 'not found':
@@ -244,28 +220,182 @@ class OrderManager:
             self.db_object.remove_db_plugin()
             return -1
 
-    def creat_next_task(self):
-        """Creat next task for collecting"""
+    def creat_next_task(self: object) -> int:
+        """Create next task for collecting.
+
+        Returns:
+            Return -1 if ther is no order more to collect.
+        """
         collect_item = self.collect_object.creat_collect_task()
-        if type(collect_item) == dict:
+        if isinstance(collect_item, dict):
             collect_item = dict(collect_item, interrupt=4)
             self.update_db(self.creat_list_order(collect_item))
         else:
             return -1
+        return 1
 
-    def creat_sentence(self, key) -> str:
-        """Creat sentence to say"""
-        place_centence = 'got to ' + key
-        object_centence = 'take the ' + key
-        client_centence = 'client ' + key
+    def check_pick_plugin(self: object, task: dict) -> bool:
+        """Take order in racks back to storeroom if client dont come and remove it.
+
+        We use value from interrupt_controll in plug.db
+        to determine which state our plugin have.
+
+        Args:
+            task: Speech text that we recieve from speech recognition.
+
+        Returns:
+            Return to trigger plugin True to stay active and false
+            to check its similarity sentense.
+        """
+        if self.get_interrupt_control() == 8:
+            if str(self.doc_add) == 'stop':
+                self.db_object.remove_db_plugin()
+                return False
+            else:
+                self.mark_pick_corridor()
+                self.set_interrupt_control(9)
+                return True
+        else:
+            for key in task:
+                if task[key] != 'collected' and self.get_interrupt_control(
+                ) == 7 and key != 'order_id' and key != 'interrupt':
+                    if str(self.doc_add) == 'stop':
+                        self.db_object.remove_db_plugin()
+                        return False
+                    else:
+                        return True
+                elif self.get_interrupt_control() == 9:
+                    return self.collect_object.creat_pick_task()
+            self.interrupt_pick_task()
+            return True
+
+    def creat_pick_task(self: object) -> bool:
+        """Get the Value from creat_pick_task in class PickAndCollect.
+
+        Update plug.db with this value.
+
+        Returns:
+            Bool value to controll the conversation.
+        """
+        collect_item = self.collect_object.creat_pick_task()
+        if collect_item != -1:
+            collect_item = dict(collect_item, interrupt=7)
+            self.update_db(self.creat_list_order(collect_item))
+            return True
+        else:
+            return False
+
+    def mark_pick_corridor(self: object) -> None:
+        """Mark rack if client becomes his order or if order is removed."""
+        corridor_info = self.finde_corridor()
+        if corridor_info != -1:
+            json_order = self.rack_object.read_jason_file(corridor_info[1])
+            json_order[corridor_info[0]]['corridor_number'] = corridor_info[1]
+            json_order[corridor_info[0]]['rack_number'] = -1
+            self.rack_object.open_file([json_order, corridor_info[1]])
+
+    def check_client_triger(self: object, task: dict) -> bool:
+        """Take from Client id and Give him his order.
+
+        We use Value from interrupt_controll in plug.db
+        to determinate which state our plugin have.
+
+        Args:
+            task: Dictionary in plug.db.
+
+        Returns:
+            Return to trigger plugin True to stay active and false
+            to check its similarity sentense.
+        """
+        interrupt_control = self.get_interrupt_control()
+        if interrupt_control == 13 or interrupt_control == 16:
+            if str(self.doc_add) == 'stop':
+                self.db_object.remove_db_plugin()
+                return False
+            else:
+                self.update_db(['0', '0', '0', -1, 10])
+                return True
+        elif self.get_interrupt_control() == 10:
+            return self.check_id_in_conversation(task)
+        elif interrupt_control == 11 or interrupt_control == 14:
+            return self.check_pick_collect(task)
+        return False
+
+    def check_id_in_conversation(self: object, task: dict) -> bool:
+        """Take order_id that we recieve frome speech recognition.
+
+        Put id in doc_add and check it.
+
+        Args:
+            task: Dictionary in plug.db.
+
+        Returns:
+            Return to trigger plugin True to stay active and False
+            to check its similarity sentense if we done with input from id or
+            if user says stop.
+        """
+        try:
+            for key in task:
+                if task[key] == 'activ':
+                    if str(self.doc_add) == 'stop':
+                        self.db_object.remove_db_plugin()
+                        return False
+                    else:
+                        task[key] = str(self.doc_add)
+                        test_value = w2n.word_to_num(task[key])
+                        test_value = test_value + 1
+                        self.update_db(self.creat_list_order(task))
+                        return True
+        except ValueError:
+            self.db_object.remove_db_plugin()
+            return False
+
+    def check_pick_collect(self: object, task: dict) -> bool:
+        """Make converstaion for pick if order is collected else collect it.
+
+        We use Value from interrupt_controll in plug.db
+        to determinate if we need pick- or collect-plugin.
+
+        Args:
+            task: Dictionary in plug.db.
+
+        Returns:
+            Return to trigger plugin True to stay active and False
+            to check its similarity sentense.
+        """
+        for key in task:
+            ignore_value = key != 'order_id' and key != 'interrupt'
+            if task[key] != 'collected' and ignore_value:
+                if str(self.doc_add) == 'stop':
+                    self.db_object.remove_db_plugin()
+                    return False
+                else:
+                    return True
+        return True
+
+    def creat_sentence(self: object, key: str) -> str:
+        """Create sentence to say in some conversations.
+
+        Args:
+            key: Key from dictionary in plug.db.
+
+        Returns:
+            Return sentence that we can use in conversations.
+        """
         if key == 'object' or key == 'amount':
-            return object_centence
+            return 'take the ' + key
         elif key == 'corridor_number' or key == 'rack_number':
-            return place_centence
+            return 'got to ' + key
         elif key == 'name':
-            return client_centence
+            return 'client ' + key
+        return 'None'
 
-    def next_object(self):
+    def next_object(self: object) -> str:
+        """Specify what collect order should say in conversation.
+
+        Returns:
+            Return sentence that speech recognition must say.
+        """
         task = self.db_object.read_db_plugin()
         if self.get_interrupt_control() == 6:
             self.mark_corridor()
@@ -277,32 +407,44 @@ class OrderManager:
                 return 'save completed. next order'
         else:
             for key in task:
-                if str(task[key]) != 'collected' and key != 'interrupt' and task[
-                    'interrupt'] == 4 and key != 'order_id':
+                ignore_value = key != 'order_id' and key != 'interrupt'
+                state_value = task['interrupt'] == 4
+                key_value = str(task[key]) != 'collected'
+                if state_value and key_value and ignore_value:
                     order = str(task[key])
                     task[key] = 'collected'
                     self.update_db(self.creat_list_order(task))
                     return self.creat_sentence(key) + order
-            else:
-                self.interrupt_task()
-                return 'stop for dont save'
-
-    def next_element(self):
-        task = self.db_object.read_db_plugin()
-        for key in task:
-            if str(task[key]) != 'collected' and key != 'interrupt' and key != 'order_id' and task[
-                'interrupt'] == 4:
-                return 'next'
-        else:
+            self.interrupt_task()
             return 'stop for dont save'
 
-    def interrupt_task(self):
+    def next_element(self: object) -> str:
+        """Specify what collect order should say in conversation as trigger.
+
+        Returns:
+            Return sentence that speech recognition must say.
+        """
+        task = self.db_object.read_db_plugin()
+        for key in task:
+            ignore_value = key != 'order_id' and key != 'interrupt'
+            state_value = task['interrupt'] == 4
+            key_value = str(task[key]) != 'collected'
+            if state_value and key_value and ignore_value:
+                return 'next'
+        return 'stop for dont save'
+
+    def interrupt_task(self: object) -> None:
+        """Set interrupt in dictionary from plug.db when collect is done."""
         self.set_interrupt_control(5)
 
-    def next_pick_object(self):
+    def next_pick_object(self: object) -> str:
+        """Specify what pick order should say in conversation.
+
+        Returns:
+            Return sentence that speech recognition must say.
+        """
         task = self.db_object.read_db_plugin()
         if self.get_interrupt_control() == 9:
-            #here we should check if we have something else to do
             if self.collect_object.creat_pick_task() == -1:
                 self.db_object.remove_db_plugin()
                 return 'no order more'
@@ -310,32 +452,45 @@ class OrderManager:
                 self.mark_pick_corridor()
                 self.creat_pick_task()
                 return 'save completed. next order'
-
         else:
             for key in task:
-                if str(task[key]) != 'collected' and key != 'interrupt' and task[
-                    'interrupt'] == 7 and key != 'order_id':
+                ignore_value = key != 'order_id' and key != 'interrupt'
+                state_value = task['interrupt'] == 7
+                key_value = str(task[key]) != 'collected'
+                if state_value and key_value and ignore_value:
                     order = str(task[key])
                     task[key] = 'collected'
                     self.update_db(self.creat_list_order(task))
                     return self.creat_sentence(key) + order
-            else:
-                #self.interrupt_pick_task()
-                return 'stop for dont save'
+            return 'stop for dont save'
+        return 'None'
 
-    def next_pick_element(self):
+    def next_pick_element(self: object) -> str:
+        """Specify what pick order should say in conversation as trigger.
+
+        Returns:
+            Return sentence that speech recognition must say.
+        """
         task = self.db_object.read_db_plugin()
         for key in task:
-            if str(task[key]) != 'collected' and key != 'interrupt' and key != 'order_id' and task[
-                'interrupt'] == 7:
+            ignore_value = key != 'order_id' and key != 'interrupt'
+            state_value = task['interrupt'] == 7
+            key_value = str(task[key]) != 'collected'
+            if state_value and key_value and ignore_value:
                 return 'next'
-        else:
-            return 'stop for dont save'
+        return 'stop for dont save'
 
-    def interrupt_pick_task(self):
+    def interrupt_pick_task(self: object) -> None:
+        """Set interrupt in dictionary from plug.db when pick is done."""
         self.set_interrupt_control(8)
 
-    def next_client_object(self):
+    def next_client_object(self: object) -> str:
+        """Specify what client order should say in conversation as trigger.
+
+        Returns:
+            Return sentence that speech recognition must say
+            in case of collecting order.
+        """
         task = self.db_object.read_db_plugin()
         if self.get_interrupt_control() == 13:
             if str(self.client_spit) == 'stop':
@@ -347,27 +502,43 @@ class OrderManager:
 
         elif self.get_interrupt_control() == 11:
             for key in task:
-                if str(task[key]) != 'collected' and key != 'interrupt' and key != 'order_id':
+                ignore_value = key != 'order_id' and key != 'interrupt'
+                key_value = str(task[key]) != 'collected'
+                if key_value and ignore_value:
                     order = str(task[key])
                     task[key] = 'collected'
                     self.update_db(self.creat_list_order(task))
                     return self.creat_sentence(key) + order
-            else:
-                return 'stop for dont save'
+            return 'stop for dont save'
+        return 'None'
 
-    def next_client_element(self):
+    def next_client_element(self: object) -> str:
+        """Specify what client order should say in conversation as trigger.
+
+        Returns:
+            Return sentence that speech recognition must say
+            in case of pick order.
+        """
         task = self.db_object.read_db_plugin()
         for key in task:
-            if str(task[key]) != 'collected' and key != 'interrupt' and key != 'order_id' and task[
-                'interrupt'] == 11:
+            ignore_value = key != 'order_id' and key != 'interrupt'
+            state_value = task['interrupt'] == 11
+            key_value = str(task[key]) != 'collected'
+            if state_value and key_value and ignore_value:
                 return 'next'
-        else:
-            return 'stop for dont save'
+        return 'stop for dont save'
 
-    def interrupt_client_task(self):
+    def interrupt_client_task(self: object) -> None:
+        """Set interrupt in dictionary from plug.db when pick is done."""
         self.set_interrupt_control(12)
 
-    def next_client_collect(self):
+    def next_client_collect(self: object) -> str:
+        """Specify what client order should say in conversation as trigger.
+
+        Returns:
+            Return sentence that speech recognition must say
+            in case of Taking id order.
+        """
         task = self.db_object.read_db_plugin()
         if self.get_interrupt_control() == 16:
             if str(self.client_spit) == 'stop':
@@ -379,27 +550,42 @@ class OrderManager:
 
         elif self.get_interrupt_control() == 14:
             for key in task:
-                if str(task[key]) != 'collected' and key != 'interrupt' and key != 'order_id':
+                ignore_value = key != 'order_id' and key != 'interrupt'
+                key_value = str(task[key]) != 'collected'
+                if key_value and ignore_value:
                     order = str(task[key])
                     task[key] = 'collected'
                     self.update_db(self.creat_list_order(task))
                     return self.creat_sentence(key) + order
-            else:
-                return 'stop for dont save'
+            return 'stop for dont save'
+        return 'None'
 
-    def next_collect_client(self):
+    def next_collect_client(self: object) -> str:
+        """Specify what collect order should say in conversation as trigger.
+
+        Returns:
+            Return sentence that speech recognition must say
+            in case of collecting.
+        """
         task = self.db_object.read_db_plugin()
         for key in task:
-            if str(task[key]) != 'collected' and key != 'interrupt' and key != 'order_id' and task[
-                'interrupt'] == 14:
+            ignore_value = key != 'order_id' and key != 'interrupt'
+            state_value = task['interrupt'] == 14
+            key_value = str(task[key]) != 'collected'
+            if state_value and key_value and ignore_value:
                 return 'next'
-        else:
-            return 'stop for dont save'
+        return 'stop for dont save'
 
-    def interrupt_client_collect(self):
+    def interrupt_client_collect(self: object) -> None:
+        """Set interrupt in dictionary from plug.db when collecting is done."""
         self.set_interrupt_control(15)
 
-    def get_spit_response_triger(self):
+    def get_spit_response_triger(self: object) -> bool:
+        """Take Results from other functions and give it to trigger spit.
+
+        Returns:
+            Return what trigger should say in all conversations.
+        """
         if self.get_interrupt_control() in (1, 3):
             if self.get_interrupt_control() == 1:
                 self.order_spit = 'you gave me' + str(self.doc_add)
@@ -441,12 +627,4 @@ class OrderManager:
             else:
                 self.order_spit = 'next'
                 return True
-        else:
-            return False
-
-
-if __name__ == '__main__':
-    #manager_objectk = OrderManager()
-    #manager_objectk.mark_corridor()
-    #print(manager_objectk.get_interrupt_control())
-    pass
+        return False
