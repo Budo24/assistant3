@@ -1,11 +1,10 @@
 """Generate pick_id and order_id."""
 import datetime
-import typing
 
 import spacy
 
 
-def order_id_generate(day_time_func: typing.Any) -> int:
+def order_id_generate(day_time_func: datetime.datetime) -> int:
     """Give order_id.
 
     Args:
@@ -13,6 +12,7 @@ def order_id_generate(day_time_func: typing.Any) -> int:
 
     Returns:
         Return order_id.
+
     """
     nlp = spacy.load('en_core_web_md')
     day_time_text = str(day_time_func)
@@ -43,6 +43,7 @@ def pick_time_generate(order_id: int) -> int:
 
     Returns:
         Return pick time. It is one day after store order.
+
     """
     time_str = str(order_id)
     time_str = time_str[-6:]
@@ -59,6 +60,7 @@ def month_day_generate() -> list:
 
     Returns:
         Return month and day.
+
     """
     nlp = spacy.load('en_core_web_md')
     date_time_func = datetime.datetime.now()

@@ -3,8 +3,8 @@ import datetime
 import os
 import sqlite3
 
-from . import bestellung_definition
-from . import nlp_keys
+from assistant3.processors import bestellung_definition
+from assistant3.processors import nlp_keys
 
 
 class MakeDB:
@@ -43,11 +43,12 @@ class MakeDB:
         Args:
             new_order: Order.
         """
+        db_object = MakeDB()
         con = sqlite3.connect('expl.db')
         cur = con.cursor()
-        new_order_object = self.creat_order(new_order)
+        new_order_object = db_object.creat_order(new_order)
         _m = new_order_object.tuple_of_order
-        if new_order_object.tuple_of_order not in self.read_db():
+        if new_order_object.tuple_of_order not in db_object.read_db():
             cur.execute('insert into Bestellung values (?, ?, ?, ?, ?, ?)', _m)
         con.commit()
         con.close()
@@ -90,7 +91,8 @@ class MakeDB:
         Returns:
             Return tuple that contains informations about order.
         """
-        order_info = self.read_db()
+        db_object = MakeDB()
+        order_info = db_object.read_db()
         _m = len(order_info)
         for i in range(_m):
             if order_id in order_info[i]:
@@ -103,8 +105,9 @@ class MakeDB:
         Returns:
             Returns a list of dictionaries from database.
         """
+        db_object = MakeDB()
         dict_order = []
-        for order in self.read_db():
+        for order in db_object.read_db():
             _d = {'name': order[0], 'order_id': order[3]}
             dict_order.append(dict(_d, rack_number=order[5]))
         return dict_order
@@ -128,10 +131,11 @@ class MakeDB:
         Args:
             _l: List with informations needed in plugins.
         """
+        db_object = MakeDB()
         con = sqlite3.connect('plug.db')
         cur = con.cursor()
         _l = tuple(_l)
-        if len(self.read_db_plugin()) == 0:
+        if len(db_object.read_db_plugin()) == 0:
             if len(_l) == 4:
                 cur.execute('insert into Plugin values (?, ?, ?, ?)', _l)
                 con.commit()
@@ -147,8 +151,9 @@ class MakeDB:
 
     def remove_db_plugin(self: object) -> None:
         """Remove Content of plug.db."""
+        db_object = MakeDB()
         os.remove('plug.db')
-        self.make_db_plugin()
+        db_object.make_db_plugin()
 
     def read_db_plugin(self: object) -> dict:
         """Give information to plugins.

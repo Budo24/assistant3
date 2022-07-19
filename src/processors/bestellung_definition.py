@@ -9,6 +9,7 @@ class Order:
 
         Args:
             _li: List with informations about order.
+
         """
         self.name = _li[0]
         self.object = _li[1]
