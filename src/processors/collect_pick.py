@@ -1,9 +1,9 @@
 """define all actions during collect or pick the order."""
 import datetime
 
-from assistant3.processors import nlp_keys
-from assistant3.processors.make_db import MakeDB
-from assistant3.processors.make_racks import MakeRacks
+from processors import nlp_keys
+from processors.make_db import MakeDB
+from processors.make_racks import MakeRacks
 
 
 class PickAndCollect:

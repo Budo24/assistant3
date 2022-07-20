@@ -3,17 +3,10 @@ import typing
 
 from word2number import w2n
 
-from assistant3.processors.collect_pick import PickAndCollect
-from assistant3.processors.make_db import MakeDB
-from assistant3.processors.make_racks import MakeRacks
+from processors.collect_pick import PickAndCollect
+from processors.make_db import MakeDB
+from processors.make_racks import MakeRacks
 
-
-class OrderManagerMixin:
-    """Control plugins for order by values set in dictionary from plug.db."""
-
-    def __init__(self) -> None:
-        """New OrderManagerMixin."""
-        self.order_manager = OrderManager()
 
 class OrderManager:
     """Control plugins for order by values set in dictionary from plug.db."""

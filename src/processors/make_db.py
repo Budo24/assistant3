@@ -1,10 +1,8 @@
 """Create all databases and their structure."""
-import datetime
 import os
 import sqlite3
 
-from assistant3.processors import bestellung_definition
-from assistant3.processors import nlp_keys
+from processors.bestellung_definition import Order
 
 
 class MakeDB:
@@ -23,32 +21,36 @@ class MakeDB:
         cur.execute(f'create table if not exists Bestellung {_l}')
         con.close()
 
-    def creat_order(self: object, new_order: list) -> bestellung_definition.Order:
-        """Create with new_order an order object.
+    """def creat_order(self: object, new_order: list) -> bestellung_definition.Order:
+        Create with new_order an order object.
 
         Args:
             new_order: Has all properties from class order.
 
         Returns:
             Return order object with infos in new_order.
-        """
+
+        
         new_order.append(nlp_keys.order_id_generate(datetime.datetime.now()))
         new_order.append(nlp_keys.pick_time_generate(new_order[3]))
         new_order.append(0)
-        return bestellung_definition.Order(*new_order)
+        return bestellung_definition.Order(*new_order)"""
 
     def insert_db(self: object, new_order: list) -> None:
         """Insert new order to database Bestellung.
 
         Args:
             new_order: Order.
+
         """
         db_object = MakeDB()
+        bestellung_object = Order()
         con = sqlite3.connect('expl.db')
         cur = con.cursor()
-        new_order_object = db_object.creat_order(new_order)
+        #new_order_object = db_object.creat_order(new_order)
+        new_order_object = bestellung_object.creat_order(new_order)
         _m = new_order_object.tuple_of_order
-        if new_order_object.tuple_of_order not in db_object.read_db():
+        if _m not in db_object.read_db():
             cur.execute('insert into Bestellung values (?, ?, ?, ?, ?, ?)', _m)
         con.commit()
         con.close()
@@ -58,6 +60,7 @@ class MakeDB:
 
         Args:
             order_id: Id from order.
+
         """
         con = sqlite3.connect('expl.db')
         cur = con.cursor()
@@ -70,6 +73,7 @@ class MakeDB:
 
         Returns:
             Return list of all orders in our database expl.db.
+
         """
         con = sqlite3.connect('expl.db')
         cur = con.cursor()
@@ -90,6 +94,7 @@ class MakeDB:
 
         Returns:
             Return tuple that contains informations about order.
+
         """
         db_object = MakeDB()
         order_info = db_object.read_db()

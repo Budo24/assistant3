@@ -8,10 +8,10 @@ import typing
 import sounddevice as sd
 import vosk
 
-import assistant3.data
+import data
 
-from .. import processors
-from .plugins_watcher import PluginWatcher
+import processors
+import main_assistant
 
 
 def int_or_str(text: str | int) -> int:
@@ -49,7 +49,7 @@ class Assistant3():
         # trigger plugin object
         self.trigger = processors.base_processor.TriggerPlugin()
         # the plugin_watcher object
-        self.plugin_watcher = PluginWatcher([self.mcp])
+        self.plugin_watcher = main_assistant.plugins_watcher.PluginWatcher([self.mcp])
         # optionaly adding a trigger Plugin ("hey assistant")
         self.plugin_watcher.add_trigger_plugin(self.trigger)
 
