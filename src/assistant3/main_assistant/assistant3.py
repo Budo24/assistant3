@@ -12,6 +12,7 @@ import assistant3.data
 
 from .. import processors
 from ..processors import monthly_plan_plugin
+from ..gui.cGui import GUI
 from .plugins_watcher import PluginWatcher
 
 
@@ -45,6 +46,7 @@ class Assistant3():
         self.loc = processors.base_processor.Location()
         self.jok = processors.base_processor.Jokes()
         self.cal = processors.base_processor.Calculator()
+        self.gui = GUI()
 
         # trigger plugin object
         self.trigger = processors.base_processor.TriggerPlugin()
@@ -86,6 +88,7 @@ class Assistant3():
 
             dump_file_exist = bool(args.filename)
 
+            self.gui.run()
             with sd.RawInputStream(
                 samplerate=args.samplerate,
                 blocksize=8000,
