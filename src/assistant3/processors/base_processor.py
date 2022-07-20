@@ -189,8 +189,10 @@ class BasePlugin():
         ret_str += '\n'
         print(ret_str)
 
+
 class BaseInitializationErrorPlugin(BasePlugin):
     """BaseInitializationErrorPlugin."""
+
     def __init__(self) -> None:
         """Init."""
         super().__init__()
@@ -245,8 +247,6 @@ class SpacyDatePlugin(BasePlugin):
         # here we push it to the results queue passed by pw
         self.queue.put(self.end_result)
         return
-
-
 
 
 class SingleDate:
@@ -808,6 +808,7 @@ class MonthlyPlanPlugin(BasePlugin):
             return
         self.check_keyword(action_activated_, activated_keyword)
 
+
 class AddOrderPlugin(BasePlugin):
     """Create new order and store it in racks."""
 
@@ -842,8 +843,9 @@ class AddOrderPlugin(BasePlugin):
         Args:
             set_control: Sentence to say when add order is done.
         """
-        self.order_manager.set_interrupt_control(2)
-        self.order_manager.update_db(self.order_manager.get_order_list())
+        self.order_manager.manager_tools.set_interrupt_control(2)
+        m_list = self.order_manager.manager_tools.get_order_list()
+        self.order_manager.manager_tools.update_db(m_list)
         self.engine.say(set_control)
         self.engine.runAndWait()
 
@@ -856,20 +858,21 @@ class AddOrderPlugin(BasePlugin):
         """
         self.queue = _queue
         task = self.order_manager.db_object.read_db_plugin()
-        if self.order_manager.get_interrupt_control() == 3:
+        o_int = self.order_manager.manager_tools.get_interrupt_control()
+        if o_int == 3:
             activated = True
             self.order_manager.update_db(['activ', '0', '0', 1])
-        elif self.order_manager.get_interrupt_control() == 0:
+        elif o_int == 0:
             activated = self.is_activated(doc)
             if activated:
                 self.order_manager.update_db(['activ', '0', '0', 1])
-        elif self.order_manager.get_interrupt_control() == 1:
+        elif o_int == 1:
             for key in task:
                 if task[key] == '0':
                     task[key] = 'activ'
                     break
-            _l = self.order_manager.creat_list_order(task)
-            self.order_manager.update_db(_l)
+            _l = self.order_manager.manager_tools.creat_list_order(task)
+            self.order_manager.manager_tools.update_db(_l)
             activated = True
         else:
             activated = self.is_activated(doc)
@@ -915,22 +918,23 @@ class CollectOrder(BasePlugin):
         if next_task == -1:
             activated = False
         else:
-            if self.order_manager.get_interrupt_control() == 0:
+            int_o = self.order_manager.manager_tools.get_interrupt_control()
+            if int_o == 0:
                 activated = self.is_activated(doc)
                 if activated:
-                    self.order_manager.creat_next_task()
-            elif self.order_manager.get_interrupt_control() == 4:
+                    self.order_manager.manager_tools.creat_next_task()
+            elif int_o == 4:
                 if str(doc) == 'stop':
                     self.order_manager.db_object.remove_db_plugin()
                     activated = self.is_activated(doc)
                 else:
                     activated = True
-            elif self.order_manager.get_interrupt_control() == 5:
+            elif int_o == 5:
                 if str(doc) == 'stop':
                     self.order_manager.db_object.remove_db_plugin()
                     activated = self.is_activated(doc)
                 else:
-                    self.order_manager.set_interrupt_control(6)
+                    self.order_manager.manager_tools.set_interrupt_control(6)
                     activated = True
             else:
                 activated = self.is_activated(doc)
@@ -970,10 +974,11 @@ class PickPlugin(BasePlugin):
         if next_task == -1:
             activated = False
         else:
-            if self.order_manager.get_interrupt_control() == 0:
+            k_int = self.order_manager.manager_tools.get_interrupt_control()
+            if k_int == 0:
                 activated = self.is_activated(doc)
                 if activated:
-                    self.order_manager.creat_pick_task()
+                    self.order_manager.manager_tools.creat_pick_task()
             elif self.order_manager.get_interrupt_control() == 7:
                 if str(doc) == 'stop':
                     self.order_manager.db_object.remove_db_plugin()

@@ -49,7 +49,7 @@ class Assistant3():
         # trigger plugin object
         self.trigger = processors.base_processor.TriggerPlugin()
         # the plugin_watcher object
-        self.plugin_watcher = PluginWatcher([self.mcp])
+        self.plugin_watcher = PluginWatcher([self.aop])
         # optionaly adding a trigger Plugin ("hey assistant")
         self.plugin_watcher.add_trigger_plugin(self.trigger)
 
@@ -105,6 +105,7 @@ class Assistant3():
                         res = rec.Result()
                         text = res.replace('\n', '')
                         text = text.replace('{  "text" : "', '').replace('"}', '')
+                        print("HEEEEEEEEEEEEHEHEHEHEHEHEH", type(text))
                         print(text)
 
                         res_list = self.plugin_watcher.run2(text)
@@ -127,4 +128,5 @@ class Assistant3():
                             dump_fn.write(data)
                     # end_result = None
         except KeyboardInterrupt as exc:
+            self.db_object.remove_db_plugin()
             raise KeyboardInterrupt from exc
