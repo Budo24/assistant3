@@ -9,7 +9,7 @@ import pyttsx3
 import spacy
 import wikipedia
 
-from assistant3.common import calcu_help, location_help
+from assistant3.common import plugin_help
 from assistant3.common.exceptions import UidNotAssignedError
 from assistant3.common.plugins import PluginResultType, PluginType
 
@@ -171,7 +171,7 @@ class BasePlugin():
             return self.uid
         raise UidNotAssignedError
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool= False) -> None:
         """Run_doc."""
         if self:
             pass
@@ -194,7 +194,7 @@ class BaseInitializationErrorPlugin(BasePlugin):
         """Init."""
         super().__init__()
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool= False) -> None:
         """Run_doc."""
         ret_str = ''
         ret_str += 'Not implemented, [todo] should raise exception instead\n'
@@ -224,7 +224,7 @@ class SpacyDatePlugin(BasePlugin):
         self.engine.say(time.strftime('%A %-d of %B'))
         self.engine.runAndWait()
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool=False) -> None:
         """Run_doc."""
         self.queue = _queue
         # check if plugin is activted
@@ -261,7 +261,7 @@ class TriggerPlugin(BasePlugin):
         self.engine.say('how can i help')
         self.engine.runAndWait()
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool=False) -> None:
         """Run_doc."""
         self.queue = _queue
         activated = self.is_activated(doc)
@@ -294,7 +294,7 @@ class Wikipedia(BasePlugin):
         self.search_result: list[str] = []
         self.flow: list[str] = []
 
-    def run_doc(self, doc: object, queue_: queue.Queue[typing.Any], by_uid=False) -> None:
+    def run_doc(self, doc: object, queue_: queue.Queue[typing.Any], by_uid: bool= False) -> None:
         """Run doc."""
         self.queue = queue_
 
@@ -384,10 +384,8 @@ class Location(BasePlugin):
         """Run_doc."""
         if self.is_activated(doc) or by_uid:
             self.queue = _queue
-            # check if plugin is activted
-            loc = location_help.locator()
-            address = loc
-            final_loc = f'your are in {address}'
+            loc = plugin_help.locator()
+            final_loc = f'your are in {loc}'
             # here we set some informations in the result dict
             self.end_result['type'] = PluginResultType.TEXT
             self.end_result['result'] = final_loc
@@ -441,7 +439,7 @@ class Calculator(BasePlugin):
         self.activation = []
         self.min_similarity = 0.99
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool=False) -> None:
         """Run_doc."""
         self.queue = _queue
         if self.is_activated(doc) or by_uid:
@@ -455,7 +453,7 @@ class Calculator(BasePlugin):
                 self.queue.put(self.end_result)
                 return
             if len(self.stack) == 0 and self.activation:
-                value = calcu_help.word_conv(doc.text)
+                value = plugin_help.word_conv(doc.text)
                 self.stack.append(value)
                 self.end_result['type'] = PluginResultType.KEEP_ALIVE
                 self.end_result['result'] = 'please say the second number'
@@ -463,7 +461,7 @@ class Calculator(BasePlugin):
                 self.queue.put(self.end_result)
                 return
             if len(self.stack) == 1 and self.activation:
-                value = calcu_help.word_conv(doc.text)
+                value = plugin_help.word_conv(doc.text)
                 self.stack.append(value)
                 text = f'first number is {self.stack[0]}, and second number is {self.stack[1]} \
                     which operator do you want?'
@@ -473,12 +471,94 @@ class Calculator(BasePlugin):
                 self.queue.put(self.end_result)
                 return
             if len(self.stack) == 2 and self.activation:
-                res = calcu_help.run(doc.text, self.stack[0], self.stack[1])
+                res = plugin_help.run(doc.text, self.stack[0], self.stack[1])
                 text = f'calculation result is {res}'
                 self.stack.clear()
                 self.end_result['type'] = PluginResultType.TEXT
                 self.end_result['result'] = text
                 self.end_result['result_speech_func'] = super().spit_text
+                self.activation.clear()
+                self.queue.put(self.end_result)
+                return
+
+
+class Internet(BasePlugin):
+    """Internet Plugin."""
+
+    def __init__(self) -> None:
+        """Pass the initial reference phrase to the parent Object (BasePlugin).
+
+        and it will take care of adding it as described
+        above
+        """
+        super().__init__('internet')
+        self.add_activation_doc('internet')
+        self.activation_dict['general_tts_error_message'] = 'internet error'
+        self.queue: queue.Queue[typing.Any] = queue.Queue(0)
+
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
+        """Run_doc."""
+        if self.is_activated(doc) or by_uid:
+            self.queue = _queue
+            if plugin_help.connect():
+                # here we set some informations in the result dict
+                self.end_result['type'] = PluginResultType.TEXT
+                self.end_result['result'] = 'you have internet. Internet plugins are activated'
+                self.end_result['result_speech_func'] = super().spit_text
+                # here we push it to the results queue passed by pw
+                self.queue.put(self.end_result)
+                return
+            else:
+                # here we set some informations in the result dict
+                self.end_result['type'] = PluginResultType.TEXT
+                self.end_result['result'] = 'you dont have internet'
+                self.end_result['result_speech_func'] = super().spit_text
+                # here we push it to the results queue passed by pw
+                self.queue.put(self.end_result)
+                return
+
+
+class Volume(BasePlugin):
+    """Volume Plugin."""
+
+    def __init__(self) -> None:
+        """Pass the initial reference phrase to the parent Object (BasePlugin).
+
+        and it will take care of adding it as described
+        above
+        """
+        super().__init__('volume')
+        self.activation_dict['general_tts_error_message'] = 'volume error'
+        self.queue: queue.Queue[typing.Any] = queue.Queue(0)
+        self.activation = []
+        self.min_similarity = 0.99
+
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool=False) -> None:
+        """Run_doc."""
+        self.queue = _queue
+        if self.is_activated(doc) or by_uid:
+            if not self.activation:
+                start_text = 'Do you want to increase or decrease your volume?'
+                self.end_result['type'] = PluginResultType.TEXT
+                self.end_result['result'] = start_text
+                self.end_result['result_speech_func'] = super().spit_text
                 self.activation.append('activate')
                 self.queue.put(self.end_result)
                 return
+            if self.activation:
+                if doc[0].text == 'increase':
+                    plugin_help.increase_volume()
+                    self.end_result['type'] = PluginResultType.TEXT
+                    self.end_result['result'] = 'increased volume'
+                    self.end_result['result_speech_func'] = super().spit_text
+                    self.activation.clear()
+                    self.queue.put(self.end_result)
+                    return
+                elif doc[0].text == 'decrease':
+                    plugin_help.decrease_volume()
+                    self.end_result['type'] = PluginResultType.KEEP_ALIVE
+                    self.end_result['result'] = 'decreased volume'
+                    self.end_result['result_speech_func'] = super().spit_text
+                    self.activation.clear()
+                    self.queue.put(self.end_result)
+                    return

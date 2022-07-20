@@ -45,11 +45,13 @@ class Assistant3():
         self.loc = processors.base_processor.Location()
         self.jok = processors.base_processor.Jokes()
         self.cal = processors.base_processor.Calculator()
+        self.int = processors.base_processor.Internet()
+        self.vol = processors.base_processor.Volume()
 
         # trigger plugin object
         self.trigger = processors.base_processor.TriggerPlugin()
         # the plugin_watcher object
-        self.plugin_watcher = PluginWatcher([self.wik, self.jok, self.loc, self.cal])
+        self.plugin_watcher = PluginWatcher([self.wik, self.jok, self.loc, self.cal, self.vol, self.int])
         # optionaly adding a trigger Plugin ("hey assistant")
         self.plugin_watcher.add_trigger_plugin(self.trigger)
 

@@ -1,7 +1,26 @@
-"""Helper for Calculator Plugin."""
+"""All helping function for plugins."""
 
+import time
 import typing
+import urllib.request
+from urllib.error import URLError
 
+import geocoder
+from geopy.geocoders import Nominatim
+from pynput.keyboard import Controller, Key
+
+
+def locator() -> str:
+    """Determine the user location."""
+    nomi_locator = Nominatim(user_agent='Location Plugin')
+
+    current_loc = geocoder.ip('me')
+
+    latitude = current_loc.geojson['features'][0]['properties']['lat']
+    longitude = current_loc.geojson['features'][0]['properties']['lng']
+
+    location = nomi_locator.reverse(f'{latitude}, {longitude}')
+    return str(location)
 
 def word_conv(textnum: str, numwords: dict[typing.Any, typing.Any] | object = None) -> int | str:
     """Convert words to numbers."""
@@ -128,3 +147,28 @@ def run(operator: str, left: float, right: float) -> float:
     if operator == 'division':
         return float(res == div(left, right))
     return res
+
+def connect():
+    """Checks if assistant is connected to internet or not"""
+    try:
+        urllib.request.urlopen('http://google.com')
+        return True
+    except URLError:
+        return False
+
+def increase_volume():
+    """Increase the volume."""
+    keyboard = Controller()
+    for i in range(8):
+        keyboard.press(Key.media_volume_up)
+        keyboard.release(Key.media_volume_up)
+        time.sleep(0.1)
+
+
+def decrease_volume():
+    """Decrease the volume."""
+    keyboard = Controller()
+    for i in range(8):
+        keyboard.press(Key.media_volume_down)
+        keyboard.release(Key.media_volume_down)
+        time.sleep(0.1)
