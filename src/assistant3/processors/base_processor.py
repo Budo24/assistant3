@@ -346,7 +346,8 @@ class Wikipedia(BasePlugin):
                     return
             if not self.search_result and self.flow:
                 self.search_result = wikipedia.search(doc.text, results=4)
-                if len(self.search_result) == 0:
+
+                if len(self.search_result) == 0 and self.flow:
                     self.end_result['type'] = PluginResultType.TEXT
                     self.end_result['result'] = 'no result found'
                     self.end_result['result_speech_func'] = super().spit_text
@@ -355,6 +356,7 @@ class Wikipedia(BasePlugin):
                     self.queue.put(self.end_result)
                     return
                 else:
+                    self.search_result = [elem + '.' for elem in self.search_result]
                     first_res = f'here are the results: first is {self.search_result[1]} \
                     , second is {self.search_result[2]}, third is {self.search_result[3]} \
                     . which one do you want to chose? tell me first second or third'

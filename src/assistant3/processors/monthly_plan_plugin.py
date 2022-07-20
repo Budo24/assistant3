@@ -381,6 +381,7 @@ class MonthlyPlanPlugin(BasePlugin):
         """Start adding of date."""
         if activated_keyword in constants.days_ordinal_numbers_keywords:
 
+            self.end_result['type'] = PluginResultType.KEEP_ALIVE
             self.end_result['result'] = self.insert_date(activated_keyword)
             self.say_result_put_in_queue()
             return
@@ -389,6 +390,7 @@ class MonthlyPlanPlugin(BasePlugin):
         """Start deleting of date."""
         if activated_keyword in constants.days_ordinal_numbers_keywords:
 
+            self.end_result['type'] = PluginResultType.KEEP_ALIVE
             self.end_result['result'] = self.delete_date_(activated_keyword)
             self.say_result_put_in_queue()
             return
@@ -401,10 +403,12 @@ class MonthlyPlanPlugin(BasePlugin):
             self.actions_keywords['add_activity'] = False
             self.min_similarity = 0.75
             self.reset_activity()
+            self.end_result['type'] = PluginResultType.KEEP_ALIVE
             self.end_result['result'] = 'Break adding of activity'
             self.say_result_put_in_queue()
             return
 
+        self.end_result['type'] = PluginResultType.KEEP_ALIVE
         self.end_result['result'] = self.insert_activity(activated_keyword)
         self.say_result_put_in_queue()
         return
@@ -415,14 +419,17 @@ class MonthlyPlanPlugin(BasePlugin):
 
         if self.actions_keywords['add_date']:
             self.actions_keywords['add_date'] = False
+            self.end_result['type'] = PluginResultType.KEEP_ALIVE
             self.end_result['result'] = constants.answers[8]
 
         if self.actions_keywords['delete_date']:
             self.actions_keywords['delete_date'] = False
+            self.end_result['type'] = PluginResultType.KEEP_ALIVE
             self.end_result['result'] = constants.answers[9]
 
         if self.actions_keywords['add_activity']:
             self.actions_keywords['add_activity'] = False
+            self.end_result['type'] = PluginResultType.KEEP_ALIVE
             self.end_result['result'] = constants.answers[10]
 
         self.say_result_put_in_queue()
@@ -435,6 +442,7 @@ class MonthlyPlanPlugin(BasePlugin):
         if activated_keyword == constants.actions_keywords[5]:
 
             self.actions_keywords['add_date'] = True
+            self.end_result['type'] = PluginResultType.KEEP_ALIVE
             self.end_result['result'] = constants.answers[1]
             self.say_result_put_in_queue()
             return
@@ -442,6 +450,7 @@ class MonthlyPlanPlugin(BasePlugin):
         if activated_keyword == constants.actions_keywords[2]:
 
             self.actions_keywords['delete_date'] = True
+            self.end_result['type'] = PluginResultType.KEEP_ALIVE
             self.end_result['result'] = constants.answers[2]
             self.say_result_put_in_queue()
             return
@@ -449,6 +458,7 @@ class MonthlyPlanPlugin(BasePlugin):
         if activated_keyword == constants.actions_keywords[3]:
 
             self.actions_keywords['add_activity'] = True
+            self.end_result['type'] = PluginResultType.KEEP_ALIVE
             self.end_result['result'] = constants.answers[3]
             self.say_result_put_in_queue()
             return
@@ -458,17 +468,20 @@ class MonthlyPlanPlugin(BasePlugin):
         """Say/show dates in monthly plan."""
         if self.first_date.date_in_month == '':
 
+            self.end_result['type'] = PluginResultType.KEEP_ALIVE
             self.end_result['result'] = 'Monthly plan is empty'
             self.say_result_put_in_queue()
 
         else:
 
             date_ = self.first_date
+            self.end_result['type'] = PluginResultType.TEXT
             self.end_result['result'] = ''
 
             while date_.date_in_month != '':
 
                 date__word = helpers.say_date(str(date_.date_in_month))
+                self.end_result['type'] = PluginResultType.TEXT
                 self.end_result['result'] += ', ' + date__word
 
                 if isinstance(date_.next, SingleDate):
@@ -476,6 +489,7 @@ class MonthlyPlanPlugin(BasePlugin):
                 else:
                     break
 
+            self.end_result['type'] = PluginResultType.KEEP_ALIVE
             self.end_result['result'] += ', that would be your monthly plan'
             self.say_result_put_in_queue()
 
@@ -492,6 +506,7 @@ class MonthlyPlanPlugin(BasePlugin):
             else:
                 break
         monthly_plan.close()
+        self.end_result['type'] = PluginResultType.TEXT
         self.end_result['result'] = 'All time ranges and activies are written'
         self.say_result_put_in_queue()
 
@@ -513,6 +528,7 @@ class MonthlyPlanPlugin(BasePlugin):
         if action_activated == 'add_date'\
                 and activated_keyword not in constants.days_ordinal_numbers_keywords:
             self.actions_keywords['add_date'] = False
+            self.end_result['type'] = PluginResultType.KEEP_ALIVE
             self.end_result['result'] = 'Input is wrong, try again with insert'
             self.say_result_put_in_queue()
             return
@@ -520,6 +536,7 @@ class MonthlyPlanPlugin(BasePlugin):
         if action_activated == 'delete_date'\
                 and activated_keyword not in constants.days_ordinal_numbers_keywords:
             self.actions_keywords['delete_date'] = False
+            self.end_result['type'] = PluginResultType.KEEP_ALIVE
             self.end_result['result'] = 'Input is wrong, try again with deleting'
             self.say_result_put_in_queue()
             return
@@ -539,36 +556,37 @@ class MonthlyPlanPlugin(BasePlugin):
             self.add_activation_doc(day_orindal_number_keyword)
 
         self.queue = queue_
+        if self.is_activated(doc) or by_uid:
 
-        if self.min_similarity == 1:
-            activated_keyword = str(self.exact_keyword_activated(doc))
-        else:
-            activated_keyword = str(self.similar_keyword_activated(doc))
+            if self.min_similarity == 1:
+                activated_keyword = str(self.exact_keyword_activated(doc))
+            else:
+                activated_keyword = str(self.similar_keyword_activated(doc))
 
-        if activated_keyword == constants.actions_keywords[1]:
-            self.show_dates()
-            return
+            if activated_keyword == constants.actions_keywords[1]:
+                self.show_dates()
+                return
 
-        if activated_keyword == constants.actions_keywords[6]:
-            self.write_xls()
-            return
+            if activated_keyword == constants.actions_keywords[6]:
+                self.write_xls()
+                return
 
-        action_activated = False
-        action_activated_ = str(action_activated)
+            action_activated = False
+            action_activated_ = str(action_activated)
 
-        for function, activated in self.actions_keywords.items():
-            if activated:
-                action_activated_ = function
+            for function, activated in self.actions_keywords.items():
+                if activated:
+                    action_activated_ = function
 
-        if action_activated_ == 'False':
-            self.activate_action(activated_keyword)
-            return
+            if action_activated_ == 'False':
+                self.activate_action(activated_keyword)
+                return
 
-        print('Activated keyword: ', activated_keyword)
-        print('Doc: ', doc)
+            print('Activated keyword: ', activated_keyword)
+            print('Doc: ', doc)
 
-        if activated_keyword == 'False' and self.actions_keywords['add_activity']:
-            if str(doc) != '':
-                self.check_keyword(action_activated_, str(doc))
-            return
-        self.check_keyword(action_activated_, activated_keyword)
+            if activated_keyword == 'False' and self.actions_keywords['add_activity']:
+                if str(doc) != '':
+                    self.check_keyword(action_activated_, str(doc))
+                return
+            self.check_keyword(action_activated_, activated_keyword)
