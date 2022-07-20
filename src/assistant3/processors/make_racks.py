@@ -117,7 +117,7 @@ class MakeRacks:
                 json_order = self.read_jason_file(corridor_number)
 
         except FileNotFoundError:
-            return 'not found'
+            return []
 
     def generate_file_name(self: object, i: int) -> str:
         """Generate file_name for racks.

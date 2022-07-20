@@ -1,5 +1,5 @@
 """Control all order plugins that inherit from BasePlugin."""
-from word2number import w2n
+from word2number import w2n  # type: ignore
 
 from assistant3.processors.collect_pick import PickAndCollect
 from assistant3.processors.make_db import MakeDB
