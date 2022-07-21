@@ -7,7 +7,7 @@ import urllib.request
 from urllib.error import URLError
 
 import geocoder
-import requests
+import requests # type: ignore
 from geopy.geocoders import Nominatim
 from pynput.keyboard import Controller, Key
 
@@ -137,20 +137,24 @@ def div(left: float, right: float) -> float:
     return left / right
 
 
-def run(operator: str, left: float, right: float) -> float:
+def run(operator: str, left: float, right: float) -> float | str:
     """Execute the calculation."""
-    res = 0
     if operator == 'add':
-        return float(res == add(left, right))
-    if operator == 'sub':
-        return float(res == sub(left, right))
-    if operator == 'multiply':
-        return float(res == mul(left, right))
-    if operator == 'division':
-        return float(res == div(left, right))
-    return res
+        res = float(add(left, right))
+        return res
+    elif operator == 'sub':
+        res = float(sub(left, right))
+        return res
+    elif operator == 'multiply':
+        res = float(mul(left, right))
+        return res
+    elif operator == 'division':
+        res = float(add(left, right))
+        return res
+    else:
+        return 'operator doesnt exist'
 
-def connect():
+def connect() -> bool:
     """Checks if assistant is connected to internet or not"""
     try:
         urllib.request.urlopen('http://google.com')
@@ -158,7 +162,7 @@ def connect():
     except URLError:
         return False
 
-def increase_volume():
+def increase_volume() -> None:
     """Increase the volume."""
     keyboard = Controller()
     for i in range(8):
@@ -167,7 +171,7 @@ def increase_volume():
         time.sleep(0.1)
 
 
-def decrease_volume():
+def decrease_volume() -> None:
     """Decrease the volume."""
     keyboard = Controller()
     for i in range(8):
@@ -213,21 +217,21 @@ class WeatherMan():
             'humidity': self.humidity
         }
 
-        with open(file_name, 'w') as output:
+        with open(file_name,encoding='utf-8', 'w') as output:
             json.dump(data, output)
 
-    def __update_variables(self, json: dict) -> None:
+    def __update_variables(self, _json: dict) -> None:
         """Update variable."""
-        if "status" in json:
+        if "status" in _json:
             self.region = None
             self.time = None
             self.weather = None
             self.humidity = None
             self.temperature = None
         else:
-            self.region = json["region"]
-            self.time = json["currentConditions"]["dayhour"]
-            self.weather = json["currentConditions"]["comment"]
-            self.temperature = json["currentConditions"]["temp"][
+            self.region = _json["region"]
+            self.time = _json["currentConditions"]["dayhour"]
+            self.weather = _json["currentConditions"]["comment"]
+            self.temperature = _json["currentConditions"]["temp"][
                 self.__measurement]
-            self.humidity = json["currentConditions"]["humidity"]
+            self.humidity = _json["currentConditions"]["humidity"]
