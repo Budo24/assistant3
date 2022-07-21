@@ -5,7 +5,7 @@ import typing
 
 def word_conv(textnum: str, numwords: dict[typing.Any, typing.Any] | object = None) -> int | str:
     """Convert words to numbers."""
-    numwords = {}
+    numwords: dict[str, typing.Tuple(int, int)] = {}
     if not numwords:
         units = [
             'zero',

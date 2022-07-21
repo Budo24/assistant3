@@ -252,8 +252,9 @@ class TriggerPlugin(BasePlugin):
     def __init__(self) -> None:
         """Init."""
         super().__init__('hey assistant')
+        self.add_activation_doc('he assistant')
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
-        self.min_similarity = 0.99
+        self.min_similarity = 0.89
         self.activation_dict['general_tts_error_message'] = 'did not match hey assistant'
 
     def spit(self) -> None:
