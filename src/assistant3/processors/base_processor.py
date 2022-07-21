@@ -474,14 +474,23 @@ class Calculator(BasePlugin):
                 return
             if len(self.stack) == 2 and self.activation:
                 res = plugin_help.run(doc.text, self.stack[0], self.stack[1])
-                text = f'calculation result is {res}'
-                self.stack.clear()
-                self.end_result['type'] = PluginResultType.TEXT
-                self.end_result['result'] = text
-                self.end_result['result_speech_func'] = super().spit_text
-                self.activation.clear()
-                self.queue.put(self.end_result)
-                return
+                if isinstance(res, float):
+                    text = f'calculation result is {res}'
+                    self.end_result['type'] = PluginResultType.TEXT
+                    self.end_result['result'] = text
+                    self.end_result['result_speech_func'] = super().spit_text
+                    self.stack.clear()
+                    self.activation.clear()
+                    self.queue.put(self.end_result)
+                    return
+                else:
+                    self.end_result['type'] = PluginResultType.TEXT
+                    self.end_result['result'] = res
+                    self.end_result['result_speech_func'] = super().spit_text
+                    self.stack.clear()
+                    self.activation.clear()
+                    self.queue.put(self.end_result)
+                    return
 
 
 class Internet(BasePlugin):

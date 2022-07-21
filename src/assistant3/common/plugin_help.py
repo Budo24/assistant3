@@ -137,20 +137,24 @@ def div(left: float, right: float) -> float:
     return left / right
 
 
-def run(operator: str, left: float, right: float) -> float:
+def run(operator: str, left: float, right: float) -> float | str:
     """Execute the calculation."""
     res = 0
     if operator == 'add':
-        return float(res == add(left, right))
+        res = float(add(left, right))
+        return res
     if operator == 'sub':
-        return float(res == sub(left, right))
+        res = float(sub(left, right))
+        return res
     if operator == 'multiply':
-        return float(res == mul(left, right))
+        res = float(mul(left, right))
+        return res
     if operator == 'division':
-        return float(res == div(left, right))
-    return res
+        res = float(add(left, right))
+        return res
+    return 'operator doesnt exist'
 
-def connect():
+def connect() -> bool:
     """Checks if assistant is connected to internet or not"""
     try:
         urllib.request.urlopen('http://google.com')
@@ -158,7 +162,7 @@ def connect():
     except URLError:
         return False
 
-def increase_volume():
+def increase_volume() -> None:
     """Increase the volume."""
     keyboard = Controller()
     for i in range(8):
@@ -167,7 +171,7 @@ def increase_volume():
         time.sleep(0.1)
 
 
-def decrease_volume():
+def decrease_volume() -> None:
     """Decrease the volume."""
     keyboard = Controller()
     for i in range(8):
