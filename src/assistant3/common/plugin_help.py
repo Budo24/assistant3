@@ -7,7 +7,7 @@ import urllib.request
 from urllib.error import URLError
 
 import geocoder
-import requests # type: ignore
+import requests
 from geopy.geocoders import Nominatim
 from pynput.keyboard import Controller, Key
 
@@ -24,7 +24,8 @@ def locator() -> str:
     location = nomi_locator.reverse(f'{latitude}, {longitude}')
     return str(location)
 
-def word_conv(textnum: str, numwords: dict[typing.Any, typing.Any] | object = None) -> int | str:
+
+def word_conv(textnum: str, numwords: dict[typing.Any, typing.Any] | object = tuple[int, int]) -> int | str:
     """Convert words to numbers."""
     numwords = {}
     if not numwords:
@@ -142,30 +143,30 @@ def run(operator: str, left: float, right: float) -> float | str:
     if operator == 'add':
         res = float(add(left, right))
         return res
-    elif operator == 'sub':
+    if operator == 'sub':
         res = float(sub(left, right))
         return res
-    elif operator == 'multiply':
+    if operator == 'multiply':
         res = float(mul(left, right))
         return res
-    elif operator == 'division':
+    if operator == 'division':
         res = float(add(left, right))
         return res
-    else:
-        return 'operator doesnt exist'
+    return 'operator doesnt exist'
 
 def connect() -> bool:
-    """Checks if assistant is connected to internet or not"""
+    """Check if assistant is connected to internet or not."""
     try:
         urllib.request.urlopen('http://google.com')
         return True
     except URLError:
         return False
 
+
 def increase_volume() -> None:
     """Increase the volume."""
     keyboard = Controller()
-    for i in range(8):
+    for _i in range(8):
         keyboard.press(Key.media_volume_up)
         keyboard.release(Key.media_volume_up)
         time.sleep(0.1)
@@ -174,13 +175,14 @@ def increase_volume() -> None:
 def decrease_volume() -> None:
     """Decrease the volume."""
     keyboard = Controller()
-    for i in range(8):
+    for _i in range(8):
         keyboard.press(Key.media_volume_down)
         keyboard.release(Key.media_volume_down)
         time.sleep(0.1)
 
 
 class WeatherMan():
+
     """Class to determine weather values of a city."""
     region: str = None
     time: str = None
@@ -188,7 +190,7 @@ class WeatherMan():
     humidity: str = None
     temperature: int = None
     __measurement: str = "c"
-    __url: str = "https://weatherdbi.herokuapp.com/data/weather/"
+    __url: str = 'https://weatherdbi.herokuapp.com/data/weather/'
 
     def __init__(self, search: str) -> None:
         """Initialize the values."""
@@ -197,10 +199,10 @@ class WeatherMan():
 
     def set_measurement(self, measure_type: str) -> None:
         """Set measurements."""
-        if measure_type.lower() == "metric":
-            self.__measurement = "c"
+        if measure_type.lower() == 'metric':
+            self.__measurement = 'c'
         else:
-            self.__measurement = "f"
+            self.__measurement = 'f'
 
     def obtain_information(self) -> None:
         """Obtain informations."""
@@ -214,24 +216,24 @@ class WeatherMan():
             'time': self.time,
             'weather': self.weather,
             'temperature': self.temperature,
-            'humidity': self.humidity
+            'humidity': self.humidity,
         }
 
-        with open(file_name,encoding='utf-8') as output:
+        with open(file_name, encoding='utf-8') as output:
             json.dump(data, output)
 
     def __update_variables(self, _json: dict) -> None:
         """Update variable."""
-        if "status" in _json:
+        if 'status' in _json:
             self.region = None
             self.time = None
             self.weather = None
             self.humidity = None
             self.temperature = None
         else:
-            self.region = _json["region"]
-            self.time = _json["currentConditions"]["dayhour"]
-            self.weather = _json["currentConditions"]["comment"]
-            self.temperature = _json["currentConditions"]["temp"][
+            self.region = _json['region']
+            self.time = _json['currentConditions']['dayhour']
+            self.weather = _json['currentConditions']['comment']
+            self.temperature = _json['currentConditions']['temp'][
                 self.__measurement]
-            self.humidity = _json["currentConditions"]["humidity"]
+            self.humidity = _json['currentConditions']['humidity']

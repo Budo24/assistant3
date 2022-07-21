@@ -23,9 +23,6 @@ class BasePlugin():
         Args:
             match: Text to process.
 
-        Returns:
-            New BasePlugin instance.
-
         """
         self.init_doc = match
         self.spacy_model = spacy.blank('en')
@@ -171,7 +168,7 @@ class BasePlugin():
             return self.uid
         raise UidNotAssignedError
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool = False) -> None:
         """Run_doc."""
         if self:
             pass
@@ -194,7 +191,7 @@ class BaseInitializationErrorPlugin(BasePlugin):
         """Init."""
         super().__init__()
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool = False) -> None:
         """Run_doc."""
         ret_str = ''
         ret_str += 'Not implemented, [todo] should raise exception instead\n'
@@ -224,7 +221,7 @@ class SpacyDatePlugin(BasePlugin):
         self.engine.say(time.strftime('%A %-d of %B'))
         self.engine.runAndWait()
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool = False) -> None:
         """Run_doc."""
         self.queue = _queue
         # check if plugin is activted
@@ -262,7 +259,7 @@ class TriggerPlugin(BasePlugin):
         self.engine.say('how can i help')
         self.engine.runAndWait()
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool = False) -> None:
         """Run_doc."""
         self.queue = _queue
         activated = self.is_activated(doc)
@@ -295,7 +292,7 @@ class Wikipedia(BasePlugin):
         self.search_result: list[str] = []
         self.flow: list[str] = []
 
-    def run_doc(self, doc: object, queue_: queue.Queue[typing.Any], by_uid=False) -> None:
+    def run_doc(self, doc: object, queue_: queue.Queue[typing.Any], by_uid: bool = False) -> None:
         """Run doc."""
         self.queue = queue_
 
@@ -318,7 +315,7 @@ class Wikipedia(BasePlugin):
                     self.flow.clear()
                     self.queue.put(self.end_result)
                     return
-                elif doc[0].text == 'second':
+                if doc[0].text == 'second':
                     final = wikipedia.summary(self.search_result[2], sentences=2)
                     self.end_result['type'] = PluginResultType.TEXT
                     self.end_result['result'] = final
@@ -327,7 +324,7 @@ class Wikipedia(BasePlugin):
                     self.flow.clear()
                     self.queue.put(self.end_result)
                     return
-                elif doc[0].text == 'third':
+                if doc[0].text == 'third':
                     final = wikipedia.summary(self.search_result[3], sentences=2)
                     self.end_result['type'] = PluginResultType.TEXT
                     self.end_result['result'] = final
@@ -337,14 +334,13 @@ class Wikipedia(BasePlugin):
                     self.queue.put(self.end_result)
                     return
 
-                else:
-                    self.end_result['type'] = PluginResultType.TEXT
-                    self.end_result['result'] = 'Result not clear please search again'
-                    self.end_result['result_speech_func'] = super().spit_text
-                    self.search_result.clear()
-                    self.flow.clear()
-                    self.queue.put(self.end_result)
-                    return
+                self.end_result['type'] = PluginResultType.TEXT
+                self.end_result['result'] = 'Result not clear please search again'
+                self.end_result['result_speech_func'] = super().spit_text
+                self.search_result.clear()
+                self.flow.clear()
+                self.queue.put(self.end_result)
+                return
             if not self.search_result and self.flow:
                 self.search_result = wikipedia.search(doc.text, results=4)
 
@@ -383,7 +379,7 @@ class Location(BasePlugin):
         self.activation_dict['general_tts_error_message'] = 'location error'
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool = False) -> None:
         """Run_doc."""
         if self.is_activated(doc) or by_uid:
             self.queue = _queue
@@ -411,13 +407,13 @@ class Jokes(BasePlugin):
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
         self.min_similarity = 0.95
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool = False) -> None:
         """Run_doc."""
         self.queue = _queue
         # check if plugin is activted
         activated = self.is_activated(doc) or by_uid
         if activated:
-            joke = pyjokes.get_joke(language="en", category="neutral")
+            joke = pyjokes.get_joke(language='en', category='neutral')
             # here we set some informations in the result dict
             self.end_result['type'] = PluginResultType.TEXT
             self.end_result['result'] = joke
@@ -438,11 +434,11 @@ class Calculator(BasePlugin):
         super().__init__('calculator')
         self.activation_dict['general_tts_error_message'] = 'calc error'
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
-        self.stack = []
-        self.activation = []
+        self.stack: list[int | str] = []
+        self.activation: list[str] = []
         self.min_similarity = 0.99
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool=False) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool = False) -> None:
         """Run_doc."""
         self.queue = _queue
         if self.is_activated(doc) or by_uid:
@@ -508,7 +504,7 @@ class Internet(BasePlugin):
         self.activation_dict['general_tts_error_message'] = 'internet error'
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool = False) -> None:
         """Run_doc."""
         if self.is_activated(doc) or by_uid:
             self.queue = _queue
@@ -542,10 +538,10 @@ class Volume(BasePlugin):
         super().__init__('volume')
         self.activation_dict['general_tts_error_message'] = 'volume error'
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
-        self.activation = []
+        self.activation: list[str] = []
         self.min_similarity = 0.99
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool=False) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool = False) -> None:
         """Run_doc."""
         self.queue = _queue
         if self.is_activated(doc) or by_uid:
@@ -590,12 +586,12 @@ class Weather(BasePlugin):
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
         self.min_similarity = 0.75
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool=False) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool = False) -> None:
         """Run_doc."""
         self.queue = _queue
         if self.is_activated(doc) or by_uid:
             for ent in doc.ents:
-                if ent.label_ == "GPE":  # GeoPolitical Entity
+                if ent.label_ == 'GPE':  # GeoPolitical Entity
                     city = ent.text
                 else:
                     self.end_result['type'] = PluginResultType.TEXT

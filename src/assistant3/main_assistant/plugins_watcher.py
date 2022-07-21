@@ -1,5 +1,4 @@
 """PluginWatcher."""
-import contextlib
 import queue
 import typing
 
@@ -24,20 +23,20 @@ class FlowRecord():
 
         Args:
             entry: Result object to add.
+
         """
         self.record.append(entry)
 
-    def reset(self):
+    def reset(self) -> None:
+        """Reset the record."""
         self.record.clear()
 
     def get_last(self) -> dict[str, object] | typing.Any:
         """Get last entry / result object to record.
 
-        Args:
-            entry: Result object to add.
-
         Returns:
             Entry / Result object
+
         """
         if self.is_empty():
             return None
@@ -48,6 +47,7 @@ class FlowRecord():
 
         Returns:
             True if record is empty
+
         """
         return len(self.record) == 0
 
@@ -63,7 +63,7 @@ class FlowRecord():
 
 
 class PluginWatcher():
-    """PluginWatcher type"""
+    """PluginWatcher type."""
 
     def __init__(self, plugins: list[object]):
         """Create new PluginWatcher object.
@@ -71,8 +71,6 @@ class PluginWatcher():
         Args:
             plugins: List of plugins objects.
 
-        Returns:
-            New PluginWatcher instance
         """
         # reslts_queue : the queue where all plugins push their result dicts
         self.results_queue: queue.Queue[typing.Any] = queue.Queue()
@@ -91,9 +89,6 @@ class PluginWatcher():
         # we will see what to add in it later..
         for plugin in plugins:
             if not isinstance(plugin, BasePlugin):
-                error_plugin_name = ''
-                with contextlib.suppress(Exception):
-                    error_plugin_name = plugin.__str__()
                 self.plugins = [
                     processors.base_processor.BaseInitializationErrorPlugin(
                     ),
@@ -114,6 +109,7 @@ class PluginWatcher():
 
         Returns:
             Get last element in results queue.
+
         """
         # CHECK how a queue works (python queue module)
         return self.results_queue.get()
@@ -151,6 +147,7 @@ class PluginWatcher():
 
         Returns:
             True if trigger plugin exists
+
         """
         return self.trigger_plugin is not None
 
@@ -158,7 +155,7 @@ class PluginWatcher():
         """Add entry / result to plugins flow record.
 
         Args:
-            entre: Entry / result.
+            entry: Entry / result.
 
         """
         self.flow_record.add_entry(entry)
@@ -168,6 +165,7 @@ class PluginWatcher():
 
         Returns:
             List of results popped from queue.
+
         """
         res_list = []
         print('Size: ', self.results_queue.qsize())
@@ -215,7 +213,7 @@ class PluginWatcher():
         for plugin in self.plugins:
             print('run_doc')
             plugin.run_doc(self.doc, self.results_queue)
-    
+
     def run(self, speech_text: str) -> list[typing.Any]:
         """Run one assistant3 session.
 
@@ -224,6 +222,7 @@ class PluginWatcher():
 
         Returns:
             List of results from plugins
+
         """
         # we transform the text from vosk to doc object (pass it to SpaCy to process it)
         self.doc = self.nlp(speech_text)
@@ -268,8 +267,6 @@ class PluginWatcher():
         if last_record['type'] == PluginResultType.TEXT:
             self.flow_record.reset()
             return []
-
-        
 
     def list_plugins_by_uid(self) -> None:
         """List plugins by uid."""
