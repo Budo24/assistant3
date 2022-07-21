@@ -14,7 +14,7 @@ import assistant3.data
 class GUI():
     """Empty."""
     HOST = "127.0.0.1"  # The server's hostname or IP address
-    PORT = 65440
+    PORT = 65445
 
     def __init__(self) -> None:
         """Empty."""

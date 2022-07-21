@@ -36,7 +36,7 @@ def int_or_str(text: str | int) -> int:
 class Assistant3():
     """Main assistant3 application object."""
     HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
-    PORT = 65440
+    PORT = 65445
 
     def __init__(self) -> None:
         """Create Assistant3 object."""
