@@ -539,7 +539,7 @@ class Volume(BasePlugin):
         if self.is_activated(doc) or by_uid:
             if not self.activation:
                 start_text = 'Do you want to increase or decrease your volume?'
-                self.end_result['type'] = PluginResultType.TEXT
+                self.end_result['type'] = PluginResultType.KEEP_ALIVE
                 self.end_result['result'] = start_text
                 self.end_result['result_speech_func'] = super().spit_text
                 self.activation.append('activate')
@@ -562,3 +562,49 @@ class Volume(BasePlugin):
                     self.activation.clear()
                     self.queue.put(self.end_result)
                     return
+
+
+class Weather(BasePlugin):
+    """Weather Plugin."""
+
+    def __init__(self) -> None:
+        """Pass the initial reference phrase to the parent Object (BasePlugin).
+
+        and it will take care of adding it as described
+        above
+        """
+        super().__init__('Current weather in a city')
+        self.activation_dict['general_tts_error_message'] = 'weather error'
+        self.queue: queue.Queue[typing.Any] = queue.Queue(0)
+        self.min_similarity = 0.75
+
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool=False) -> None:
+        """Run_doc."""
+        self.queue = _queue
+        if self.is_activated(doc) or by_uid:
+            for ent in doc.ents:
+                if ent.label_ == "GPE":  # GeoPolitical Entity
+                    city = ent.text
+                else:
+                    self.end_result['type'] = PluginResultType.TEXT
+                    self.end_result['result'] = 'you need to give me a city'
+                    self.end_result['result_speech_func'] = super().spit_text
+                    self.queue.put(self.end_result)
+                    return
+
+            city_weather = str(plugin_help.WeatherMan(city).weather)
+            city_temp = str(plugin_help.WeatherMan(city).temperature)
+            if city_weather is not None:
+                text = f'In {city} the current weather is {city_weather}\
+                    , with {city_temp} degrees celcius'
+                self.end_result['type'] = PluginResultType.TEXT
+                self.end_result['result'] = text
+                self.end_result['result_speech_func'] = super().spit_text
+                self.queue.put(self.end_result)
+                return
+            else:
+                self.end_result['type'] = PluginResultType.TEXT
+                self.end_result['result'] = 'Something went wrong. City name might be wrong'
+                self.end_result['result_speech_func'] = super().spit_text
+                self.queue.put(self.end_result)
+                return
