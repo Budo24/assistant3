@@ -14,7 +14,7 @@ import assistant3.data
 class GUI():
     """Empty."""
     HOST = "127.0.0.1"  # The server's hostname or IP address
-    PORT = 65434
+    PORT = 65440
 
     def __init__(self) -> None:
         """Empty."""
@@ -35,7 +35,7 @@ class GUI():
             '+' +
             str(position_down),
         )
-
+        self.text ="Understood text ..."
         # Label for Text Output
         self.lbl = Label(self.window, font='Damascus', anchor=CENTER)
 
@@ -68,11 +68,19 @@ class GUI():
     def update_speech(self, text: str = 'understood Text...') -> None:
         # text needs to be passed
         self.myCanvas.delete('all')
-        self.text = text
+        wav_file_path = resourcesapi.path(assistant3.data, 'inter_results.txt')
+        try:
+            with open(str(wav_file_path), 'r', encoding='utf-8') as r_f:
+                
+                self.text = r_f.readlines()[-1]
+        except FileNotFoundError as exc:
+            pass
+        except IndexError as ierr:
+            pass
         self.lbl.config(text=self.text, font=('Damascus', 16, 'italic'))
         self.show_label()
 
-        self.window.after(200, self.update_speech)
+        #self.window.after(200, self.update_speech)
 
     def show_label(self):
         """Empty."""
@@ -91,6 +99,7 @@ class GUI():
         rec = self.socket.recv(4)
         print(rec)
         if rec == b'0000':
+            self.update_speech()
             self.animate = False
         elif rec == b'0001':
             self.animate = True
@@ -122,7 +131,7 @@ class GUI():
         """Empty."""
         self.window.after(100, self.update_bubble)
         self.window.after(50, self.update_animate)
-        #self.update_speech()
+        self.update_speech()
 
         self.window.mainloop()
 

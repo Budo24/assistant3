@@ -1,10 +1,11 @@
 """assistant3 entry."""
 import argparse
 import importlib.resources as resourcesapi
+import os
 import queue
+import socket
 import sys
 import typing
-import socket
 
 import sounddevice as sd
 import vosk
@@ -13,7 +14,6 @@ import assistant3.data
 
 from .. import processors
 from ..processors import monthly_plan_plugin
-
 from .plugins_watcher import PluginWatcher
 
 
@@ -36,7 +36,7 @@ def int_or_str(text: str | int) -> int:
 class Assistant3():
     """Main assistant3 application object."""
     HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
-    PORT = 65434
+    PORT = 65440
 
     def __init__(self) -> None:
         """Create Assistant3 object."""
@@ -120,6 +120,9 @@ class Assistant3():
                         text = text.replace(
                             '{  "text" : "', '').replace('"}', '')
                         print(text)
+                        wav_file_path = resourcesapi.path(assistant3.data, 'inter_results.txt')
+                        with open(str(wav_file_path), 'w', encoding='utf-8') as w_f:
+                            w_f.write(text)
                         self.conn.sendall(b'0000')
 
                         res_list = self.plugin_watcher.run(text)
@@ -144,7 +147,13 @@ class Assistant3():
                             dump_fn.write(data)
                     # end_result = None
         except KeyboardInterrupt as exc:
+            wav_file_path = resourcesapi.path(assistant3.data, 'inter_results.txt')
+            with open(str(wav_file_path), 'w', encoding='utf-8') as w_f:
+                w_f.write('')
             raise KeyboardInterrupt from exc
         except BrokenPipeError as brkn:
             print('brkn')
+            wav_file_path = resourcesapi.path(assistant3.data, 'inter_results.txt')
+            with open(str(wav_file_path), 'w', encoding='utf-8') as w_f:
+                w_f.write('')
             raise KeyboardInterrupt from brkn
