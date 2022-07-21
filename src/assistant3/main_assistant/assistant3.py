@@ -13,7 +13,7 @@ import vosk
 import assistant3.data
 
 from .. import processors
-from ..processors import monthly_plan_plugin
+from ..processors import monthly_plan_plugin, plugins
 from .plugins_watcher import PluginWatcher
 
 
@@ -43,15 +43,15 @@ class Assistant3():
         self.feedback_ignore_obj = False
         self.primary_audio_buffer: queue.Queue[bytes] = queue.Queue()
         # plugin object
-        self.sdp = processors.base_processor.SpacyDatePlugin()
+        self.sdp = plugins.SpacyDatePlugin()
         self.mpp = monthly_plan_plugin.MonthlyPlanPlugin()
-        self.wik = processors.base_processor.Wikipedia()
-        self.loc = processors.base_processor.Location()
-        self.jok = processors.base_processor.Jokes()
-        self.cal = processors.base_processor.Calculator()
-        self.int = processors.base_processor.Internet()
-        self.vol = processors.base_processor.Volume()
-        self.wet = processors.base_processor.Weather()
+        self.wik = plugins.Wikipedia()
+        self.loc = plugins.Location()
+        self.jok = plugins.Jokes()
+        self.cal = plugins.Calculator()
+        self.int = plugins.Internet()
+        self.vol = plugins.Volume()
+        self.wet = plugins.Weather()
 
 
         # trigger plugin object
