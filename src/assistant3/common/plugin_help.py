@@ -217,7 +217,7 @@ class WeatherMan():
             'humidity': self.humidity
         }
 
-        with open(file_name,encoding='utf-8', 'w') as output:
+        with open(file_name,encoding='utf-8') as output:
             json.dump(data, output)
 
     def __update_variables(self, _json: dict) -> None:
