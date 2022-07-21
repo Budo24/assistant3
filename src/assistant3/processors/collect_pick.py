@@ -25,14 +25,14 @@ class PickAndCollect:
             Return state about order that has this id_number.
         """
         order_place = self.rack_object.find_order_place(order_id)
-        if order_place != 'not found':
+        if order_place:
             rack_number = order_place[0]
             corridor_number = order_place[1]
             status = self.order_status(rack_number, corridor_number)
             if status[0] == 'not picked' and status[1] == 'collected':
                 return 'ready to pick'
-            elif status[1] == 'not collected':
-                return status[1]
+            if status[1] == 'not collected':
+                return 'not collected'
         return 'not found'
 
     def pick_order_info(self: object, order_id: int) -> dict:
@@ -54,7 +54,7 @@ class PickAndCollect:
             pick_info = [json_order[rack_number]['name'], _n, _m + 1]
             _l = ['name', 'corridor_number', 'rack_number']
             return dict(zip(_l, pick_info))
-        return self.pick_order_ability(order_id)
+        return {'pick_ability': self.pick_order_ability(order_id)}
 
     def order_status(self: object, _m: int, _n: int) -> list:
         """Give general state of order.
@@ -133,7 +133,7 @@ class PickAndCollect:
             _l = ['object', 'amount', 'corridor_number', 'rack_number']
             collect_info = [object_name, object_amount, _n, _m + 1]
             return dict(zip(_l, collect_info))
-        return self.pick_order_ability(order_id)
+        return {'pick_ability': self.pick_order_ability(order_id)}
 
     def creat_collect_task(self: object) -> dict:
         """Give order to collect.
@@ -153,13 +153,13 @@ class PickAndCollect:
                     if status == ['not picked', 'not collected']:
                         _l = to_pick_order['order_id']
                         collect_info = self.collect_order_with_id(_l)
-                        if isinstance(collect_info, dict):
+                        if 'pick_ability' not in collect_info:
                             _a = 7
                             return dict(collect_info, order_id=_l)
                 corridor_number = corridor_number + 1
                 json_order = self.rack_object.read_jason_file(corridor_number)
         except FileNotFoundError:
-            return -1
+            return {}
 
     def creat_pick_task(self: object) -> dict:
         """Give all order to remove from racks.
@@ -188,4 +188,4 @@ class PickAndCollect:
                 corridor_number = corridor_number + 1
                 json_order = self.rack_object.read_jason_file(corridor_number)
         except FileNotFoundError:
-            return -1
+            return {}

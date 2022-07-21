@@ -53,7 +53,7 @@ class OrderManager:
                 return self.check_client_triger(task)
         return False
 
-    def check_add_order_triger(self, task: dict) -> bool:
+    def check_add_order_triger(self, task: dict[str, str]) -> bool:
         """Add new order in Database expl.db and store it in the appropriate place.
 
         We use Value from interrupt_controll in plug.db
@@ -84,7 +84,7 @@ class OrderManager:
                 return True
         return False
 
-    def check_collect_plugin(self, task: dict) -> bool:
+    def check_collect_plugin(self, task: dict[str, str]) -> bool:
         """Give the employees the orders that still need to be done.
 
         We use value from interrupt_controll in plug.db
@@ -107,7 +107,7 @@ class OrderManager:
             self.manager_tools.set_interrupt_control(6)
             return True
         for key in task:
-            _s = task[key] != 'collected'
+            _s = task[key] not in 'collected'
             if _s and int_k == 4 and key != 'order_id' and key != 'interrupt':
                 if str(self.doc_add) == 'stop':
                     self.db_object.remove_db_plugin()
@@ -115,7 +115,7 @@ class OrderManager:
                 return True
             if self.manager_tools.get_interrupt_control() == 6:
                 bool_value = bool()
-                if self.collect_object.creat_collect_task() == -1:
+                if not self.collect_object.creat_collect_task():
                     bool_value = False
                 else:
                     bool_value = True
@@ -123,7 +123,7 @@ class OrderManager:
         self.interrupt_task()
         return True
 
-    def check_pick_plugin(self, task: dict) -> bool:
+    def check_pick_plugin(self, task: dict[str, str]) -> bool:
         """Take order in racks back to storeroom if client dont come and remove it.
 
         We use value from interrupt_controll in plug.db
@@ -159,7 +159,7 @@ class OrderManager:
         self.interrupt_pick_task()
         return True
 
-    def check_client_triger(self, task: dict) -> bool:
+    def check_client_triger(self, task: dict[str, str]) -> bool:
         """Take from Client id and Give him his order.
 
         We use Value from interrupt_controll in plug.db
@@ -186,7 +186,7 @@ class OrderManager:
             return self.check_pick_collect(task)
         return False
 
-    def check_id_in_conversation(self, task: dict) -> bool:
+    def check_id_in_conversation(self, task: dict[str, str]) -> bool:
         """Take order_id that we recieve frome speech recognition.
 
         Put id in doc_add and check it.
@@ -202,8 +202,8 @@ class OrderManager:
         """
         try:
             for key in task:
-                if task[key] == 'activ':
-                    if str(self.doc_add) == 'stop':
+                if task[key] in 'activ':
+                    if str(self.doc_add) in 'stop':
                         self.db_object.remove_db_plugin()
                         return False
                     task[key] = str(self.doc_add)
@@ -217,7 +217,7 @@ class OrderManager:
             return False
         return True
 
-    def check_pick_collect(self, task: dict) -> bool:
+    def check_pick_collect(self, task: dict[str, str]) -> bool:
         """Make converstaion for pick if order is collected else collect it.
 
         We use Value from interrupt_controll in plug.db
@@ -250,7 +250,7 @@ class OrderManager:
         task = self.db_object.read_db_plugin()
         if self.manager_tools.get_interrupt_control() == 6:
             self.manager_tools.mark_corridor()
-            if self.collect_object.creat_collect_task() == -1:
+            if not self.collect_object.creat_collect_task():
                 self.db_object.remove_db_plugin()
                 return 'no order more'
             self.manager_tools.creat_next_task()
@@ -298,7 +298,7 @@ class OrderManager:
         task = self.db_object.read_db_plugin()
         interrupt_v = self.manager_tools.get_interrupt_control()
         if interrupt_v == 9:
-            if self.collect_object.creat_pick_task() == -1:
+            if not self.collect_object.creat_pick_task():
                 self.db_object.remove_db_plugin()
                 return 'no order more'
             if self.manager_tools.creat_pick_task() != -1:
