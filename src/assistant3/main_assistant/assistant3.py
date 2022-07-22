@@ -58,7 +58,7 @@ class Assistant3():
         self.trigger = processors.base_processor.TriggerPlugin()
         # the plugin_watcher object
         self.plugin_watcher = PluginWatcher(
-            [self.wik, self.jok, self.loc, self.cal, self.mpp, self.vol, self.wet, self.int]
+            [self.wik, self.jok, self.loc, self.cal, self.mpp, self.vol, self.wet, self.int, self.sdp]
             )
         # optionaly adding a trigger Plugin ("hey assistant")
         self.plugin_watcher.add_trigger_plugin(self.trigger)
