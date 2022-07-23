@@ -95,8 +95,7 @@ class PluginWatcher():
                 with contextlib.suppress(Exception):
                     error_plugin_name = plugin.__str__()
                 self.plugins = [
-                    processors.base_processor.BaseInitializationErrorPlugin(
-                    ),
+                    processors.base_processor.BaseInitializationErrorPlugin(),
                 ]
                 break
             # if all good, we pass an instance of the nlp object to each plugin,
@@ -215,7 +214,7 @@ class PluginWatcher():
         for plugin in self.plugins:
             print('run_doc')
             plugin.run_doc(self.doc, self.results_queue)
-    
+
     def run(self, speech_text: str) -> list[typing.Any]:
         """Run one assistant3 session.
 
@@ -251,25 +250,16 @@ class PluginWatcher():
             self.run_trigger()
             trigger_flushed = self.flush_result_queue_in_list()
             if trigger_flushed[0]['type'] != PluginResultType.ERROR:
-                print('---------------------------_>>>>')
                 plugins = self.plugins
-                for plugin in plugins:
-                    print(plugin)
-                print('\n\n')
                 self.plugins = [plugin.__class__() for plugin in plugins]
                 # IHEB LINE DONE YERY IMPORTANT, UID IS IN PLUGIN WATCHER!!!
                 self.init()
-                for plugin in self.plugins:
-                    print(plugin)
-                print('<<<<<<<<------------------------')
                 return trigger_flushed
             self.run_by_uid(last_record['uid'])
             return self.flush_result_queue_in_list()
         if last_record['type'] == PluginResultType.TEXT:
             self.flow_record.reset()
             return []
-
-        
 
     def list_plugins_by_uid(self) -> None:
         """List plugins by uid."""

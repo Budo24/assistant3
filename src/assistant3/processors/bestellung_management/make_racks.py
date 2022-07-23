@@ -173,4 +173,3 @@ class MakeRacks:
         with open(_g, 'w', encoding='utf-8'),\
                 open(_g, 'r+', encoding='utf-8') as _l:
             json.dump(all_racks, _l, indent=2)
-

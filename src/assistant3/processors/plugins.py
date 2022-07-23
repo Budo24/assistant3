@@ -164,6 +164,7 @@ class Location(BasePlugin):
             # here we push it to the results queue passed by pw
             self.queue.put(self.end_result)
 
+
 class Jokes(BasePlugin):
     """Gives a random Joke Plugin."""
 
@@ -209,13 +210,14 @@ class Calculator(BasePlugin):
         self.activation = []
         self.min_similarity = 0.99
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool=False) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool = False) -> None:
         """Run_doc."""
         self.queue = _queue
         if self.is_activated(doc) or by_uid:
             if len(self.stack) == 0 and not self.activation:
                 start_text = 'This is calculator plugin, we start by initializing two numbers \
                                 and then we intialize the operator. please say the first number'
+
                 self.end_result['type'] = PluginResultType.KEEP_ALIVE
                 self.end_result['result'] = start_text
                 self.end_result['result_speech_func'] = super().spit_text
@@ -235,6 +237,7 @@ class Calculator(BasePlugin):
                 self.stack.append(value)
                 text = f'first number is {self.stack[0]}, and second number is {self.stack[1]} \
                     which operator do you want?'
+
                 self.end_result['type'] = PluginResultType.KEEP_ALIVE
                 self.end_result['result'] = text
                 self.end_result['result_speech_func'] = super().spit_text
@@ -312,7 +315,7 @@ class Volume(BasePlugin):
         self.activation = []
         self.min_similarity = 0.99
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool=False) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool = False) -> None:
         """Run_doc."""
         self.queue = _queue
         if self.is_activated(doc) or by_uid:
@@ -357,7 +360,7 @@ class Weather(BasePlugin):
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
         self.min_similarity = 0.75
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool=False) -> None:
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool = False) -> None:
         """Run_doc."""
         self.queue = _queue
         if self.is_activated(doc) or by_uid:
@@ -376,6 +379,7 @@ class Weather(BasePlugin):
             if city_weather is not None:
                 text = f'In {city} the current weather is {city_weather}\
                     , with {city_temp} degrees celcius'
+
                 self.end_result['type'] = PluginResultType.TEXT
                 self.end_result['result'] = text
                 self.end_result['result_speech_func'] = super().spit_text

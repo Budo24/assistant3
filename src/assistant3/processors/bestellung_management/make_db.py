@@ -1,12 +1,11 @@
 """Create all databases and their structure."""
 import datetime
-import imp
 import os
 import sqlite3
 
-from ..bestellung_management.npl_keys import order_id_generate, pick_time_generate
+from assistant3.processors.bestellung_management.npl_keys import order_id_generate, pick_time_generate
 
-from ..bestellung_management.bestellung_definition import Order
+from assistant3.processors.bestellung_management.bestellung_definition import Order
 
 
 class MakeDB:
@@ -192,5 +191,6 @@ class MakeDB:
                 return dict(zip(_p + _o, list(plugin_order[0])))
         return -1
 
-db = MakeDB()
-print("kkkk", db.read_db())
+
+"""db = MakeDB()
+print("kkkk", db.read_db())"""

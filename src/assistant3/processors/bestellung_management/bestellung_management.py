@@ -1,10 +1,10 @@
 """Control all order plugins that inherit from BasePlugin."""
 from word2number import w2n
 
-from ..bestellung_management.collect_pick import PickAndCollect
-from ..bestellung_management.make_db import MakeDB
-from ..bestellung_management.make_racks import MakeRacks
-from ..bestellung_management.manager_tools import ManagerTools
+from assistant3.processors.bestellung_management.collect_pick import PickAndCollect
+from assistant3.processors.bestellung_management.make_db import MakeDB
+from assistant3.processors.bestellung_management.make_racks import MakeRacks
+from assistant3.processors.bestellung_management.manager_tools import ManagerTools
 
 
 class OrderManager:
