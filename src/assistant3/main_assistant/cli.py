@@ -13,7 +13,7 @@ def main() -> None:
     db_object = processors.make_db.MakeDB()
 
     print('-->')
-    app.sdp.list_activation_docs()
+    # app.sdp.list_activation_docs()
     app.trigger.list_activation_docs()
     print('<--')
     app.plugin_watcher.list_plugins_by_uid()

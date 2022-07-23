@@ -1,9 +1,9 @@
 """define all actions during collect or pick the order."""
 import datetime
 
-from assistant3.processors import nlp_keys
 from assistant3.processors.make_db import MakeDB
 from assistant3.processors.make_racks import MakeRacks
+from assistant3.processors.nlp_keys import order_id_generate
 
 
 class PickAndCollect:
@@ -12,51 +12,65 @@ class PickAndCollect:
     db_object = MakeDB()
     rack_object = MakeRacks()
 
-    def __init__(self: object) -> None:
+    def __init__(self) -> None:
         """Init."""
 
-    def pick_order_ability(self: object, order_id: int) -> str:
-        """Give information if client can pick his order.
+    def pick_order_ability(self, order_id: int) -> str:
+        """Give all information about order.
+
+        With this informations will be the system able to determine
+        what it should do in any situation.
 
         Args:
             order_id: Take id from Order.
 
         Returns:
             Return state about order that has this id_number.
+
         """
         order_place = self.rack_object.find_order_place(order_id)
-        if order_place != 'not found':
-            rack_number = order_place[0]
-            corridor_number = order_place[1]
+        if isinstance(order_place, list):
+            pl_iter = iter(order_place)
+            rack_number = next(pl_iter)
+            corridor_number = next(pl_iter)
             status = self.order_status(rack_number, corridor_number)
             if status[0] == 'not picked' and status[1] == 'collected':
                 return 'ready to pick'
-            elif status[1] == 'not collected':
-                return status[1]
+            if status[1] == 'not collected':
+                return 'not collected'
         return 'not found'
 
-    def pick_order_info(self: object, order_id: int) -> dict:
+    def pick_order_info(self, _kl: int) -> list[str | int] | str:
         """Give information by picking order with order_id.
 
+        That means when client comes to pick his order
+        he will give the worker _kl = id from order.
+        than the system must be able to determine if the
+        order able to pick or not. all state of order you can
+        finde in function pick order ability.
+
         Args:
-            order_id: Take id from Order.
+            _kl: Take id from Order.
 
         Returns:
             Return informations about order to pick.
+
         """
+        order_id = _kl
         if self.pick_order_ability(order_id) == 'ready to pick':
             order_place = self.rack_object.find_order_place(order_id)
-            rack_number = order_place[0]
-            corridor_number = order_place[1]
-            json_order = self.rack_object.read_jason_file(corridor_number)
-            _m = rack_number
-            _n = corridor_number
-            pick_info = [json_order[rack_number]['name'], _n, _m + 1]
-            _l = ['name', 'corridor_number', 'rack_number']
-            return dict(zip(_l, pick_info))
+            if isinstance(order_place, list):
+                iter_lk = iter(order_place)
+                rack_number = next(iter_lk)
+                corridor_number = next(iter_lk)
+                json_order = self.rack_object.read_jason_file(corridor_number)
+                _m = rack_number
+                _n = corridor_number
+                if isinstance(json_order[rack_number]['name'], str):
+                    return [json_order[rack_number]['name'], _n, _m + 1]
         return self.pick_order_ability(order_id)
 
-    def order_status(self: object, _m: int, _n: int) -> list:
+    def order_status(self, _m: int, _n: int) -> list[str]:
         """Give general state of order.
 
         Args:
@@ -65,6 +79,7 @@ class PickAndCollect:
 
         Returns:
             Return informations about order to pick.
+
         """
         rack_number = _m
         corridor_number = _n
@@ -76,7 +91,7 @@ class PickAndCollect:
             order_picked = 'picked'
         return [order_picked, order_collected]
 
-    def check_picked(self: object, _m: int, _n: int) -> bool:
+    def check_picked(self, _m: int, _n: int) -> bool:
         """Give information about picke state.
 
         Args:
@@ -85,6 +100,7 @@ class PickAndCollect:
 
         Returns:
             Return state from order.
+
         """
         rack_number = _m
         corridor_number = _n
@@ -93,7 +109,7 @@ class PickAndCollect:
             return True
         return False
 
-    def check_collected(self: object, _m: int, _n: int) -> bool:
+    def check_collected(self, _m: int, _n: int) -> bool:
         """Give information about collect state.
 
         Args:
@@ -112,79 +128,98 @@ class PickAndCollect:
                 return True
         return False
 
-    def collect_order_with_id(self: object, order_id: int) -> dict:
+    def collect_order_with_id(self, _n: int) -> list[int | str] | str:
         """Give information about order to collect it.
 
         Args:
-            order_id: Take id from Order.
+            _n: Take id from Order.
 
         Returns:
             Return informations about order to collect.
+
         """
+        order_id = _n
         if self.pick_order_ability(order_id) == 'not collected':
             order_place = self.rack_object.find_order_place(order_id)
-            rack_number = order_place[0]
-            corridor_number = order_place[1]
-            order_place = self.db_object.find_order_place(order_id)
-            object_name = order_place[1]
-            object_amount = order_place[2]
-            _m = rack_number
-            _n = corridor_number
-            _l = ['object', 'amount', 'corridor_number', 'rack_number']
-            collect_info = [object_name, object_amount, _n, _m + 1]
-            return dict(zip(_l, collect_info))
+            order_info = self.db_object.find_order_place(order_id)
+            if isinstance(order_place, list) and isinstance(order_info, tuple):
+                pl_iter = iter(order_place)
+                rack_number = next(pl_iter)
+                corridor_number = next(pl_iter)
+                kl_iter = iter(order_info)
+                object_name = next(kl_iter)
+                object_name = next(kl_iter)
+                object_amount = next(kl_iter)
+                _m = rack_number
+                _n = corridor_number
+                return [object_name, object_amount, _n, _m + 1]
         return self.pick_order_ability(order_id)
 
-    def creat_collect_task(self: object) -> dict:
+    def creat_collect_task(self) -> list[int | str] | int:
         """Give order to collect.
+
+        When order not collected, that system will giv it to Workers
+        to collect it.
 
         Returns:
             Return informations about order to collect.
+
         """
         try:
             corridor_number = 1
             json_order = self.rack_object.read_jason_file(corridor_number)
-            _a = 0
-            while _a != 7:
+            while True:
                 for to_pick_order in json_order:
                     _m = to_pick_order['rack_number']
+                    _l = to_pick_order['order_id']
                     _n = corridor_number
-                    status = self.order_status(_m - 1, _n)
-                    if status == ['not picked', 'not collected']:
-                        _l = to_pick_order['order_id']
-                        collect_info = self.collect_order_with_id(_l)
-                        if isinstance(collect_info, dict):
-                            _a = 7
-                            return dict(collect_info, order_id=_l)
+                    collect_info = self.collect_order_with_id(int(_l))
+                    status = self.order_status(int(_m) - 1, _n)
+                    l_isinst = isinstance(_l, int)
+                    state = status == ['not picked', 'not collected']
+                    if state and isinstance(collect_info, list) and l_isinst:
+                        return collect_info
                 corridor_number = corridor_number + 1
                 json_order = self.rack_object.read_jason_file(corridor_number)
         except FileNotFoundError:
             return -1
 
-    def creat_pick_task(self: object) -> dict:
+    def creat_pick_task(self) -> list[int | str] | int:
         """Give all order to remove from racks.
+
+        When client dont come to pick his order after one day.
+        And when his order is from workers already pushed in racks.
+        than must the worker remove from racks all this order
+        with plugin bigin pick up and take it back to wearhous.
 
         Returns:
             Return informations about order to remove.
+
         """
         try:
-            time_now = datetime.datetime.now()
-            time_now = nlp_keys.order_id_generate(time_now)
             corridor_number = 1
             json_order = self.rack_object.read_jason_file(corridor_number)
+            _t = order_id_generate(datetime.datetime.now())
             while True:
                 for to_pick_order in json_order:
                     _l = to_pick_order['order_id']
                     _m = to_pick_order['rack_number']
-                    _n = corridor_number
-                    status = self.order_status(_m - 1, _n)
-                    pick_time = self.db_object.find_order_place(_l)
-                    if pick_time[4] < time_now:
-                        if status[1] == 'not collected':
-                            self.rack_object.delete_order_racks(_l)
-                        elif status[1] == 'collected':
-                            pick_info = self.pick_order_info(_l)
-                            return dict(pick_info, order_id=_l)
+                    status = self.order_status(int(_m) - 1, corridor_number)
+                    pick_time = self.db_object.find_order_place(int(_l))
+                    if isinstance(pick_time, tuple):
+                        iter_lk = iter(pick_time)
+                        _f = 0
+                        for _f in range(3):
+                            _lkl = next(iter_lk)
+                            _f = _f + 0
+                        _lkl = next(iter_lk)
+                        pick_info = self.pick_order_info(int(_l))
+                        _fy = status[1] in 'collected'
+                        _lkl = int(_lkl) < _t
+                        if int(_lkl) < _t and status[1] in 'not collected':
+                            self.rack_object.delete_order_racks(int(_l))
+                        elif isinstance(pick_info, list) and _lkl and _fy:
+                            return pick_info
                 corridor_number = corridor_number + 1
                 json_order = self.rack_object.read_jason_file(corridor_number)
         except FileNotFoundError:

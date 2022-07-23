@@ -43,8 +43,6 @@ class Assistant3():
         self.cop = processors.base_processor.CollectOrder()
         self.pop = processors.base_processor.PickPlugin()
         self.mcp = processors.base_processor.MeetClient()
-        self.sdp = processors.base_processor.SpacyDatePlugin()
-        self.mpp = processors.base_processor.MonthlyPlanPlugin()
 
         # trigger plugin object
         self.trigger = processors.base_processor.TriggerPlugin()

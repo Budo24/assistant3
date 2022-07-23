@@ -13,7 +13,7 @@ class MakeDB:
     def __init__(self: object) -> None:
         """Init."""
 
-    def make_db(self: object) -> None:
+    def make_db(self) -> None:
         """Open new database with name Bestellung."""
         con = sqlite3.connect('expl.db')
         cur = con.cursor()
@@ -23,7 +23,7 @@ class MakeDB:
         cur.execute(f'create table if not exists Bestellung {_l}')
         con.close()
 
-    def creat_order(self: object, _m: list) -> Order:
+    def creat_order(self, _m: list[str | int]) -> Order:
         """Create with new_order an order object.
 
         Args:
@@ -34,29 +34,30 @@ class MakeDB:
 
         """
         new_order = _m
-        new_order.append(nlp_keys.order_id_generate(datetime.datetime.now()))
-        new_order.append(nlp_keys.pick_time_generate(new_order[3]))
+        _n = nlp_keys.order_id_generate(datetime.datetime.now())
+        new_order.append(_n)
+        _k = nlp_keys.pick_time_generate(int(new_order[3]))
+        new_order.append(_k)
         new_order.append(0)
-        return Order(*new_order)
+        return Order(new_order)
 
-    def insert_db(self: object, new_order: list) -> None:
+    def insert_db(self, new_order: list[str | int]) -> None:
         """Insert new order to database Bestellung.
 
         Args:
             new_order: Order.
 
         """
-        db_object_1 = MakeDB()
         con = sqlite3.connect('expl.db')
         cur = con.cursor()
-        new_order_object = db_object_1.creat_order(new_order)
-        _m = new_order_object.tuple_of_order
-        if _m not in db_object_1.read_db():
+        new_order_object = self.creat_order(new_order)
+        _m = new_order_object.make_list_order()
+        if _m not in self.read_db():
             cur.execute('insert into Bestellung values (?, ?, ?, ?, ?, ?)', _m)
         con.commit()
         con.close()
 
-    def delete_order_db(self: object, order_id: int) -> None:
+    def delete_order_db(self, order_id: int) -> None:
         """Determine which object in database has same order_id and delete it.
 
         Args:
@@ -69,7 +70,7 @@ class MakeDB:
         con.commit()
         con.close()
 
-    def read_db(self: object) -> list:
+    def read_db(self) -> list[tuple[str | int, ...]]:
         """Check all order that we have.
 
         Returns:
@@ -83,9 +84,9 @@ class MakeDB:
             list_of_order.append(row)
         con.close()
         _k = len(list_of_order)
-        return [Order(*list_of_order[i]).tuple_of_order for i in range(_k)]
+        return [Order(list_of_order[i]).make_list_order() for i in range(_k)]
 
-    def find_order_place(self: object, order_id: int) -> tuple:
+    def find_order_place(self, order_id: int) -> tuple[str | int, ...] | int:
         """Give order with order_id.
 
         Args:
@@ -95,29 +96,27 @@ class MakeDB:
             Return tuple that contains informations about order.
 
         """
-        db_object_2 = MakeDB()
-        order_info = db_object_2.read_db()
+        order_info = self.read_db()
         _m = len(order_info)
         for i in range(_m):
             if order_id in order_info[i]:
                 return order_info[i]
-        return 'not found'
+        return -1
 
-    def dict_all_order(self: object) -> list:
+    def dict_all_order(self) -> list[dict[str, str | int]]:
         """Give data that we will have in racks.
 
         Returns:
             Returns a list of dictionaries from database.
 
         """
-        db_object_3 = MakeDB()
         dict_order = []
-        for order in db_object_3.read_db():
+        for order in self.read_db():
             _d = {'name': order[0], 'order_id': order[3]}
             dict_order.append(dict(_d, rack_number=order[5]))
         return dict_order
 
-    def make_db_plugin(self: object) -> None:
+    def make_db_plugin(self) -> None:
         """Open new databases during our processing from plugins."""
         con = sqlite3.connect('plug.db')
         cur = con.cursor()
@@ -130,18 +129,18 @@ class MakeDB:
         cur.execute(f'create table if not exists pick {_k}')
         con.close()
 
-    def insert_db_plugin(self: object, _l: list) -> None:
+    def insert_db_plugin(self, _l: list[str | int]) -> None:
         """Insert information for plugins in plug.db.
 
         Args:
             _l: List with informations needed in plugins.
 
         """
-        db_object_4 = MakeDB()
         con = sqlite3.connect('plug.db')
         cur = con.cursor()
         _m = tuple(_l)
-        if len(db_object_4.read_db_plugin()) == 0:
+        _xy = self.read_db_plugin()
+        if _xy == -1:
             if len(_l) == 4:
                 cur.execute('insert into Plugin values (?, ?, ?, ?)', _m)
                 con.commit()
@@ -155,13 +154,12 @@ class MakeDB:
                 con.commit()
                 con.close()
 
-    def remove_db_plugin(self: object) -> None:
+    def remove_db_plugin(self) -> None:
         """Remove Content of plug.db."""
-        db_object_5 = MakeDB()
         os.remove('plug.db')
-        db_object_5.make_db_plugin()
+        self.make_db_plugin()
 
-    def read_db_plugin(self: object) -> dict:
+    def read_db_plugin(self) -> dict[str, str | int] | int:
         """Give information to plugins.
 
         Returns:
@@ -190,4 +188,4 @@ class MakeDB:
                 _p = ['name', 'corridor_number']
                 _o = ['rack_number', 'order_id', 'interrupt']
                 return dict(zip(_p + _o, list(plugin_order[0])))
-        return {}
+        return -1
