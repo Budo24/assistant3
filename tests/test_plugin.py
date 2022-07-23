@@ -135,38 +135,37 @@ def test_spacy_weather_plugin() -> None:
         assert res_list[0]['result'] == text
 
 
-def test_increase_volume_plugin() -> None:
-    """Test volume plugin especially for increasing volume."""
-    vol = plugins.Volume()
-    trigger = processors.base_processor.TriggerPlugin()
-    plugin_watcher = PluginWatcher([vol])
-    plugin_watcher.add_trigger_plugin(trigger)
-    text1 = 'hey assistant'
-    text2 = 'volume'
-    text3 = 'increase'
-    res_list = plugin_watcher.run(text1)
-    plugin_watcher.add_entry_to_flow_record(res_list[0])
-    res_list = plugin_watcher.run(text2)
-    plugin_watcher.add_entry_to_flow_record(res_list[0])
-    res_list = plugin_watcher.run(text3)
-    assert res_list[0]['result'] == 'increased volume'
+# def test_increase_volume_plugin() -> None:
+#     """Test volume plugin especially for increasing volume."""
+#     vol = plugins.Volume()
+#     trigger = processors.base_processor.TriggerPlugin()
+#     plugin_watcher = PluginWatcher([vol])
+#     plugin_watcher.add_trigger_plugin(trigger)
+#     text1 = 'hey assistant'
+#     text2 = 'volume'
+#     text3 = 'increase'
+#     res_list = plugin_watcher.run(text1)
+#     plugin_watcher.add_entry_to_flow_record(res_list[0])
+#     res_list = plugin_watcher.run(text2)
+#     plugin_watcher.add_entry_to_flow_record(res_list[0])
+#     res_list = plugin_watcher.run(text3)
+#     assert res_list[0]['result'] == 'increased volume'
 
-
-def test_decrease_volume_plugin() -> None:
-    """Test volume plugin especially for decreasing volume."""
-    vol = plugins.Volume()
-    trigger = processors.base_processor.TriggerPlugin()
-    plugin_watcher = PluginWatcher([vol])
-    plugin_watcher.add_trigger_plugin(trigger)
-    text1 = 'hey assistant'
-    text2 = 'volume'
-    text3 = 'decrease'
-    res_list = plugin_watcher.run(text1)
-    plugin_watcher.add_entry_to_flow_record(res_list[0])
-    res_list = plugin_watcher.run(text2)
-    plugin_watcher.add_entry_to_flow_record(res_list[0])
-    res_list = plugin_watcher.run(text3)
-    assert res_list[0]['result'] == 'decreased volume'
+# def test_decrease_volume_plugin() -> None:
+#     """Test volume plugin especially for decreasing volume."""
+#     vol = plugins.Volume()
+#     trigger = processors.base_processor.TriggerPlugin()
+#     plugin_watcher = PluginWatcher([vol])
+#     plugin_watcher.add_trigger_plugin(trigger)
+#     text1 = 'hey assistant'
+#     text2 = 'volume'
+#     text3 = 'decrease'
+#     res_list = plugin_watcher.run(text1)
+#     plugin_watcher.add_entry_to_flow_record(res_list[0])
+#     res_list = plugin_watcher.run(text2)
+#     plugin_watcher.add_entry_to_flow_record(res_list[0])
+#     res_list = plugin_watcher.run(text3)
+#     assert res_list[0]['result'] == 'decreased volume'
 
 
 def test_location_plugin() -> None:

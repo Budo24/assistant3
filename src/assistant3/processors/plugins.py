@@ -348,57 +348,57 @@ class Internet(BasePlugin):
             return
 
 
-class Volume(BasePlugin):
-    """Volume Plugin."""
+# class Volume(BasePlugin):
+#     """Volume Plugin."""
 
-    def __init__(self) -> None:
-        """Create new Internet object."""
-        super().__init__('volume')
-        self.activation_dict['general_tts_error_message'] = 'volume error'
-        self.queue: queue.Queue[typing.Any] = queue.Queue(0)
-        self.activation: list[str] = []
-        self.min_similarity = 0.99
+#     def __init__(self) -> None:
+#         """Create new Internet object."""
+#         super().__init__('volume')
+#         self.activation_dict['general_tts_error_message'] = 'volume error'
+#         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
+#         self.activation: list[str] = []
+#         self.min_similarity = 0.99
 
-    def run_doc(
-        self,
-        doc: spacy.tokens.Doc,
-        _queue: queue.Queue[typing.Any],
-        by_uid: bool = False,
-    ) -> None:
-        """Run plugin.
+#     def run_doc(
+#         self,
+#         doc: spacy.tokens.Doc,
+#         _queue: queue.Queue[typing.Any],
+#         by_uid: bool = False,
+#     ) -> None:
+#         """Run plugin.
 
-        Args:
-            doc: Text recognized.
-            _queue: Queue to push results in.
-            by_uid: True if plugin is explicitly called by uid.
+#         Args:
+#             doc: Text recognized.
+#             _queue: Queue to push results in.
+#             by_uid: True if plugin is explicitly called by uid.
 
-        """
-        self.queue = _queue
-        if self.is_activated(doc) or by_uid:
-            if not self.activation:
-                start_text = 'Do you want to increase or decrease your volume?'
-                self.end_result['type'] = PluginResultType.KEEP_ALIVE
-                self.end_result['result'] = start_text
-                self.end_result['result_speech_func'] = super().spit_text
-                self.activation.append('activate')
-                self.queue.put(self.end_result)
-                return
-            if self.activation:
-                if doc[0].text == 'increase':
-                    plugin_help.increase_volume()
-                    self.end_result['type'] = PluginResultType.TEXT
-                    self.end_result['result'] = 'increased volume'
-                    self.end_result['result_speech_func'] = super().spit_text
-                    self.activation.clear()
-                    self.queue.put(self.end_result)
-                elif doc[0].text == 'decrease':
-                    plugin_help.decrease_volume()
-                    self.end_result['type'] = PluginResultType.KEEP_ALIVE
-                    self.end_result['result'] = 'decreased volume'
-                    self.end_result['result_speech_func'] = super().spit_text
-                    self.activation.clear()
-                    self.queue.put(self.end_result)
-                return
+#         """
+#         self.queue = _queue
+#         if self.is_activated(doc) or by_uid:
+#             if not self.activation:
+#                 start_text = 'Do you want to increase or decrease your volume?'
+#                 self.end_result['type'] = PluginResultType.KEEP_ALIVE
+#                 self.end_result['result'] = start_text
+#                 self.end_result['result_speech_func'] = super().spit_text
+#                 self.activation.append('activate')
+#                 self.queue.put(self.end_result)
+#                 return
+#             if self.activation:
+#                 if doc[0].text == 'increase':
+#                     plugin_help.increase_volume()
+#                     self.end_result['type'] = PluginResultType.TEXT
+#                     self.end_result['result'] = 'increased volume'
+#                     self.end_result['result_speech_func'] = super().spit_text
+#                     self.activation.clear()
+#                     self.queue.put(self.end_result)
+#                 elif doc[0].text == 'decrease':
+#                     plugin_help.decrease_volume()
+#                     self.end_result['type'] = PluginResultType.KEEP_ALIVE
+#                     self.end_result['result'] = 'decreased volume'
+#                     self.end_result['result_speech_func'] = super().spit_text
+#                     self.activation.clear()
+#                     self.queue.put(self.end_result)
+#                 return
 
 
 class Weather(BasePlugin):

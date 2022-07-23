@@ -50,13 +50,13 @@ class Assistant3():
         self.jok = plugins.Jokes()
         self.cal = plugins.Calculator()
         self.int = plugins.Internet()
-        self.vol = plugins.Volume()
+        # self.vol = plugins.Volume()
         self.wet = plugins.Weather()
         # trigger plugin object
         self.trigger = processors.base_processor.TriggerPlugin()
         # the plugin_watcher object
         self.plugin_watcher = PluginWatcher(
-            [self.wik, self.jok, self.loc, self.cal, self.mpp, self.vol, self.wet, self.int],
+            [self.wik, self.jok, self.loc, self.cal, self.mpp, self.wet, self.int],
         )
         # optionaly adding a trigger Plugin ("hey assistant")
         print('waiting for gui connection...')

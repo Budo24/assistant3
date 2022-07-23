@@ -9,7 +9,6 @@ test:
   script:
     - apt-get update && apt-get install -y espeak
     - python3.10 -m venv venv
-    - DISPLAY=:0 venv/bin/python -c 'import pynput'
     - venv/bin/python -m pip install -r requirements.txt
     - venv/bin/python -m pip install -e .[dev]
     - venv/bin/python -m spacy download en_core_web_md
@@ -33,7 +32,6 @@ build:
   image: python:3.10
   script:
     - python3.10 -m venv venv
-    - DISPLAY=:0 venv/bin/python -c 'import pynput'
     - venv/bin/python -m pip install build
     - venv/bin/python -m build .
   artifacts:
