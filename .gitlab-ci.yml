@@ -12,7 +12,7 @@ test:
     - venv/bin/python -m pip install -r requirements.txt
     - venv/bin/python -m pip install -e .[dev]
     - venv/bin/python -m spacy download en_core_web_md
-    - venv/bin/python -m pytest --mypy
+    - venv/bin/python -m pytest
   coverage: '/\d+\%\s*$/'
   artifacts:
     paths:
