@@ -13,10 +13,15 @@ from ..processors.base_processor import BasePlugin
 
 
 class FlowRecord():
-    """Plugins invoking flow container."""
+    """FlowRecord type."""
 
     def __init__(self) -> None:
-        """Create FlowRecord object."""
+        """Create new FlowRecord object.
+
+        Returns:
+            New FlowRecord instance.
+
+        """
         self.record: list[dict[str, object]] = []
 
     def add_entry(self, entry: dict[str, object]) -> None:
@@ -27,7 +32,8 @@ class FlowRecord():
         """
         self.record.append(entry)
 
-    def reset(self):
+    def reset(self) -> None:
+        """Reset flow_rocord."""
         self.record.clear()
 
     def get_last(self) -> dict[str, object] | typing.Any:
@@ -51,16 +57,6 @@ class FlowRecord():
         """
         return len(self.record) == 0
 
-    def printify(self) -> None:
-        """Empty."""
-        if self.is_empty():
-            print()
-            print(str('EMPTY RECORD'))
-            print()
-        print()
-        print(str(self.record))
-        print()
-
 
 class PluginWatcher():
     """PluginWatcher type"""
@@ -74,21 +70,13 @@ class PluginWatcher():
         Returns:
             New PluginWatcher instance
         """
-        # reslts_queue : the queue where all plugins push their result dicts
         self.results_queue: queue.Queue[typing.Any] = queue.Queue()
         self.flow_record = FlowRecord()
         self.plugins: list[BasePlugin] = []
         self.trigger_plugin: BasePlugin = BasePlugin(match='')
-        # flag to tell pw if a trigger plugin was already triggered ("hey assistant")
         self.triggered_now_plugins = False
-        # spacy object with a trained AI model initialized
         self.nlp = spacy.load('en_core_web_md')
-        # data type related to SpaCy (nlp library)
         self.doc: typing.Any = None
-        # checks if any plugin was passed that doesn't inherit from BasePlugin
-        # if it's the case, it will drop them all, and change it with a
-        # special plugin for this case 'processors.base_processor.BaseInitializationErrorPlugin'
-        # we will see what to add in it later..
         for plugin in plugins:
             if not isinstance(plugin, BasePlugin):
                 error_plugin_name = ''
@@ -99,14 +87,8 @@ class PluginWatcher():
                     ),
                 ]
                 break
-            # if all good, we pass an instance of the nlp object to each plugin,
-            # so it can be used to check similarity of what the user said compared
-            # to the reference sentence
             plugin.set_spacy_model(self.nlp)
             self.plugins.append(plugin)
-        # here we add an empty trigger plugin, and later we can add one.
-        # we can also remove it at any time
-        # self.add_trigger_plugin(None)
         self.init()
 
     def pop_result(self) -> object:
@@ -115,17 +97,11 @@ class PluginWatcher():
         Returns:
             Get last element in results queue.
         """
-        # CHECK how a queue works (python queue module)
         return self.results_queue.get()
 
     def init(self) -> None:
         """Initialize plugins."""
-        # here we assign a unique id to each plugin, so later we can distinguish
-        # between them, just from the result they send (which contains this uid)
-        # witout bothering of accessing them with the names and all that head ache
         self.plugins = bulk_assign_uuid(self.plugins)
-
-        # this is maybe a duplication, i'll check it later
         for plugin in self.plugins:
             plugin.set_spacy_model(self.nlp)
 
@@ -170,10 +146,8 @@ class PluginWatcher():
             List of results popped from queue.
         """
         res_list = []
-        print('Size: ', self.results_queue.qsize())
         while self.results_queue.qsize() != 0:
             res_list.append(self.results_queue.get())
-        print('res_list: ', res_list)
         return res_list
 
     def run_by_uid(self, uid: object) -> None:
@@ -190,9 +164,6 @@ class PluginWatcher():
 
     def run_trigger(self) -> None:
         """Run trigger plugin."""
-        print('----------------------------Budo')
-        print('self.doc, self.results_queue: ', self.doc, self.results_queue)
-        print('----------------------------Budo')
         self.trigger_plugin.run_doc(self.doc, self.results_queue)
 
     def run_plugins(self, uid: object = None) -> None:
@@ -202,18 +173,12 @@ class PluginWatcher():
             uid: Plugin uid.
 
         """
-        print('run_plugins function')
         if uid:
-            print('uid', uid)
             for plugin in self.plugins:
-                print('plugin', plugin)
                 if uid == plugin.get_uid():
                     plugin.run_doc(self.doc, self.results_queue, True)
                     return
-        print('not uid')
-        print('\n\n\t', self.plugins)
         for plugin in self.plugins:
-            print('run_doc')
             plugin.run_doc(self.doc, self.results_queue)
     
     def run(self, speech_text: str) -> list[typing.Any]:
@@ -225,9 +190,7 @@ class PluginWatcher():
         Returns:
             List of results from plugins
         """
-        # we transform the text from vosk to doc object (pass it to SpaCy to process it)
         self.doc = self.nlp(speech_text)
-        # self.flow_record.printify()
 
         if self.flow_record.is_empty():
             self.run_trigger()
@@ -243,25 +206,15 @@ class PluginWatcher():
             return self.flush_result_queue_in_list()
 
         if last_record['plugin_type'] == PluginType.TRIGGER_PLUGIN:
-            print('LAST RECORD', last_record)
             self.run_plugins()
             return self.flush_result_queue_in_list()
         if last_record['type'] == PluginResultType.KEEP_ALIVE:
-            print('Last record recognised')
             self.run_trigger()
             trigger_flushed = self.flush_result_queue_in_list()
             if trigger_flushed[0]['type'] != PluginResultType.ERROR:
-                print('---------------------------_>>>>')
                 plugins = self.plugins
-                for plugin in plugins:
-                    print(plugin)
-                print('\n\n')
                 self.plugins = [plugin.__class__() for plugin in plugins]
-                # IHEB LINE DONE YERY IMPORTANT, UID IS IN PLUGIN WATCHER!!!
                 self.init()
-                for plugin in self.plugins:
-                    print(plugin)
-                print('<<<<<<<<------------------------')
                 return trigger_flushed
             self.run_by_uid(last_record['uid'])
             return self.flush_result_queue_in_list()

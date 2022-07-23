@@ -14,7 +14,7 @@ import assistant3.data
 class GUI():
     """Empty."""
     HOST = "127.0.0.1"  # The server's hostname or IP address
-    PORT = 65445
+    PORT = 65431
 
     def __init__(self) -> None:
         """Empty."""
@@ -36,16 +36,17 @@ class GUI():
             str(position_down),
         )
         self.text ="Understood text ..."
+        self.radius = 0.0
         # Label for Text Output
         self.lbl = Label(self.window, font='Damascus', anchor=CENTER)
 
         # Canvas for Speech animations
         canvas_width = 200
         canvas_height = 200
-        self.myCanvas = Canvas(self.window, width=canvas_width, height=canvas_height)
-        self.myCanvas.place(relx=0.5, rely=0.5, anchor=CENTER)
-        self.myCanvas.pack()
-        # self.myCanvas.grid(row=0, column=0)
+        self.m_canvas = Canvas(self.window, width=canvas_width, height=canvas_height)
+        self.m_canvas.place(relx=0.5, rely=0.5, anchor=CENTER)
+        self.m_canvas.pack()
+        # self.m_canvas.grid(row=0, column=0)
 
         # loading Speech sample for animation in list
         self.speech = True
@@ -65,37 +66,35 @@ class GUI():
 
         
 
-    def update_speech(self, text: str = 'understood Text...') -> None:
+    def update_speech(self) -> None:
         # text needs to be passed
-        self.myCanvas.delete('all')
+        self.m_canvas.delete('all')
         wav_file_path = resourcesapi.path(assistant3.data, 'inter_results.txt')
         try:
             with open(str(wav_file_path), 'r', encoding='utf-8') as r_f:
                 
                 self.text = r_f.readlines()[-1]
-        except FileNotFoundError as exc:
+        except FileNotFoundError:
             pass
-        except IndexError as ierr:
+        except IndexError:
             pass
         self.lbl.config(text=self.text, font=('Damascus', 16, 'italic'))
         self.show_label()
 
         #self.window.after(200, self.update_speech)
 
-    def show_label(self):
+    def show_label(self) -> None:
         """Empty."""
         self.lbl.pack()
         # self.lbl.grid()
 
-    def speech_bubble(self, x: int, y: int, r: int, **kwargs: int) -> int:
+    def speech_bubble(self, _x: int, _y: int, _r: int, **kwargs: int) -> None:
         """Empty."""
-        'create a circle'
-        self.myCanvas.delete('all')
-        self.id = self.myCanvas.create_oval(x - r, y - r, x + r, y + r, **kwargs)
-        return id
+        self.m_canvas.delete('all')
+        self.m_canvas.create_oval(_x0=_x - _r, _y0=_y - _r, _x1=_x + _r, _x2=_y + _r, **kwargs)
 
     # Update values
-    def update_animate(self):
+    def update_animate(self) -> None:
         rec = self.socket.recv(4)
         print(rec)
         if rec == b'0000':
@@ -120,8 +119,8 @@ class GUI():
                 self.frame = 1
 
             self.radius = self.waves[self.frame] if self.waves[self.frame] > 15 else 15
-            r = self.radius
-            self.speech_bubble(100, 100, r, fill='red', outline='black', width=5)
+            _r = self.radius
+            self.speech_bubble(100, 100, int(_r), fill='red', outline='black', width=5)
         else:
             self.speech_bubble(100, 100, 30, fill='black', outline='black', width=3)
 
@@ -135,10 +134,10 @@ class GUI():
 
         self.window.mainloop()
 
-def main():
+def main() -> None:
     gui = GUI()
-
     gui.run()
+
 
 if __name__ == '__main__':
     main()

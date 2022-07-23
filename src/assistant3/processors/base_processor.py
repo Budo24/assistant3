@@ -25,13 +25,11 @@ class BasePlugin():
 
         Returns:
             New BasePlugin instance.
-
+        
         """
         self.init_doc = match
         self.spacy_model = spacy.blank('en')
-        # pyttsx3 object for voice response
         self.engine = pyttsx3.init()
-        # this will hold the activation/reference sentence or sentences
         self.activation_dict: dict[str, typing.Any] = {
             'docs': [],
             'general_tts_error_message': 'please try again',
@@ -40,17 +38,7 @@ class BasePlugin():
                 'tts_error_message': 'please try again',
             }],
         }
-        # unique id
-
         self.uid: object = None
-        # this is the result dict with several informations like
-        # - uid
-        # - type of the response
-        # - suggestion-message
-        # ...
-
-        # this is the dict that will be pushed to the results queue
-        # when a plugin is activated and finished with processing
         self.end_result: dict[str, typing.Any] = {
             'uid': None,
             'type': PluginResultType.UNDEFINED,
@@ -61,25 +49,37 @@ class BasePlugin():
             'resession_message': '',
             'result_speech_func': None,
         }
-
-        # default minimum similarity, for a plugin to be activated,
-        # this is used by SpaCy and can also be changed in each plugin
         self.min_similarity = 0.75
 
     def similar_keyword_activated(self, target: object) -> str:
-        """Return similar keyword from activation_dict."""
+        """Return similar keyword from activation_dict.
+
+        Args:
+            target: Text to check similarity against.
+
+        Returns:
+            Activation value.
+        
+        """
         if len(self.activation_dict['docs']) == 0:
             # if there is no reference phrases, not activated
             return 'False'
         activation_similarities = self.get_activation_similarities(target)
         for index, similarity in enumerate(activation_similarities):
-            # the logic maybe changed later !
             if similarity > self.min_similarity:
                 return str(self.activation_dict['docs'][index])
         return 'False'
 
     def exact_keyword_activated(self, target: object) -> str:
-        """Return exact keyword from activation_dict."""
+        """Return exact keyword from activation_dict.
+
+        Args:
+            target: Text.
+
+        Returns:
+            Exact keyword.
+        
+        """
         if len(self.activation_dict['docs']) == 0:
             # if there is no reference phrases, not activated
             return 'False'
@@ -103,7 +103,12 @@ class BasePlugin():
         print('SPIT')
 
     def get_general_tts_error_message(self) -> object:
-        """Empty."""
+        """Get text to speech error message.
+
+        Returns:
+            Text to speech error message.
+        
+        """
         return self.activation_dict['general_tts_error_message']
 
     def error_spit(self) -> None:
@@ -112,16 +117,29 @@ class BasePlugin():
         self.engine.runAndWait()
 
     def get_activation_similarities(self, target: object) -> list[typing.Any]:
-        """Return a similarity between 0 and 1.
+        """Return similarities against activation entries.
 
-        list length is the same as how many reference phrases there is
+        Args:
+            target: Text.
+
+        Returns:
+            List of similarities.
+        
         """
         for doc in self.activation_dict['docs']:
             print('doc: ', doc)
         return [doc.similarity(target) for doc in self.activation_dict['docs']]
 
     def is_activated(self, target: object) -> bool:
-        """Check if a plugin is activated."""
+        """Check if plugin is activated.
+
+        Args:
+            target: Text.
+
+        Returns:
+            True if plugin is activated.
+
+        """
         if len(self.activation_dict['docs']) == 0:
             # if there is no reference phrases, not activated
             return False
@@ -130,17 +148,17 @@ class BasePlugin():
         return any(similarity > self.min_similarity for similarity in activation_similarities)
 
     def init_activation_doc(self) -> None:
-        """Add a SpaCy Object to the reference phrases.
-
-        but only the initial one, to add another one the next function
-        'add_activation_doc is used'
-        """
+        """Add a SpaCy Object to the reference phrases."""
         if self.spacy_model:
             init_doc_obj = self.spacy_model(self.init_doc)
             self.activation_dict['docs'].append(init_doc_obj)
 
     def add_activation_doc(self, text: str) -> None:
-        """Add doc from text."""
+        """Add Activation phrase.
+
+        Args:
+            target: Text.
+        """
         if not self.spacy_model:
             return
         self.activation_dict['docs'].append(self.spacy_model(text))
@@ -155,25 +173,49 @@ class BasePlugin():
                 print(doc.text)
 
     def set_spacy_model(self, model1: spacy.language.Language) -> None:
-        """Set spacy model."""
+        """Set spacy Language model.
+
+        Args:
+            model1: SpaCy Language model object.
+        """
         self.spacy_model = model1
         self.init_activation_doc()
 
     def set_uid(self, uid: object) -> None:
-        """Set UID."""
+        """Set Unique id for plugin.
+
+        Args:
+            uid: Unique id.
+        """
         if not self.uid:
             self.uid = uid
             self.end_result['uid'] = uid
 
     def get_uid(self) -> object:
-        """Get UID."""
+        """Get plugin's unique id.
+
+        Returns:
+            Plugin's unique id.
+
+        """
         if self.uid:
             return self.uid
         raise UidNotAssignedError
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
-        """Run_doc."""
-        if self:
+    def run_doc(
+        self,
+        doc: spacy.language.Language,
+        _queue: queue.Queue[typing.Any],
+        by_uid: bool = False
+    ) -> None:
+        """Run plugin.
+
+        Args:
+            doc: Text recognized.
+            _queue: Queue to push results in.
+            by_uid: True if plugin is explicitly called by uid.
+        """
+        if self or by_uid:
             pass
 
         ret_str = ''
@@ -191,11 +233,27 @@ class BaseInitializationErrorPlugin(BasePlugin):
     """BaseInitializationErrorPlugin."""
 
     def __init__(self) -> None:
-        """Init."""
+        """Create new BaseInitializationErrorPlugin object.
+
+        Returns:
+            New BaseInitializationErrorPlugin instance.
+
+        """
         super().__init__()
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
-        """Run_doc."""
+    def run_doc(
+        self,
+        doc: spacy.language.Language,
+        _queue: queue.Queue[typing.Any],
+        by_uid: bool = False
+    ) -> None:
+        """Run plugin.
+
+        Args:
+            doc: Text recognized.
+            _queue: Queue to push results in.
+            by_uid: True if plugin is explicitly called by uid.
+        """
         ret_str = ''
         ret_str += 'Not implemented, [todo] should raise exception instead\n'
         ret_str += 'doc: '
@@ -211,10 +269,11 @@ class SpacyDatePlugin(BasePlugin):
     """SpacyDatePlugin."""
 
     def __init__(self) -> None:
-        """Pass the initial reference phrase to the parent Object (BasePlugin).
+        """Create new SpacyDatePlugin object.
 
-        and it will take care of adding it as described
-        above
+        Returns:
+            New SpacyDatePlugin instance.
+
         """
         super().__init__('what is the date')
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
@@ -224,25 +283,30 @@ class SpacyDatePlugin(BasePlugin):
         self.engine.say(time.strftime('%A %-d of %B'))
         self.engine.runAndWait()
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
-        """Run_doc."""
+    def run_doc(
+        self,
+        doc: spacy.language.Language,
+        _queue: queue.Queue[typing.Any],
+        by_uid: bool = False
+    ) -> None:
+        """Run plugin.
+
+        Args:
+            doc: Text recognized.
+            _queue: Queue to push results in.
+            by_uid: True if plugin is explicitly called by uid.
+        """
         self.queue = _queue
-        # check if plugin is activted
-        activated = self.is_activated(doc)
-        if not activated:
+        if self.is_activated(doc) or by_uid:
+            output_result_value = datetime.datetime.now()
             self.end_result['type'] = PluginResultType.TEXT
-            self.end_result['result'] = ''
-            self.end_result['result_speech_func'] = self.error_spit
-            # here we push it to the results queue passed by pw
-            # self.queue.put(self.end_result)
+            self.end_result['result'] = output_result_value
+            self.end_result['result_speech_func'] = self.spit
+            self.queue.put(self.end_result)
             return
-        output_result_value = datetime.datetime.now()
-        # here we set some informations in the result dict
         self.end_result['type'] = PluginResultType.TEXT
-        self.end_result['result'] = output_result_value
-        self.end_result['result_speech_func'] = self.spit
-        # here we push it to the results queue passed by pw
-        self.queue.put(self.end_result)
+        self.end_result['result'] = ''
+        self.end_result['result_speech_func'] = self.error_spit
         return
 
 
@@ -250,9 +314,15 @@ class TriggerPlugin(BasePlugin):
     """TriggerPlugin."""
 
     def __init__(self) -> None:
-        """Init."""
+        """Create new TriggerPlugin object.
+
+        Returns:
+            New TriggerPlugin instance.
+
+        """
         super().__init__('hey assistant')
         self.add_activation_doc('he assistant')
+        self.add_activation_doc('assistant')
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
         self.min_similarity = 0.89
         self.activation_dict['general_tts_error_message'] = 'did not match hey assistant'
@@ -262,8 +332,19 @@ class TriggerPlugin(BasePlugin):
         self.engine.say('how can i help')
         self.engine.runAndWait()
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
-        """Run_doc."""
+    def run_doc(
+        self,
+        doc: spacy.language.Language,
+        _queue: queue.Queue[typing.Any],
+        by_uid: bool = False
+    ) -> None:
+        """Run plugin.
+
+        Args:
+            doc: Text recognized.
+            _queue: Queue to push results in.
+            by_uid: True if plugin is explicitly called by uid.
+        """
         self.queue = _queue
         activated = self.is_activated(doc)
         print('****', activated)
@@ -272,7 +353,6 @@ class TriggerPlugin(BasePlugin):
             self.end_result['result'] = ''
             self.end_result['plugin_type'] = PluginType.TRIGGER_PLUGIN
             self.end_result['result_speech_func'] = self.error_spit
-            # here we push it to the results queue passed by pw
             self.queue.put(self.end_result)
             return
         self.end_result['type'] = PluginResultType.TEXT
@@ -295,9 +375,14 @@ class Wikipedia(BasePlugin):
         self.search_result: list[str] = []
         self.flow: list[str] = []
 
-    def run_doc(self, doc: object, queue_: queue.Queue[typing.Any], by_uid=False) -> None:
+    def run_doc(
+        self,
+        doc: spacy.language.Language,
+        _queue: queue.Queue[typing.Any],
+        by_uid: bool = False
+    ) -> None:
         """Run doc."""
-        self.queue = queue_
+        self.queue = _queue
 
         if self.is_activated(doc) or by_uid:
             if not self.search_result and not self.flow:
@@ -317,7 +402,6 @@ class Wikipedia(BasePlugin):
                     self.search_result.clear()
                     self.flow.clear()
                     self.queue.put(self.end_result)
-                    return
                 elif doc[0].text == 'second':
                     final = wikipedia.summary(self.search_result[2], sentences=2)
                     self.end_result['type'] = PluginResultType.TEXT
@@ -326,7 +410,6 @@ class Wikipedia(BasePlugin):
                     self.search_result.clear()
                     self.flow.clear()
                     self.queue.put(self.end_result)
-                    return
                 elif doc[0].text == 'third':
                     final = wikipedia.summary(self.search_result[3], sentences=2)
                     self.end_result['type'] = PluginResultType.TEXT
@@ -335,8 +418,6 @@ class Wikipedia(BasePlugin):
                     self.search_result.clear()
                     self.flow.clear()
                     self.queue.put(self.end_result)
-                    return
-
                 else:
                     self.end_result['type'] = PluginResultType.TEXT
                     self.end_result['result'] = 'Result not clear please search again'
@@ -344,7 +425,7 @@ class Wikipedia(BasePlugin):
                     self.search_result.clear()
                     self.flow.clear()
                     self.queue.put(self.end_result)
-                    return
+                return
             if not self.search_result and self.flow:
                 self.search_result = wikipedia.search(doc.text, results=4)
 
@@ -356,17 +437,16 @@ class Wikipedia(BasePlugin):
                     self.flow.clear()
                     self.queue.put(self.end_result)
                     return
-                else:
-                    self.search_result = [elem + '.' for elem in self.search_result]
-                    first_res = f'here are the results: first is {self.search_result[1]} \
-                    , second is {self.search_result[2]}, third is {self.search_result[3]} \
-                    . which one do you want to chose? tell me first second or third'
+                self.search_result = [elem + '.' for elem in self.search_result]
+                first_res = f'here are the results: first is {self.search_result[1]} \
+                , second is {self.search_result[2]}, third is {self.search_result[3]} \
+                . which one do you want to chose? tell me first second or third'
 
-                    self.end_result['type'] = PluginResultType.KEEP_ALIVE
-                    self.end_result['result'] = first_res
-                    self.end_result['result_speech_func'] = super().spit_text
-                    self.queue.put(self.end_result)
-                    return
+                self.end_result['type'] = PluginResultType.KEEP_ALIVE
+                self.end_result['result'] = first_res
+                self.end_result['result_speech_func'] = super().spit_text
+                self.queue.put(self.end_result)
+                return
 
 
 class Location(BasePlugin):
@@ -383,7 +463,12 @@ class Location(BasePlugin):
         self.activation_dict['general_tts_error_message'] = 'location error'
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
+    def run_doc(
+        self,
+        doc: spacy.language.Language,
+        _queue: queue.Queue[typing.Any],
+        by_uid: bool = False
+    ) -> None:
         """Run_doc."""
         if self.is_activated(doc) or by_uid:
             self.queue = _queue
@@ -410,7 +495,13 @@ class Jokes(BasePlugin):
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
         self.min_similarity = 0.95
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
+
+    def run_doc(
+        self,
+        doc: spacy.language.Language,
+        _queue: queue.Queue[typing.Any],
+        by_uid: bool = False
+    ) -> None:
         """Run_doc."""
         self.queue = _queue
         # check if plugin is activted
@@ -437,11 +528,16 @@ class Calculator(BasePlugin):
         super().__init__('calculator')
         self.activation_dict['general_tts_error_message'] = 'calc error'
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
-        self.stack = []
-        self.activation = []
+        self.stack: list[typing.Any] = []
+        self.activation: list[typing.Any] = []
         self.min_similarity = 0.99
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool=False) -> None:
+    def run_doc(
+        self,
+        doc: spacy.language.Language,
+        _queue: queue.Queue[typing.Any],
+        by_uid: bool = False
+    ) -> None:
         """Run_doc."""
         self.queue = _queue
         if self.is_activated(doc) or by_uid:
@@ -507,7 +603,12 @@ class Internet(BasePlugin):
         self.activation_dict['general_tts_error_message'] = 'internet error'
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid=False) -> None:
+    def run_doc(
+        self,
+        doc: spacy.language.Language,
+        _queue: queue.Queue[typing.Any],
+        by_uid: bool = False
+    ) -> None:
         """Run_doc."""
         if self.is_activated(doc) or by_uid:
             self.queue = _queue
@@ -519,14 +620,13 @@ class Internet(BasePlugin):
                 # here we push it to the results queue passed by pw
                 self.queue.put(self.end_result)
                 return
-            else:
-                # here we set some informations in the result dict
-                self.end_result['type'] = PluginResultType.TEXT
-                self.end_result['result'] = 'you dont have internet'
-                self.end_result['result_speech_func'] = super().spit_text
-                # here we push it to the results queue passed by pw
-                self.queue.put(self.end_result)
-                return
+            # here we set some informations in the result dict
+            self.end_result['type'] = PluginResultType.TEXT
+            self.end_result['result'] = 'you dont have internet'
+            self.end_result['result_speech_func'] = super().spit_text
+            # here we push it to the results queue passed by pw
+            self.queue.put(self.end_result)
+            return
 
 
 class Volume(BasePlugin):
@@ -544,7 +644,12 @@ class Volume(BasePlugin):
         self.activation = []
         self.min_similarity = 0.99
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool=False) -> None:
+    def run_doc(
+        self,
+        doc: spacy.language.Language,
+        _queue: queue.Queue[typing.Any],
+        by_uid: bool = False
+    ) -> None:
         """Run_doc."""
         self.queue = _queue
         if self.is_activated(doc) or by_uid:
@@ -564,7 +669,6 @@ class Volume(BasePlugin):
                     self.end_result['result_speech_func'] = super().spit_text
                     self.activation.clear()
                     self.queue.put(self.end_result)
-                    return
                 elif doc[0].text == 'decrease':
                     plugin_help.decrease_volume()
                     self.end_result['type'] = PluginResultType.KEEP_ALIVE
@@ -572,7 +676,7 @@ class Volume(BasePlugin):
                     self.end_result['result_speech_func'] = super().spit_text
                     self.activation.clear()
                     self.queue.put(self.end_result)
-                    return
+                return
 
 
 class Weather(BasePlugin):
@@ -589,7 +693,12 @@ class Weather(BasePlugin):
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
         self.min_similarity = 0.75
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool=False) -> None:
+    def run_doc(
+        self,
+        doc: spacy.language.Language,
+        _queue: queue.Queue[typing.Any],
+        by_uid: bool = False
+    ) -> None:
         """Run_doc."""
         self.queue = _queue
         if self.is_activated(doc) or by_uid:
@@ -613,9 +722,8 @@ class Weather(BasePlugin):
                 self.end_result['result_speech_func'] = super().spit_text
                 self.queue.put(self.end_result)
                 return
-            else:
-                self.end_result['type'] = PluginResultType.TEXT
-                self.end_result['result'] = 'Something went wrong. City name might be wrong'
-                self.end_result['result_speech_func'] = super().spit_text
-                self.queue.put(self.end_result)
-                return
+            self.end_result['type'] = PluginResultType.TEXT
+            self.end_result['result'] = 'Something went wrong. City name might be wrong'
+            self.end_result['result_speech_func'] = super().spit_text
+            self.queue.put(self.end_result)
+            return

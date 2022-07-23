@@ -36,10 +36,15 @@ def int_or_str(text: str | int) -> int:
 class Assistant3():
     """Main assistant3 application object."""
     HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
-    PORT = 65445
+    PORT = 65431
 
     def __init__(self) -> None:
-        """Create Assistant3 object."""
+        """Create new Assistant3 object.
+
+        Returns:
+            New Assistant3 instance.
+
+        """
         self.feedback_ignore_obj = False
         self.primary_audio_buffer: queue.Queue[bytes] = queue.Queue()
         # plugin object
