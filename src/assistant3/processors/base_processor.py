@@ -17,15 +17,12 @@ from assistant3.common.plugins import PluginResultType, PluginType
 class BasePlugin():
     """BasePlugin type."""
 
-    def __init__(self, match: str = ''):
+    def __init__(self, match: str = '') -> None:
         """Create new BasePlugin object.
 
         Args:
             match: Text to process.
 
-        Returns:
-            New BasePlugin instance.
-        
         """
         self.init_doc = match
         self.spacy_model = spacy.blank('en')
@@ -59,7 +56,7 @@ class BasePlugin():
 
         Returns:
             Activation value.
-        
+
         """
         if len(self.activation_dict['docs']) == 0:
             # if there is no reference phrases, not activated
@@ -78,7 +75,7 @@ class BasePlugin():
 
         Returns:
             Exact keyword.
-        
+
         """
         if len(self.activation_dict['docs']) == 0:
             # if there is no reference phrases, not activated
@@ -107,7 +104,7 @@ class BasePlugin():
 
         Returns:
             Text to speech error message.
-        
+
         """
         return self.activation_dict['general_tts_error_message']
 
@@ -124,7 +121,7 @@ class BasePlugin():
 
         Returns:
             List of similarities.
-        
+
         """
         for doc in self.activation_dict['docs']:
             print('doc: ', doc)
@@ -145,7 +142,9 @@ class BasePlugin():
             return False
         activation_similarities = self.get_activation_similarities(target)
         print(activation_similarities)
-        return any(similarity > self.min_similarity for similarity in activation_similarities)
+        return any(
+            similarity > self.min_similarity for similarity in activation_similarities
+        )
 
     def init_activation_doc(self) -> None:
         """Add a SpaCy Object to the reference phrases."""
@@ -157,7 +156,8 @@ class BasePlugin():
         """Add Activation phrase.
 
         Args:
-            target: Text.
+            text: Text.
+
         """
         if not self.spacy_model:
             return
@@ -177,6 +177,7 @@ class BasePlugin():
 
         Args:
             model1: SpaCy Language model object.
+
         """
         self.spacy_model = model1
         self.init_activation_doc()
@@ -186,6 +187,7 @@ class BasePlugin():
 
         Args:
             uid: Unique id.
+
         """
         if not self.uid:
             self.uid = uid
@@ -197,6 +199,9 @@ class BasePlugin():
         Returns:
             Plugin's unique id.
 
+        Raises:
+            UidNotAssignedError: not assigned exception.
+
         """
         if self.uid:
             return self.uid
@@ -206,7 +211,7 @@ class BasePlugin():
         self,
         doc: spacy.language.Language,
         _queue: queue.Queue[typing.Any],
-        by_uid: bool = False
+        by_uid: bool = False,
     ) -> None:
         """Run plugin.
 
@@ -214,6 +219,7 @@ class BasePlugin():
             doc: Text recognized.
             _queue: Queue to push results in.
             by_uid: True if plugin is explicitly called by uid.
+
         """
         if self or by_uid:
             pass
@@ -233,19 +239,14 @@ class BaseInitializationErrorPlugin(BasePlugin):
     """BaseInitializationErrorPlugin."""
 
     def __init__(self) -> None:
-        """Create new BaseInitializationErrorPlugin object.
-
-        Returns:
-            New BaseInitializationErrorPlugin instance.
-
-        """
+        """Create new BaseInitializationErrorPlugin object."""
         super().__init__()
 
     def run_doc(
         self,
         doc: spacy.language.Language,
         _queue: queue.Queue[typing.Any],
-        by_uid: bool = False
+        by_uid: bool = False,
     ) -> None:
         """Run plugin.
 
@@ -253,6 +254,7 @@ class BaseInitializationErrorPlugin(BasePlugin):
             doc: Text recognized.
             _queue: Queue to push results in.
             by_uid: True if plugin is explicitly called by uid.
+
         """
         ret_str = ''
         ret_str += 'Not implemented, [todo] should raise exception instead\n'
@@ -269,12 +271,7 @@ class SpacyDatePlugin(BasePlugin):
     """SpacyDatePlugin."""
 
     def __init__(self) -> None:
-        """Create new SpacyDatePlugin object.
-
-        Returns:
-            New SpacyDatePlugin instance.
-
-        """
+        """Create new SpacyDatePlugin object."""
         super().__init__('what is the date')
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
 
@@ -287,7 +284,7 @@ class SpacyDatePlugin(BasePlugin):
         self,
         doc: spacy.language.Language,
         _queue: queue.Queue[typing.Any],
-        by_uid: bool = False
+        by_uid: bool = False,
     ) -> None:
         """Run plugin.
 
@@ -295,6 +292,7 @@ class SpacyDatePlugin(BasePlugin):
             doc: Text recognized.
             _queue: Queue to push results in.
             by_uid: True if plugin is explicitly called by uid.
+
         """
         self.queue = _queue
         if self.is_activated(doc) or by_uid:
@@ -314,18 +312,15 @@ class TriggerPlugin(BasePlugin):
     """TriggerPlugin."""
 
     def __init__(self) -> None:
-        """Create new TriggerPlugin object.
-
-        Returns:
-            New TriggerPlugin instance.
-
-        """
+        """Create new TriggerPlugin object."""
         super().__init__('hey assistant')
         self.add_activation_doc('he assistant')
         self.add_activation_doc('assistant')
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
         self.min_similarity = 0.89
-        self.activation_dict['general_tts_error_message'] = 'did not match hey assistant'
+        self.activation_dict[
+            'general_tts_error_message'
+        ] = 'did not match hey assistant'
 
     def spit(self) -> None:
         """Play response audio."""
@@ -336,7 +331,7 @@ class TriggerPlugin(BasePlugin):
         self,
         doc: spacy.language.Language,
         _queue: queue.Queue[typing.Any],
-        by_uid: bool = False
+        by_uid: bool = False,
     ) -> None:
         """Run plugin.
 
@@ -344,6 +339,7 @@ class TriggerPlugin(BasePlugin):
             doc: Text recognized.
             _queue: Queue to push results in.
             by_uid: True if plugin is explicitly called by uid.
+
         """
         self.queue = _queue
         activated = self.is_activated(doc)
@@ -367,7 +363,7 @@ class Wikipedia(BasePlugin):
     """Plugin for searching something in wikipedia."""
 
     def __init__(self) -> None:
-        """Initialize values."""
+        """Create new Wikipedia object."""
         super().__init__('wiki')
         self.activation_dict['general_tts_error_message'] = 'wiki error'
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
@@ -379,9 +375,16 @@ class Wikipedia(BasePlugin):
         self,
         doc: spacy.language.Language,
         _queue: queue.Queue[typing.Any],
-        by_uid: bool = False
+        by_uid: bool = False,
     ) -> None:
-        """Run doc."""
+        """Run plugin.
+
+        Args:
+            doc: Text recognized.
+            _queue: Queue to push results in.
+            by_uid: True if plugin is explicitly called by uid.
+
+        """
         self.queue = _queue
 
         if self.is_activated(doc) or by_uid:
@@ -453,11 +456,7 @@ class Location(BasePlugin):
     """Location Plugin."""
 
     def __init__(self) -> None:
-        """Pass the initial reference phrase to the parent Object (BasePlugin).
-
-        and it will take care of adding it as described
-        above
-        """
+        """Create new Location object."""
         super().__init__('location')
         self.add_activation_doc('location')
         self.activation_dict['general_tts_error_message'] = 'location error'
@@ -467,9 +466,16 @@ class Location(BasePlugin):
         self,
         doc: spacy.language.Language,
         _queue: queue.Queue[typing.Any],
-        by_uid: bool = False
+        by_uid: bool = False,
     ) -> None:
-        """Run_doc."""
+        """Run plugin.
+
+        Args:
+            doc: Text recognized.
+            _queue: Queue to push results in.
+            by_uid: True if plugin is explicitly called by uid.
+
+        """
         if self.is_activated(doc) or by_uid:
             self.queue = _queue
             loc = plugin_help.locator()
@@ -481,33 +487,36 @@ class Location(BasePlugin):
             # here we push it to the results queue passed by pw
             self.queue.put(self.end_result)
 
+
 class Jokes(BasePlugin):
     """Gives a random Joke Plugin."""
 
     def __init__(self) -> None:
-        """Pass the initial reference phrase to the parent Object (BasePlugin).
-
-        and it will take care of adding it as described
-        above
-        """
+        """Create new Jokes object."""
         super().__init__('i need a joke')
         self.activation_dict['general_tts_error_message'] = 'joke error'
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
         self.min_similarity = 0.95
 
-
     def run_doc(
         self,
         doc: spacy.language.Language,
         _queue: queue.Queue[typing.Any],
-        by_uid: bool = False
+        by_uid: bool = False,
     ) -> None:
-        """Run_doc."""
+        """Run plugin.
+
+        Args:
+            doc: Text recognized.
+            _queue: Queue to push results in.
+            by_uid: True if plugin is explicitly called by uid.
+
+        """
         self.queue = _queue
         # check if plugin is activted
         activated = self.is_activated(doc) or by_uid
         if activated:
-            joke = pyjokes.get_joke(language="en", category="neutral")
+            joke = pyjokes.get_joke(language='en', category='neutral')
             # here we set some informations in the result dict
             self.end_result['type'] = PluginResultType.TEXT
             self.end_result['result'] = joke
@@ -520,11 +529,7 @@ class Calculator(BasePlugin):
     """Calculator Plugin."""
 
     def __init__(self) -> None:
-        """Pass the initial reference phrase to the parent Object (BasePlugin).
-
-        and it will take care of adding it as described
-        above
-        """
+        """Create new Jokes object."""
         super().__init__('calculator')
         self.activation_dict['general_tts_error_message'] = 'calc error'
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
@@ -536,9 +541,16 @@ class Calculator(BasePlugin):
         self,
         doc: spacy.language.Language,
         _queue: queue.Queue[typing.Any],
-        by_uid: bool = False
+        by_uid: bool = False,
     ) -> None:
-        """Run_doc."""
+        """Run plugin.
+
+        Args:
+            doc: Text recognized.
+            _queue: Queue to push results in.
+            by_uid: True if plugin is explicitly called by uid.
+
+        """
         self.queue = _queue
         if self.is_activated(doc) or by_uid:
             if len(self.stack) == 0 and not self.activation:
@@ -593,11 +605,7 @@ class Internet(BasePlugin):
     """Internet Plugin."""
 
     def __init__(self) -> None:
-        """Pass the initial reference phrase to the parent Object (BasePlugin).
-
-        and it will take care of adding it as described
-        above
-        """
+        """Create new Internet object."""
         super().__init__('internet')
         self.add_activation_doc('internet')
         self.activation_dict['general_tts_error_message'] = 'internet error'
@@ -607,9 +615,16 @@ class Internet(BasePlugin):
         self,
         doc: spacy.language.Language,
         _queue: queue.Queue[typing.Any],
-        by_uid: bool = False
+        by_uid: bool = False,
     ) -> None:
-        """Run_doc."""
+        """Run plugin.
+
+        Args:
+            doc: Text recognized.
+            _queue: Queue to push results in.
+            by_uid: True if plugin is explicitly called by uid.
+
+        """
         if self.is_activated(doc) or by_uid:
             self.queue = _queue
             if plugin_help.connect():
@@ -633,11 +648,7 @@ class Volume(BasePlugin):
     """Volume Plugin."""
 
     def __init__(self) -> None:
-        """Pass the initial reference phrase to the parent Object (BasePlugin).
-
-        and it will take care of adding it as described
-        above
-        """
+        """Create new Internet object."""
         super().__init__('volume')
         self.activation_dict['general_tts_error_message'] = 'volume error'
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
@@ -648,9 +659,16 @@ class Volume(BasePlugin):
         self,
         doc: spacy.language.Language,
         _queue: queue.Queue[typing.Any],
-        by_uid: bool = False
+        by_uid: bool = False,
     ) -> None:
-        """Run_doc."""
+        """Run plugin.
+
+        Args:
+            doc: Text recognized.
+            _queue: Queue to push results in.
+            by_uid: True if plugin is explicitly called by uid.
+
+        """
         self.queue = _queue
         if self.is_activated(doc) or by_uid:
             if not self.activation:
@@ -683,11 +701,7 @@ class Weather(BasePlugin):
     """Weather Plugin."""
 
     def __init__(self) -> None:
-        """Pass the initial reference phrase to the parent Object (BasePlugin).
-
-        and it will take care of adding it as described
-        above
-        """
+        """Create new Internet object."""
         super().__init__('Current weather in a city')
         self.activation_dict['general_tts_error_message'] = 'weather error'
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
@@ -697,13 +711,20 @@ class Weather(BasePlugin):
         self,
         doc: spacy.language.Language,
         _queue: queue.Queue[typing.Any],
-        by_uid: bool = False
+        by_uid: bool = False,
     ) -> None:
-        """Run_doc."""
+        """Run plugin.
+
+        Args:
+            doc: Text recognized.
+            _queue: Queue to push results in.
+            by_uid: True if plugin is explicitly called by uid.
+
+        """
         self.queue = _queue
         if self.is_activated(doc) or by_uid:
             for ent in doc.ents:
-                if ent.label_ == "GPE":  # GeoPolitical Entity
+                if ent.label_ == 'GPE':  # GeoPolitical Entity
                     city = ent.text
                 else:
                     self.end_result['type'] = PluginResultType.TEXT

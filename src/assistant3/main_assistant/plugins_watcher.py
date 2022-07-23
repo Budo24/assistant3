@@ -16,12 +16,7 @@ class FlowRecord():
     """FlowRecord type."""
 
     def __init__(self) -> None:
-        """Create new FlowRecord object.
-
-        Returns:
-            New FlowRecord instance.
-
-        """
+        """Create new FlowRecord object."""
         self.record: list[dict[str, object]] = []
 
     def add_entry(self, entry: dict[str, object]) -> None:
@@ -29,6 +24,7 @@ class FlowRecord():
 
         Args:
             entry: Result object to add.
+
         """
         self.record.append(entry)
 
@@ -39,11 +35,9 @@ class FlowRecord():
     def get_last(self) -> dict[str, object] | typing.Any:
         """Get last entry / result object to record.
 
-        Args:
-            entry: Result object to add.
-
         Returns:
             Entry / Result object
+
         """
         if self.is_empty():
             return None
@@ -54,21 +48,20 @@ class FlowRecord():
 
         Returns:
             True if record is empty
+
         """
         return len(self.record) == 0
 
 
 class PluginWatcher():
-    """PluginWatcher type"""
+    """PluginWatcher type."""
 
-    def __init__(self, plugins: list[object]):
+    def __init__(self, plugins: list[object]) -> None:
         """Create new PluginWatcher object.
 
         Args:
             plugins: List of plugins objects.
 
-        Returns:
-            New PluginWatcher instance
         """
         self.results_queue: queue.Queue[typing.Any] = queue.Queue()
         self.flow_record = FlowRecord()
@@ -86,6 +79,7 @@ class PluginWatcher():
                     processors.base_processor.BaseInitializationErrorPlugin(
                     ),
                 ]
+                print(error_plugin_name)
                 break
             plugin.set_spacy_model(self.nlp)
             self.plugins.append(plugin)
@@ -96,6 +90,7 @@ class PluginWatcher():
 
         Returns:
             Get last element in results queue.
+
         """
         return self.results_queue.get()
 
@@ -127,6 +122,7 @@ class PluginWatcher():
 
         Returns:
             True if trigger plugin exists
+
         """
         return self.trigger_plugin is not None
 
@@ -134,7 +130,7 @@ class PluginWatcher():
         """Add entry / result to plugins flow record.
 
         Args:
-            entre: Entry / result.
+            entry: Entry or result.
 
         """
         self.flow_record.add_entry(entry)
@@ -144,6 +140,7 @@ class PluginWatcher():
 
         Returns:
             List of results popped from queue.
+
         """
         res_list = []
         while self.results_queue.qsize() != 0:
@@ -180,7 +177,7 @@ class PluginWatcher():
                     return
         for plugin in self.plugins:
             plugin.run_doc(self.doc, self.results_queue)
-    
+
     def run(self, speech_text: str) -> list[typing.Any]:
         """Run one assistant3 session.
 
@@ -189,6 +186,7 @@ class PluginWatcher():
 
         Returns:
             List of results from plugins
+
         """
         self.doc = self.nlp(speech_text)
 
@@ -221,8 +219,7 @@ class PluginWatcher():
         if last_record['type'] == PluginResultType.TEXT:
             self.flow_record.reset()
             return []
-
-        
+        return []
 
     def list_plugins_by_uid(self) -> None:
         """List plugins by uid."""

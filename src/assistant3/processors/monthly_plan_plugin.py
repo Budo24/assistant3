@@ -2,6 +2,7 @@
 import queue
 import typing
 
+import spacy
 import xlsxwriter
 
 from ..common import constants, helpers
@@ -530,7 +531,12 @@ class MonthlyPlanPlugin(BasePlugin):
             return
         return
 
-    def run_doc(self, doc: spacy.language.Language, queue_: queue.Queue[typing.Any], by_uid: bool = False) -> None:
+    def run_doc(
+        self,
+        doc: spacy.language.Language,
+        queue_: queue.Queue[typing.Any],
+        by_uid: bool = False,
+    ) -> None:
         """Run doc."""
         for keyword in constants.actions_keywords:
             self.add_activation_doc(keyword)

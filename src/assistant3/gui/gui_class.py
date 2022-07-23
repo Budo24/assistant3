@@ -1,19 +1,17 @@
-"""
-Links:
-https://yagisanatode.com/2018/02/24/how-to-center-the-main-window-on-the-screen-in-tkinter-with-python-3/
-"""
+"""Gui."""
 
 import importlib.resources as resourcesapi
-from tkinter import CENTER, Canvas, Label, Tk
-import wave
 import socket
+import wave
+from tkinter import CENTER, Canvas, Label, Tk
 
 import assistant3.data
 
 
 class GUI():
     """Empty."""
-    HOST = "127.0.0.1"  # The server's hostname or IP address
+
+    HOST = '127.0.0.1'  # The server's hostname or IP address
     PORT = 65431
 
     def __init__(self) -> None:
@@ -35,7 +33,7 @@ class GUI():
             '+' +
             str(position_down),
         )
-        self.text ="Understood text ..."
+        self.text = 'Understood text ...'
         self.radius = 0.0
         # Label for Text Output
         self.lbl = Label(self.window, font='Damascus', anchor=CENTER)
@@ -64,15 +62,14 @@ class GUI():
 
         self.animate = True
 
-        
-
     def update_speech(self) -> None:
+        """Update speech callback."""
         # text needs to be passed
         self.m_canvas.delete('all')
         wav_file_path = resourcesapi.path(assistant3.data, 'inter_results.txt')
         try:
             with open(str(wav_file_path), 'r', encoding='utf-8') as r_f:
-                
+
                 self.text = r_f.readlines()[-1]
         except FileNotFoundError:
             pass
@@ -80,8 +77,6 @@ class GUI():
             pass
         self.lbl.config(text=self.text, font=('Damascus', 16, 'italic'))
         self.show_label()
-
-        #self.window.after(200, self.update_speech)
 
     def show_label(self) -> None:
         """Empty."""
@@ -95,6 +90,7 @@ class GUI():
 
     # Update values
     def update_animate(self) -> None:
+        """Update animation callback."""
         rec = self.socket.recv(4)
         print(rec)
         if rec == b'0000':
@@ -105,13 +101,11 @@ class GUI():
         else:
             self.animate = True
         self.window.after(50, self.update_animate)
-        
 
-    
     def update_bubble(self) -> None:
-        """Empty."""
+        """Update circle callback."""
         # Update Speech Bubble, speech is bool if usr is speeking, needs to be passed
-        
+
         if self.animate:
             if self.frame < self.frames - 10:
                 self.frame = self.frame + 1
@@ -127,14 +121,16 @@ class GUI():
         self.window.after(100, self.update_bubble)
 
     def run(self) -> None:
-        """Empty."""
+        """Start main loop."""
         self.window.after(100, self.update_bubble)
         self.window.after(50, self.update_animate)
         self.update_speech()
 
         self.window.mainloop()
 
+
 def main() -> None:
+    """Gui main function."""
     gui = GUI()
     gui.run()
 

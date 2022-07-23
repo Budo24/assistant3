@@ -24,7 +24,11 @@ def locator() -> str:
     location = nomi_locator.reverse(f'{latitude}, {longitude}')
     return str(location)
 
-def word_conv(textnum: str, numwords: dict[typing.Any, typing.Any] | object = None) -> int | str:
+
+def word_conv(
+    textnum: str,
+    numwords: dict[typing.Any, typing.Any] | object = None,
+) -> int | str:
     """Convert words to numbers."""
     numwords = {}
     if not numwords:
@@ -139,33 +143,30 @@ def div(left: float, right: float) -> float:
 
 def run(operator: str, left: float, right: float) -> float | str:
     """Execute the calculation."""
-    res = 0
     if operator == 'add':
-        res = float(add(left, right))
-        return res
+        return float(add(left, right))
     if operator == 'sub':
-        res = float(sub(left, right))
-        return res
+        return float(sub(left, right))
     if operator == 'multiply':
-        res = float(mul(left, right))
-        return res
+        return float(mul(left, right))
     if operator == 'division':
-        res = float(add(left, right))
-        return res
+        return float(div(left, right))
     return 'operator doesnt exist'
 
+
 def connect() -> bool:
-    """Checks if assistant is connected to internet or not"""
+    """Check if assistant is connected to internet or not."""
     try:
         urllib.request.urlopen('http://google.com')
         return True
     except URLError:
         return False
 
+
 def increase_volume() -> None:
     """Increase the volume."""
     keyboard = Controller()
-    for i in range(8):
+    for _i in range(8):
         keyboard.press(Key.media_volume_up)
         keyboard.release(Key.media_volume_up)
         time.sleep(0.1)
@@ -174,7 +175,7 @@ def increase_volume() -> None:
 def decrease_volume() -> None:
     """Decrease the volume."""
     keyboard = Controller()
-    for i in range(8):
+    for _i in range(8):
         keyboard.press(Key.media_volume_down)
         keyboard.release(Key.media_volume_down)
         time.sleep(0.1)
@@ -182,13 +183,14 @@ def decrease_volume() -> None:
 
 class WeatherMan():
     """Class to determine weather values of a city."""
+
     region: str = None
     time: str = None
     weather: str = None
     humidity: str = None
     temperature: int = None
-    __measurement: str = "c"
-    __url: str = "https://weatherdbi.herokuapp.com/data/weather/"
+    __measurement: str = 'c'
+    __url: str = 'https://weatherdbi.herokuapp.com/data/weather/'
 
     def __init__(self, search: str) -> None:
         """Initialize the values."""
@@ -197,10 +199,10 @@ class WeatherMan():
 
     def set_measurement(self, measure_type: str) -> None:
         """Set measurements."""
-        if measure_type.lower() == "metric":
-            self.__measurement = "c"
+        if measure_type.lower() == 'metric':
+            self.__measurement = 'c'
         else:
-            self.__measurement = "f"
+            self.__measurement = 'f'
 
     def obtain_information(self) -> None:
         """Obtain informations."""
@@ -214,7 +216,7 @@ class WeatherMan():
             'time': self.time,
             'weather': self.weather,
             'temperature': self.temperature,
-            'humidity': self.humidity
+            'humidity': self.humidity,
         }
 
         with open(file_name, 'w') as output:
@@ -222,16 +224,16 @@ class WeatherMan():
 
     def __update_variables(self, json: dict) -> None:
         """Update variable."""
-        if "status" in json:
+        if 'status' in json:
             self.region = None
             self.time = None
             self.weather = None
             self.humidity = None
             self.temperature = None
         else:
-            self.region = json["region"]
-            self.time = json["currentConditions"]["dayhour"]
-            self.weather = json["currentConditions"]["comment"]
-            self.temperature = json["currentConditions"]["temp"][
+            self.region = json['region']
+            self.time = json['currentConditions']['dayhour']
+            self.weather = json['currentConditions']['comment']
+            self.temperature = json['currentConditions']['temp'][
                 self.__measurement]
-            self.humidity = json["currentConditions"]["humidity"]
+            self.humidity = json['currentConditions']['humidity']

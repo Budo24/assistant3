@@ -1,7 +1,6 @@
 """assistant3 entry."""
 import argparse
 import importlib.resources as resourcesapi
-import os
 import queue
 import socket
 import sys
@@ -35,16 +34,12 @@ def int_or_str(text: str | int) -> int:
 
 class Assistant3():
     """Main assistant3 application object."""
-    HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
+
+    HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
     PORT = 65431
 
     def __init__(self) -> None:
-        """Create new Assistant3 object.
-
-        Returns:
-            New Assistant3 instance.
-
-        """
+        """Create new Assistant3 object."""
         self.feedback_ignore_obj = False
         self.primary_audio_buffer: queue.Queue[bytes] = queue.Queue()
         # plugin object
@@ -57,14 +52,12 @@ class Assistant3():
         self.int = processors.base_processor.Internet()
         self.vol = processors.base_processor.Volume()
         self.wet = processors.base_processor.Weather()
-
-
         # trigger plugin object
         self.trigger = processors.base_processor.TriggerPlugin()
         # the plugin_watcher object
         self.plugin_watcher = PluginWatcher(
-            [self.wik, self.jok, self.loc, self.cal, self.mpp, self.vol, self.wet, self.int]
-            )
+            [self.wik, self.jok, self.loc, self.cal, self.mpp, self.vol, self.wet, self.int],
+        )
         # optionaly adding a trigger Plugin ("hey assistant")
         self.plugin_watcher.add_trigger_plugin(self.trigger)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -73,7 +66,6 @@ class Assistant3():
         conn, addr = self.socket.accept()
         self.conn = conn
         self.addr = addr
-            
 
     def callback(self, *args: typing.Iterable[typing.SupportsIndex]) -> None:
         """Feed audio buffer in sounddevice audio stream.
