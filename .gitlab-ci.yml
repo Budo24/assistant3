@@ -10,7 +10,7 @@ test:
     - apt-get update && apt-get install -y espeak
     - python3.10 -m venv venv
     - venv/bin/python -m pip install -r requirements.txt
-    - venv/bin/python -m pip install -e .
+    - venv/bin/python -m pip install -e .[dev]
     - venv/bin/python -m spacy download en_core_web_md
     - venv/bin/python -m pytest
   coverage: '/\d+\%\s*$/'
