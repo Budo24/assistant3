@@ -105,9 +105,11 @@ class PickAndCollect:
         rack_number = _m
         corridor_number = _n
         json_order = self.rack_object.read_jason_file(corridor_number)
-        if json_order[rack_number]['rack_number'] == -1:
-            return True
-        return False
+        print('rack_number: ', rack_number)
+        if rack_number >= 0:
+            if json_order[rack_number]['rack_number'] == -1:
+                return True
+            return False
 
     def check_collected(self, _m: int, _n: int) -> bool:
         """Give information about collect state.

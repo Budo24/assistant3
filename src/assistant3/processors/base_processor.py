@@ -237,6 +237,7 @@ class TriggerPlugin(BasePlugin):
         """
         self.queue = _queue
         get_status = self.order_manager.check_order_triger(str(doc))
+        print('Get statuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuus: ', get_status)
         if not get_status:
             activated = self.is_activated(doc)
         elif get_status:
@@ -248,10 +249,15 @@ class TriggerPlugin(BasePlugin):
             self.end_result['result'] = ''
             self.end_result['plugin_type'] = PluginType.TRIGGER_PLUGIN
             self.end_result['result_speech_func'] = self.error_spit
+            if str(doc) == 'stop':
+                self.end_result['type'] = PluginResultType.TEXT
             # here we push it to the results queue passed by pw
             self.queue.put(self.end_result)
             return
-        self.end_result['type'] = PluginResultType.TEXT
+        if not get_status:
+            self.end_result['type'] = PluginResultType.TEXT
+        elif get_status:
+            self.end_result['type'] = PluginResultType.KEEP_ALIVE
         self.end_result['result'] = ''
         self.end_result['plugin_type'] = PluginType.TRIGGER_PLUGIN
         self.end_result['result_speech_func'] = self.spit

@@ -87,9 +87,10 @@ class AddOrderPlugin(BasePlugin):
             self.end_result['result'] = ''
             self.end_result['result_speech_func'] = self.error_spit
             # here we push it to the results queue passed by pw
+            self.end_result['type'] = PluginResultType.TEXT
             self.queue.put(self.end_result)
             return
-        self.end_result['type'] = PluginResultType.TEXT
+        self.end_result['type'] = PluginResultType.KEEP_ALIVE
         self.end_result['result'] = ''
         self.end_result['plugin_type'] = PluginType.SYSTEM_PLUGIN
         self.end_result['result_speech_func'] = self.spit
@@ -152,10 +153,12 @@ class CollectOrder(BasePlugin):
             self.end_result['type'] = PluginResultType.ERROR
             self.end_result['result'] = ''
             self.end_result['result_speech_func'] = self.error_spit
+            self.end_result['type'] = PluginResultType.TEXT
             # here we push it to the results queue passed by pw
+
             self.queue.put(self.end_result)
             return
-        self.end_result['type'] = PluginResultType.TEXT
+        self.end_result['type'] = PluginResultType.KEEP_ALIVE
         self.end_result['result'] = ''
         self.end_result['plugin_type'] = PluginType.SYSTEM_PLUGIN
         self.end_result['result_speech_func'] = self.spit
@@ -222,9 +225,10 @@ class PickPlugin(BasePlugin):
             self.end_result['result'] = ''
             self.end_result['result_speech_func'] = self.error_spit
             # here we push it to the results queue passed by pw
+            self.end_result['type'] = PluginResultType.TEXT
             self.queue.put(self.end_result)
             return
-        self.end_result['type'] = PluginResultType.TEXT
+        self.end_result['type'] = PluginResultType.KEEP_ALIVE
         self.end_result['result'] = ''
         self.end_result['plugin_type'] = PluginType.SYSTEM_PLUGIN
         self.end_result['result_speech_func'] = self.spit
@@ -369,9 +373,10 @@ class MeetClient(BasePlugin):
             self.end_result['result'] = ''
             self.end_result['result_speech_func'] = self.error_spit
             # here we push it to the results queue passed by pw
+            self.end_result['type'] = PluginResultType.TEXT
             self.queue.put(self.end_result)
             return
-        self.end_result['type'] = PluginResultType.TEXT
+        self.end_result['type'] = PluginResultType.KEEP_ALIVE
         self.end_result['result'] = ''
         self.end_result['plugin_type'] = PluginType.SYSTEM_PLUGIN
         self.end_result['result_speech_func'] = self.spit

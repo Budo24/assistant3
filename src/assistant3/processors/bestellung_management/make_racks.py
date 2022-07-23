@@ -40,6 +40,7 @@ class MakeRacks:
             _m = self.db_object.dict_all_order()
             _m[len(_m) - 1]['rack_number'] = 1
             _m[len(_m) - 1] = dict(_m[len(_m) - 1], corridor_number=i)
+            print("KEKKEKEKEKEKKEKEKEPPPPPPPPPPPPPPPPPPPPPPPPPPKKEKEKEK", _m[len(_m) - 1])
             self.write_json_file(i, [_m[len(_m) - 1]])
 
     def generate_json_order(self) -> None:

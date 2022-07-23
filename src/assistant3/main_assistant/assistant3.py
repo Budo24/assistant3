@@ -64,6 +64,7 @@ class Assistant3():
         # trigger plugin object
         self.trigger = processors.base_processor.TriggerPlugin()
         # the plugin_watcher object
+        print("kkkk", self.db_object.read_db())
         self.plugin_watcher = PluginWatcher(
             [self.wik, self.jok, self.loc, self.cal, self.mpp, self.vol, self.wet, self.int, self.sdp,
              self.aop, self.cop, self.pop, self.mcp
@@ -162,6 +163,8 @@ class Assistant3():
                     # end_result = None
         except KeyboardInterrupt as exc:
             self.db_object.remove_db_plugin()
+            print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+            print(self.db_object.read_db_plugin())
             # wav_file_path = resourcesapi.path(assistant3.data, 'inter_results.txt')
             # with open(str(wav_file_path), 'w', encoding='utf-8') as w_f:
             #   w_f.write('')

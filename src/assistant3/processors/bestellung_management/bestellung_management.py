@@ -491,6 +491,7 @@ class OrderManager:
 
         """
         interrup_int = self.manager_tools.get_interrupt_control()
+        print('interupt_int: ', interrup_int)
         if interrup_int in (1, 10):
             self.order_spit = 'you gave me' + str(self.doc_add)
             return True

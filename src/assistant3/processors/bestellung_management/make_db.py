@@ -192,3 +192,5 @@ class MakeDB:
                 return dict(zip(_p + _o, list(plugin_order[0])))
         return -1
 
+db = MakeDB()
+print("kkkk", db.read_db())
