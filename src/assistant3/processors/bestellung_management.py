@@ -491,20 +491,18 @@ class OrderManager:
 
         """
         interrup_int = self.manager_tools.get_interrupt_control()
+        _a = self.manager_tools.get_interrupt_control() in (4, 5, 6)
+        _b = self.manager_tools.get_interrupt_control() in (7, 8, 9)
         if interrup_int in (1, 10):
             self.order_spit = 'you gave me' + str(self.doc_add)
             return True
         if interrup_int == 3:
             self.order_spit = 'new order'
             return True
-        if self.manager_tools.get_interrupt_control() in (4, 5, 6):
-            if self.next_element() == 'stop for dont save':
+        if _a or _b:
+            if self.next_element() == 'stop for dont save' and _a:
                 self.order_spit = 'stop for dont save'
-            else:
-                self.order_spit = 'next'
-            return True
-        if self.manager_tools.get_interrupt_control() in (7, 8, 9):
-            if self.next_pick_element() == 'stop for dont save':
+            elif self.next_pick_element() == 'stop for dont save' and _b:
                 self.order_spit = 'stop for dont save'
                 self.interrupt_pick_task()
             else:
