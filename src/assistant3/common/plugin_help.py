@@ -27,7 +27,7 @@ def locator() -> str:
 
 def word_conv(
     textnum: str,
-    numwords: dict[typing.Any, typing.Any] | object = None,
+    numwords: typing.Any | object = None,
 ) -> int | str:
     """Convert words to numbers."""
     numwords = {}
@@ -157,8 +157,8 @@ def run(operator: str, left: float, right: float) -> float | str:
 def connect() -> bool:
     """Check if assistant is connected to internet or not."""
     try:
-        urllib.request.urlopen('http://google.com')
-        return True
+        with urllib.request.urlopen('http://google.com'):
+            return True
     except URLError:
         return False
 
@@ -184,11 +184,11 @@ def decrease_volume() -> None:
 class WeatherMan():
     """Class to determine weather values of a city."""
 
-    region: str = None
-    time: str = None
-    weather: str = None
-    humidity: str = None
-    temperature: int = None
+    region: str = ''
+    time: str = ''
+    weather: str = ''
+    humidity: str = ''
+    temperature: int = 0
     __measurement: str = 'c'
     __url: str = 'https://weatherdbi.herokuapp.com/data/weather/'
 
@@ -219,21 +219,21 @@ class WeatherMan():
             'humidity': self.humidity,
         }
 
-        with open(file_name, 'w') as output:
+        with open(file_name, encoding='utf-8') as output:
             json.dump(data, output)
 
-    def __update_variables(self, json: dict) -> None:
+    def __update_variables(self, _json: dict[typing.Any, typing.Any]) -> None:
         """Update variable."""
-        if 'status' in json:
-            self.region = None
-            self.time = None
-            self.weather = None
-            self.humidity = None
-            self.temperature = None
+        if 'status' in _json:
+            self.region = ''
+            self.time = ''
+            self.weather = ''
+            self.humidity = ''
+            self.temperature = 0
         else:
-            self.region = json['region']
-            self.time = json['currentConditions']['dayhour']
-            self.weather = json['currentConditions']['comment']
-            self.temperature = json['currentConditions']['temp'][
+            self.region = _json['region']
+            self.time = _json['currentConditions']['dayhour']
+            self.weather = _json['currentConditions']['comment']
+            self.temperature = _json['currentConditions']['temp'][
                 self.__measurement]
-            self.humidity = json['currentConditions']['humidity']
+            self.humidity = _json['currentConditions']['humidity']
