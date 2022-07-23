@@ -7,15 +7,13 @@ test:
   stage: test
   image: python:3.10
   script:
-    - apt-get install -y xorg-dev libglu1-mesa libgl1-mesa-dev xvfb libxinerama1 libxcursor1 
-    - xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- pyinstaller -F biogame.spec
     - apt-get update && apt-get install -y espeak
     - python3.10 -m venv venv
     - venv/bin/python -m pip install -r requirements.txt
     - venv/bin/python -m pip install -e .[dev]
-    - DISPLAY=:0 venv/bin/python -c 'import pynput'
     - venv/bin/python -m spacy download en_core_web_md
     - venv/bin/python -m pytest
+    - venv/bin/sphinx-build docs public
   coverage: '/\d+\%\s*$/'
   artifacts:
     paths:
@@ -36,7 +34,6 @@ build:
     - python3.10 -m venv venv
     - venv/bin/python -m pip install build
     - venv/bin/python -m build .
-    - DISPLAY=:0 venv/bin/python -c 'import pynput'
   artifacts:
     paths:
       - dist
