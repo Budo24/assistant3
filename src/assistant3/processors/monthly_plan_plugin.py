@@ -137,7 +137,7 @@ class MonthlyPlanPlugin(BasePlugin):
         """Check finally, if it is possible to add time range."""
         if time_range_possible < 0:
             self.actions_keywords['add_activity'] = False
-            self.min_similarity = 0.75
+            self.min_similarity = 1
             self.reset_activity()
 
             return f'Time range {time_range_words} is not valid, try another one, '\
@@ -154,7 +154,7 @@ class MonthlyPlanPlugin(BasePlugin):
             return f'Time range {time_range_numbers} available, you can try to add an activity'
 
         self.actions_keywords['add_activity'] = False
-        self.min_similarity = 0.75
+        self.min_similarity = 1
         self.reset_activity()
 
         return 'In that time range already exist activity'
@@ -216,7 +216,7 @@ class MonthlyPlanPlugin(BasePlugin):
                     'you can add time range'
 
             self.actions_keywords['add_activity'] = False
-            self.min_similarity = 0.75
+            self.min_similarity = 1
             said_day = str(self.activity_values['said_day'])
             tell_date = helpers.say_date(said_day)
             self.reset_activity()
@@ -226,7 +226,7 @@ class MonthlyPlanPlugin(BasePlugin):
         if self.activity_values['activity_add']:
             self.add_activity_to_time_range(activated_keyword)
             self.actions_keywords['add_activity'] = False
-            self.min_similarity = 0.75
+            self.min_similarity = 1
             self.reset_activity()
             print('Here')
             return f'Activity {activated_keyword} successfully added'
@@ -290,7 +290,7 @@ class MonthlyPlanPlugin(BasePlugin):
             date_ = helpers.say_date(date_)
             start = self.first_date
             self.actions_keywords['delete_date'] = False
-            self.min_similarity = 0.75
+            self.min_similarity = 1
 
             if start.day_ordinal_number == day_ordinal_number:
 
@@ -325,7 +325,7 @@ class MonthlyPlanPlugin(BasePlugin):
 
         date_ = helpers.say_date(date_)
         self.actions_keywords['delete_date'] = False
-        self.min_similarity = 0.75
+        self.min_similarity = 1
 
         return f'The date {date_}  does not exist in monthly' \
             'plan, so it can not be deleted'
@@ -343,7 +343,7 @@ class MonthlyPlanPlugin(BasePlugin):
         if date_number_of_days is not True:
 
             self.actions_keywords['add_date'] = False
-            self.min_similarity = 0.75
+            self.min_similarity = 1
             return date_number_of_days
 
         if date_exist is False:
@@ -351,7 +351,7 @@ class MonthlyPlanPlugin(BasePlugin):
             if day_in_past:
 
                 self.actions_keywords['add_date'] = False
-                self.min_similarity = 0.75
+                self.min_similarity = 1
                 return day_in_past
 
             date_in_month = SingleDate(date_, day_ordinal_number)
@@ -367,13 +367,13 @@ class MonthlyPlanPlugin(BasePlugin):
 
             date_ = helpers.say_date(date_)
             self.actions_keywords['add_date'] = False
-            self.min_similarity = 0.75
+            self.min_similarity = 1
 
             return f'Date {date_} is successfully inserted, function'\
                 ' for inserting of dates is deactivated'
 
         self.actions_keywords['add_date'] = False
-        self.min_similarity = 0.75
+        self.min_similarity = 1
         date_ = helpers.say_date(date_)
         return f'Date {date_} already exist in monthly plan'
 
@@ -399,7 +399,7 @@ class MonthlyPlanPlugin(BasePlugin):
                 and self.activity_values['time_range_add'] is False:
 
             self.actions_keywords['add_activity'] = False
-            self.min_similarity = 0.75
+            self.min_similarity = 1
             self.reset_activity()
             self.end_result['result'] = 'Break adding of activity'
             self.say_result_put_in_queue()
@@ -411,7 +411,7 @@ class MonthlyPlanPlugin(BasePlugin):
 
     def deactivate_action(self) -> None:
         """Deactivate activated action."""
-        self.min_similarity = 0.75
+        self.min_similarity = 1
 
         if self.actions_keywords['add_date']:
             self.actions_keywords['add_date'] = False
