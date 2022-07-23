@@ -1,4 +1,5 @@
 """Plugins."""
+import copy
 import queue
 import time
 import typing
@@ -27,7 +28,7 @@ class SpacyDatePlugin(BasePlugin):
 
     def run_doc(
         self,
-        doc: spacy.language.Language,
+        doc: spacy.tokens.Doc,
         _queue: queue.Queue[typing.Any],
         by_uid: bool = False,
     ) -> None:
@@ -104,7 +105,7 @@ class Wikipedia(BasePlugin):
 
     def run_doc(
         self,
-        doc: object | typing.Any,
+        doc: spacy.tokens.Doc,
         _queue: queue.Queue[typing.Any],
         by_uid: bool = False,
     ) -> None:
@@ -117,6 +118,8 @@ class Wikipedia(BasePlugin):
 
         """
         self.queue = _queue
+        iterator = copy.deepcopy(doc)
+        print(iterator[0])
 
         if self.is_activated(doc) or by_uid:
             if not self.search_result and not self.flow:
@@ -163,7 +166,7 @@ class Location(BasePlugin):
 
     def run_doc(
         self,
-        doc: spacy.language.Language,
+        doc: spacy.tokens.Doc,
         _queue: queue.Queue[typing.Any],
         by_uid: bool = False,
     ) -> None:
@@ -199,7 +202,7 @@ class Jokes(BasePlugin):
 
     def run_doc(
         self,
-        doc: spacy.language.Language,
+        doc: spacy.tokens.Doc,
         _queue: queue.Queue[typing.Any],
         by_uid: bool = False,
     ) -> None:
@@ -238,7 +241,7 @@ class Calculator(BasePlugin):
 
     def run_doc(
         self,
-        doc: spacy.language.Language,
+        doc: spacy.tokens.Doc,
         _queue: queue.Queue[typing.Any],
         by_uid: bool = False,
     ) -> None:
@@ -255,6 +258,7 @@ class Calculator(BasePlugin):
             if len(self.stack) == 0 and not self.activation:
                 start_text = 'This is calculator plugin, we start by initializing two numbers \
                                 and then we intialize the operator. please say the first number'
+
                 self.end_result['type'] = PluginResultType.KEEP_ALIVE
                 self.end_result['result'] = start_text
                 self.end_result['result_speech_func'] = super().spit_text
@@ -274,6 +278,7 @@ class Calculator(BasePlugin):
                 self.stack.append(value)
                 text = f'first number is {self.stack[0]}, and second number is {self.stack[1]} \
                     which operator do you want?'
+
                 self.end_result['type'] = PluginResultType.KEEP_ALIVE
                 self.end_result['result'] = text
                 self.end_result['result_speech_func'] = super().spit_text
@@ -312,7 +317,7 @@ class Internet(BasePlugin):
 
     def run_doc(
         self,
-        doc: spacy.language.Language,
+        doc: spacy.tokens.Doc,
         _queue: queue.Queue[typing.Any],
         by_uid: bool = False,
     ) -> None:
@@ -356,7 +361,7 @@ class Volume(BasePlugin):
 
     def run_doc(
         self,
-        doc: spacy.language.Language | object,
+        doc: spacy.tokens.Doc,
         _queue: queue.Queue[typing.Any],
         by_uid: bool = False,
     ) -> None:
@@ -408,7 +413,7 @@ class Weather(BasePlugin):
 
     def run_doc(
         self,
-        doc: spacy.language.Language,
+        doc: spacy.tokens.Doc,
         _queue: queue.Queue[typing.Any],
         by_uid: bool = False,
     ) -> None:
@@ -437,6 +442,7 @@ class Weather(BasePlugin):
             if city_weather is not None:
                 text = f'In {city} the current weather is {city_weather}\
                     , with {city_temp} degrees celcius'
+
                 self.end_result['type'] = PluginResultType.TEXT
                 self.end_result['result'] = text
                 self.end_result['result_speech_func'] = super().spit_text

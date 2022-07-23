@@ -137,9 +137,7 @@ class BasePlugin():
             return False
         activation_similarities = self.get_activation_similarities(target)
         print(activation_similarities)
-        return any(
-            similarity > self.min_similarity for similarity in activation_similarities
-        )
+        return any(similarity > self.min_similarity for similarity in activation_similarities)
 
     def init_activation_doc(self) -> None:
         """Add a SpaCy Object to the reference phrases."""
@@ -204,7 +202,7 @@ class BasePlugin():
 
     def run_doc(
         self,
-        doc: spacy.language.Language,
+        doc: spacy.tokens.Doc,
         _queue: queue.Queue[typing.Any],
         by_uid: bool = False,
     ) -> None:
@@ -239,7 +237,7 @@ class BaseInitializationErrorPlugin(BasePlugin):
 
     def run_doc(
         self,
-        doc: spacy.language.Language,
+        doc: spacy.tokens.Doc,
         _queue: queue.Queue[typing.Any],
         by_uid: bool = False,
     ) -> None:
@@ -272,9 +270,7 @@ class TriggerPlugin(BasePlugin):
         self.add_activation_doc('assistant')
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
         self.min_similarity = 0.89
-        self.activation_dict[
-            'general_tts_error_message'
-        ] = 'did not match hey assistant'
+        self.activation_dict['general_tts_error_message'] = 'did not match hey assistant'
 
     def spit(self) -> None:
         """Play response audio."""
@@ -283,7 +279,7 @@ class TriggerPlugin(BasePlugin):
 
     def run_doc(
         self,
-        doc: spacy.language.Language,
+        doc: spacy.tokens.Doc,
         _queue: queue.Queue[typing.Any],
         by_uid: bool = False,
     ) -> None:

@@ -12,8 +12,7 @@ import vosk
 import assistant3.data
 
 from .. import processors
-from ..processors import monthly_plan_plugin
-from ..processors import plugins
+from ..processors import monthly_plan_plugin, plugins
 from .plugins_watcher import PluginWatcher
 
 
@@ -37,7 +36,7 @@ class Assistant3():
     """Main assistant3 application object."""
 
     HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
-    PORT = 65511
+    PORT = 65513
 
     def __init__(self) -> None:
         """Create new Assistant3 object."""
@@ -68,6 +67,8 @@ class Assistant3():
         conn, addr = self.socket.accept()
         self.conn = conn
         self.addr = addr
+        vosk_model_path = resourcesapi.path(assistant3.data, 'vosk-model-small-en-us-0.15')
+        self.model = vosk.Model(str(vosk_model_path))
 
     def callback(self, *args: typing.Iterable[typing.SupportsIndex]) -> None:
         """Feed audio buffer in sounddevice audio stream.
@@ -97,9 +98,6 @@ class Assistant3():
             device_info = sd.query_devices(args.device, 'input')
             # soundfile expects an int, sounddevice provides a float:
             args.samplerate = int(device_info['default_samplerate'])
-            vosk_model_path = resourcesapi.path(
-                assistant3.data, 'vosk-model-small-en-us-0.15')
-            model = vosk.Model(str(vosk_model_path))
 
             dump_file_exist = bool(args.filename)
 
@@ -115,14 +113,13 @@ class Assistant3():
                 print('Press Ctrl+C to stop the recording')
                 print('#' * 80)
 
-                rec = vosk.KaldiRecognizer(model, args.samplerate)
+                rec = vosk.KaldiRecognizer(self.model, args.samplerate)
                 while True:
                     data = self.primary_audio_buffer.get()
                     if rec.AcceptWaveform(data):
                         res = rec.Result()
                         text = res.replace('\n', '')
-                        text = text.replace(
-                            '{  "text" : "', '').replace('"}', '')
+                        text = text.replace('{  "text" : "', '').replace('"}', '')
                         print(text)
                         wav_file_path = resourcesapi.path(assistant3.data, 'inter_results.txt')
                         with open(str(wav_file_path), 'w', encoding='utf-8') as w_f:
@@ -135,8 +132,7 @@ class Assistant3():
                             res_list[0]['result_speech_func']()
                         self.feedback_ignore_obj = False
                         if len(res_list) > 0:
-                            self.plugin_watcher.add_entry_to_flow_record(
-                                res_list[0])
+                            self.plugin_watcher.add_entry_to_flow_record(res_list[0])
                         ret_str = ''
                         ret_str += 'returned res_list\n'
                         ret_str += str(res_list)

@@ -76,8 +76,7 @@ class PluginWatcher():
                 with contextlib.suppress(Exception):
                     error_plugin_name = plugin.__str__()
                 self.plugins = [
-                    processors.base_processor.BaseInitializationErrorPlugin(
-                    ),
+                    processors.base_processor.BaseInitializationErrorPlugin(),
                 ]
                 print(error_plugin_name)
                 break
@@ -199,8 +198,8 @@ class PluginWatcher():
         if last_record['type'] == PluginResultType.ERROR:
             if last_record['plugin_type'] == PluginType.TRIGGER_PLUGIN:
                 self.run_by_uid(last_record['uid'])
-                return self.flush_result_queue_in_list()
-            self.run_plugins()
+            else:
+                self.run_plugins()
             return self.flush_result_queue_in_list()
 
         if last_record['plugin_type'] == PluginType.TRIGGER_PLUGIN:
@@ -218,7 +217,6 @@ class PluginWatcher():
             return self.flush_result_queue_in_list()
         if last_record['type'] == PluginResultType.TEXT:
             self.flow_record.reset()
-            return []
         return []
 
     def list_plugins_by_uid(self) -> None:

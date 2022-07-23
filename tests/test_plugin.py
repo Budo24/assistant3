@@ -3,10 +3,10 @@
 import wikipedia
 
 from assistant3 import processors
-from assistant3.processors import plugins
 from assistant3.common import plugin_help
 from assistant3.common.plugins import PluginResultType
 from assistant3.main_assistant.plugins_watcher import PluginWatcher
+from assistant3.processors import plugins
 
 
 def test_activation_trigger() -> None:
@@ -100,6 +100,7 @@ def test_weather_plugin() -> None:
     city_temp = str(plugin_help.WeatherMan(city).temperature)
     text = f'In {city} the current weather is {city_weather}\
                     , with {city_temp} degrees celcius'
+
     assert res_list[0]['result'] is not None
     assert res_list[0]['result'] == text
 
@@ -122,6 +123,7 @@ def test_spacy_weather_plugin() -> None:
     city_temp = str(plugin_help.WeatherMan(city).temperature)
     text = f'In {city} the current weather is {city_weather}\
                     , with {city_temp} degrees celcius'
+
     activation_words = [
         'give me the weather in london',
         'is it going to rain in london',

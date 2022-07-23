@@ -533,7 +533,7 @@ class MonthlyPlanPlugin(BasePlugin):
 
     def run_doc(
         self,
-        doc: spacy.language.Language,
+        doc: spacy.tokens.Doc,
         queue_: queue.Queue[typing.Any],
         by_uid: bool = False,
     ) -> None:

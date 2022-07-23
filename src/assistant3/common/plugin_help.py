@@ -56,8 +56,16 @@ def word_conv(
         ]
 
         tens = [
-            '', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy',
-            'eighty', 'ninety',
+            '',
+            '',
+            'twenty',
+            'thirty',
+            'forty',
+            'fifty',
+            'sixty',
+            'seventy',
+            'eighty',
+            'ninety',
         ]
 
         scales = ['hundred', 'thousand', 'million', 'billion', 'trillion']
@@ -234,6 +242,5 @@ class WeatherMan():
             self.region = _json['region']
             self.time = _json['currentConditions']['dayhour']
             self.weather = _json['currentConditions']['comment']
-            self.temperature = _json['currentConditions']['temp'][
-                self.__measurement]
+            self.temperature = _json['currentConditions']['temp'][self.__measurement]
             self.humidity = _json['currentConditions']['humidity']
