@@ -5,9 +5,9 @@ from unittest.mock import patch
 
 import pyttsx3
 
-from ..common import constants
-from ..main_assistant.plugins_watcher import PluginWatcher
-from ..processors import monthly_plan_plugin
+from assistant3.common import constants
+from assistant3.main_assistant.plugins_watcher import PluginWatcher
+from assistant3.processors import monthly_plan_plugin
 
 engine_ = pyttsx3.init()
 
