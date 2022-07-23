@@ -11,9 +11,8 @@ test:
     - python3.10 -m venv venv
     - venv/bin/python -m pip install -r requirements.txt
     - venv/bin/python -m pip install -e .[dev]
-    - venv/bin/python -m spacy download en_core_web_md
     - venv/bin/python -m pytest
-    - sphinx-build docs public
+    - venv/bin/sphinx-build -a docs public
   coverage: '/\d+\%\s*$/'
   artifacts:
     paths:
