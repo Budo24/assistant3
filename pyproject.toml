@@ -43,10 +43,10 @@ line_length = 100
 multi_line_output = 3
 
 [tool.mypy]
-explicit_package_bases = false
+explicit_package_bases = true
 mypy_path = "$MYPY_CONFIG_FILE_DIR/src"
-namespace_packages = false
-strict = false
+namespace_packages = true
+strict = true
 ignore_missing_imports = true
 
 [tool.pydocstyle]
