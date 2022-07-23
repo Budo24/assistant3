@@ -5,6 +5,7 @@ import typing
 import pyttsx3
 import spacy
 
+from ..processors.bestellung_management.bestellung_management import OrderManager, ManagerTools
 from assistant3.common.exceptions import UidNotAssignedError
 from assistant3.common.plugins import PluginResultType, PluginType
 
@@ -22,6 +23,8 @@ class BasePlugin():
             New BasePlugin instance.
 
         """
+        self.order_manager = OrderManager()
+        self.manager_tools = ManagerTools()
         self.init_doc = match
         self.spacy_model = spacy.blank('en')
         # pyttsx3 object for voice response
@@ -210,18 +213,35 @@ class TriggerPlugin(BasePlugin):
         super().__init__('hey assistant')
         self.add_activation_doc('he assistant')
         self.queue: queue.Queue[typing.Any] = queue.Queue(0)
-        self.min_similarity = 0.89
+        self.min_similarity = 0.99
         self.activation_dict['general_tts_error_message'] = 'did not match hey assistant'
 
     def spit(self) -> None:
         """Play response audio."""
-        self.engine.say('how can i help')
-        self.engine.runAndWait()
+        get_status = self.order_manager.get_spit_response_triger()
+        # if not get_status:
+        if not get_status:
+            self.engine.say('how can i help')
+            self.engine.runAndWait()
+        elif get_status:
+            self.engine.say(self.order_manager.order_spit)
+            self.engine.runAndWait()
 
-    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any], by_uid: bool = False) -> None:
-        """Run_doc."""
+    def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
+        """Run_doc.
+
+        Args:
+            doc: speechText.
+            _queue: to put some rasults.
+
+        """
         self.queue = _queue
-        activated = self.is_activated(doc)
+        get_status = self.order_manager.check_order_triger(str(doc))
+        if not get_status:
+            activated = self.is_activated(doc)
+        elif get_status:
+            activated = True
+
         print('****', activated)
         if not activated:
             self.end_result['type'] = PluginResultType.ERROR

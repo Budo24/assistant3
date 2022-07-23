@@ -14,6 +14,8 @@ import assistant3.data
 
 from .. import processors
 from ..processors import monthly_plan_plugin, plugins
+from ..processors.bestellung_management.make_db import MakeDB
+from ..processors.bestellung_management.bestellung_plugins import AddOrderPlugin, CollectOrder, MeetClient, PickPlugin
 from .plugins_watcher import PluginWatcher
 
 
@@ -53,21 +55,28 @@ class Assistant3():
         self.vol = plugins.Volume()
         self.wet = plugins.Weather()
 
+        self.aop = AddOrderPlugin()
+        self.cop = CollectOrder()
+        self.pop = PickPlugin()
+        self.mcp = MeetClient()
+        self.db_object = MakeDB()
 
         # trigger plugin object
         self.trigger = processors.base_processor.TriggerPlugin()
         # the plugin_watcher object
         self.plugin_watcher = PluginWatcher(
-            [self.wik, self.jok, self.loc, self.cal, self.mpp, self.vol, self.wet, self.int, self.sdp]
+            [self.wik, self.jok, self.loc, self.cal, self.mpp, self.vol, self.wet, self.int, self.sdp,
+             self.aop, self.cop, self.pop, self.mcp
+            ]
             )
         # optionaly adding a trigger Plugin ("hey assistant")
         self.plugin_watcher.add_trigger_plugin(self.trigger)
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.bind((Assistant3.HOST, Assistant3.PORT))
-        self.socket.listen(1)
-        conn, addr = self.socket.accept()
-        self.conn = conn
-        self.addr = addr
+        # self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # self.socket.bind((Assistant3.HOST, Assistant3.PORT))
+        # self.socket.listen(1)
+        # conn, addr = self.socket.accept()
+        # self.conn = conn
+        # self.addr = addr
             
 
     def callback(self, *args: typing.Iterable[typing.SupportsIndex]) -> None:
@@ -125,10 +134,10 @@ class Assistant3():
                         text = text.replace(
                             '{  "text" : "', '').replace('"}', '')
                         print(text)
-                        wav_file_path = resourcesapi.path(assistant3.data, 'inter_results.txt')
-                        with open(str(wav_file_path), 'w', encoding='utf-8') as w_f:
-                            w_f.write(text)
-                        self.conn.sendall(b'0000')
+                        # wav_file_path = resourcesapi.path(assistant3.data, 'inter_results.txt')
+                        # with open(str(wav_file_path), 'w', encoding='utf-8') as w_f:
+                            # w_f.write(text)
+                        # .conn.sendall(b'0000')
 
                         res_list = self.plugin_watcher.run(text)
                         self.feedback_ignore_obj = True
@@ -146,19 +155,20 @@ class Assistant3():
 
                     else:
                         print(rec.PartialResult())
-                        self.conn.sendall(b'0001')
+                        # self.conn.sendall(b'0001')
                     if dump_file_exist:
                         with open(args.filename, 'wb') as dump_fn:
                             dump_fn.write(data)
                     # end_result = None
         except KeyboardInterrupt as exc:
-            wav_file_path = resourcesapi.path(assistant3.data, 'inter_results.txt')
-            with open(str(wav_file_path), 'w', encoding='utf-8') as w_f:
-                w_f.write('')
+            self.db_object.remove_db_plugin()
+            # wav_file_path = resourcesapi.path(assistant3.data, 'inter_results.txt')
+            # with open(str(wav_file_path), 'w', encoding='utf-8') as w_f:
+            #   w_f.write('')
             raise KeyboardInterrupt from exc
         except BrokenPipeError as brkn:
             print('brkn')
-            wav_file_path = resourcesapi.path(assistant3.data, 'inter_results.txt')
-            with open(str(wav_file_path), 'w', encoding='utf-8') as w_f:
-                w_f.write('')
+            # wav_file_path = resourcesapi.path(assistant3.data, 'inter_results.txt')
+            # with open(str(wav_file_path), 'w', encoding='utf-8') as w_f:
+            #    w_f.write('')
             raise KeyboardInterrupt from brkn
