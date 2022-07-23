@@ -7,6 +7,7 @@ test:
   stage: test
   image: python:3.10
   script:
+    - sudo apt install xorg-dev libglu1-mesa libgl1-mesa-dev xvfb libxinerama1 libxcursor1 xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- pyinstaller -F biogame.spec
     - apt-get update && apt-get install -y espeak
     - python3.10 -m venv venv
     - venv/bin/python -m pip install -r requirements.txt
