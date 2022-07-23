@@ -11,7 +11,7 @@ import sphinx.builders.texinfo as _3
 import sphinx.builders.text as _4
 import sphinx.ext.autodoc as _5
 
-__all__ = ['_1', '_2', '_3', '_4', '_5']
+__all__ = ['_1', '_2', '_3', '_5']
 
 # pylint: disable=invalid-name,redefined-builtin
 
