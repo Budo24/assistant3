@@ -140,6 +140,7 @@ class ManagerTools:
         if isinstance(collect_info, list):
             collect_info.append(4)
             self.update_db(collect_info)
+            print("Heeeeeey creat next task", collect_info)
             return 1
         return -1
 

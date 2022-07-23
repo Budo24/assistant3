@@ -151,8 +151,8 @@ class PickAndCollect:
                 object_name = next(kl_iter)
                 object_amount = next(kl_iter)
                 _m = rack_number
-                _n = corridor_number
-                return [object_name, object_amount, _n, _m + 1]
+                _kl = corridor_number
+                return [object_name, object_amount, _kl, _m + 1, _n]
         return self.pick_order_ability(order_id)
 
     def creat_collect_task(self) -> list[int | str] | int:
@@ -219,6 +219,7 @@ class PickAndCollect:
                         if int(_lkl) < _t and status[1] in 'not collected':
                             self.rack_object.delete_order_racks(int(_l))
                         elif isinstance(pick_info, list) and _lkl and _fy:
+                            pick_info.append(int(_l))
                             return pick_info
                 corridor_number = corridor_number + 1
                 json_order = self.rack_object.read_jason_file(corridor_number)

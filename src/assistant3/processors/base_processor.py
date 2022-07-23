@@ -300,22 +300,22 @@ class AddOrderPlugin(BasePlugin):
                 _l = self.order_manager.manager_tools.creat_list_order(task)
                 self.order_manager.manager_tools.update_db(_l)
                 activated = True
-            else:
-                activated = self.is_activated(doc)
-            print('****', activated)
-            if not activated:
-                self.end_result['type'] = PluginResultType.ERROR
-                self.end_result['result'] = ''
-                self.end_result['result_speech_func'] = self.error_spit
-                # here we push it to the results queue passed by pw
-                self.queue.put(self.end_result)
-                return
-            self.end_result['type'] = PluginResultType.TEXT
+        else:
+            activated = self.is_activated(doc)
+        print('****', activated)
+        if not activated:
+            self.end_result['type'] = PluginResultType.ERROR
             self.end_result['result'] = ''
-            self.end_result['plugin_type'] = PluginType.SYSTEM_PLUGIN
-            self.end_result['result_speech_func'] = self.spit
+            self.end_result['result_speech_func'] = self.error_spit
+            # here we push it to the results queue passed by pw
             self.queue.put(self.end_result)
             return
+        self.end_result['type'] = PluginResultType.TEXT
+        self.end_result['result'] = ''
+        self.end_result['plugin_type'] = PluginType.SYSTEM_PLUGIN
+        self.end_result['result_speech_func'] = self.spit
+        self.queue.put(self.end_result)
+        return
 
 
 class CollectOrder(BasePlugin):
@@ -348,11 +348,11 @@ class CollectOrder(BasePlugin):
         if isinstance(next_task, int) and next_task == -1:
             activated = False
         else:
-            int_o = self.order_manager.manager_tools.get_interrupt_control()
+            int_o = self.manager_tools.get_interrupt_control()
             if int_o == 0:
                 activated = self.is_activated(doc)
                 if activated:
-                    self.order_manager.manager_tools.creat_next_task()
+                    self.manager_tools.creat_next_task()
             elif int_o == 4:
                 if str(doc) == 'stop':
                     self.order_manager.db_object.remove_db_plugin()
@@ -364,7 +364,7 @@ class CollectOrder(BasePlugin):
                     self.order_manager.db_object.remove_db_plugin()
                     activated = self.is_activated(doc)
                 else:
-                    self.order_manager.manager_tools.set_interrupt_control(6)
+                    self.manager_tools.set_interrupt_control(6)
                     activated = True
             else:
                 activated = self.is_activated(doc)
@@ -409,7 +409,7 @@ class PickPlugin(BasePlugin):
 
         Args:
             doc: speechText.
-            queue: to put some rasults.
+            _queue: to put some rasults.
 
         """
         self.queue = _queue
@@ -505,7 +505,8 @@ class MeetClient(BasePlugin):
         _po = order_id_pick
         _lo = self.order_manager.collect_object.pick_order_info(_po)
         _k = self.order_manager.collect_object.collect_order_with_id(_po)
-        if pick_order == 'not found':
+        _nvm = isinstance(pick_order, str)
+        if _nvm and pick_order == 'not found':
             self.order_manager.db_object.remove_db_plugin()
             self.engine.say('sorry there is no order with this id')
             self.engine.runAndWait()
@@ -516,8 +517,7 @@ class MeetClient(BasePlugin):
             self.manager_tools.update_db(order_to_pick)
             self.engine.say('your order ready to pick')
             self.engine.runAndWait()
-        elif pick_order == 'not collected' and isinstance(_k, list):
-            _k.append(order_id_pick)
+        elif _nvm and pick_order == 'not collected' and isinstance(_k, list):
             _k.append(14)
             collect_task = _k
             self.manager_tools.update_db(collect_task)
@@ -548,9 +548,10 @@ class MeetClient(BasePlugin):
 
     def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
         """Run_doc.
+
         Args:
             doc: speechText.
-            queue: to put some rasults.
+            _queue: to put some rasults.
 
         """
 
@@ -621,7 +622,13 @@ class TriggerPlugin(BasePlugin):
             self.engine.runAndWait()
 
     def run_doc(self, doc: object, _queue: queue.Queue[typing.Any]) -> None:
-        """Run_doc."""
+        """Run_doc.
+
+        Args:
+            doc: speechText.
+            _queue: to put some rasults.
+
+        """
         self.queue = _queue
         get_status = self.order_manager.check_order_triger(str(doc))
         if not get_status:
