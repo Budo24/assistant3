@@ -12,7 +12,7 @@ class GUI():
     """Empty."""
 
     HOST = '127.0.0.1'  # The server's hostname or IP address
-    PORT = 65431
+    PORT = 65511
 
     def __init__(self) -> None:
         """Empty."""
