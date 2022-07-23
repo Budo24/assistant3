@@ -14,7 +14,7 @@ test:
     - venv/bin/python -m spacy download en_core_web_md
     - echo $MYPY_CONFIG_FILE_DIR
     - pwd
-    - venv/bin/python -m mypy ./src/assistant3 -v
+    - venv/bin/python -m mypy . -v
     - venv/bin/python -m pytest
   coverage: '/\d+\%\s*$/'
   artifacts:
