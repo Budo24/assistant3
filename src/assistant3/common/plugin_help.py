@@ -1,7 +1,6 @@
 """All helping function for plugins."""
 
 import json
-import time
 import typing
 import urllib.request
 from urllib.error import URLError
@@ -9,7 +8,8 @@ from urllib.error import URLError
 import geocoder
 import requests
 from geopy.geocoders import Nominatim
-from pynput.keyboard import Controller, Key
+
+# from pynput.keyboard import Controller, Key
 
 
 def locator() -> str:
@@ -171,22 +171,21 @@ def connect() -> bool:
         return False
 
 
-def increase_volume() -> None:
-    """Increase the volume."""
-    keyboard = Controller()
-    for _i in range(8):
-        keyboard.press(Key.media_volume_up)
-        keyboard.release(Key.media_volume_up)
-        time.sleep(0.1)
+# def increase_volume() -> None:
+#     """Increase the volume."""
+#     keyboard = Controller()
+#     for _i in range(8):
+#         keyboard.press(Key.media_volume_up)
+#         keyboard.release(Key.media_volume_up)
+#         time.sleep(0.1)
 
-
-def decrease_volume() -> None:
-    """Decrease the volume."""
-    keyboard = Controller()
-    for _i in range(8):
-        keyboard.press(Key.media_volume_down)
-        keyboard.release(Key.media_volume_down)
-        time.sleep(0.1)
+# def decrease_volume() -> None:
+#     """Decrease the volume."""
+#     keyboard = Controller()
+#     for _i in range(8):
+#         keyboard.press(Key.media_volume_down)
+#         keyboard.release(Key.media_volume_down)
+#         time.sleep(0.1)
 
 
 class WeatherMan():
