@@ -3,6 +3,7 @@
 import wikipedia
 
 from assistant3 import processors
+from assistant3.processors import plugins
 from assistant3.common import plugin_help
 from assistant3.common.plugins import PluginResultType
 from assistant3.main_assistant.plugins_watcher import PluginWatcher
@@ -10,7 +11,7 @@ from assistant3.main_assistant.plugins_watcher import PluginWatcher
 
 def test_activation_trigger() -> None:
     """Test activation can only be triggered with exactly 'hey assistant'."""
-    sdp = processors.base_processor.SpacyDatePlugin()
+    sdp = plugins.SpacyDatePlugin()
     trigger = processors.base_processor.TriggerPlugin()
     plugin_watcher = PluginWatcher([sdp])
     plugin_watcher.add_trigger_plugin(trigger)
@@ -21,7 +22,7 @@ def test_activation_trigger() -> None:
 
 def test_other_activation_trigger() -> None:
     """Test activation can only be triggered with exactly 'hey assistant'."""
-    sdp = processors.base_processor.SpacyDatePlugin()
+    sdp = plugins.SpacyDatePlugin()
     trigger = processors.base_processor.TriggerPlugin()
     plugin_watcher = PluginWatcher([sdp])
     plugin_watcher.add_trigger_plugin(trigger)
@@ -33,7 +34,7 @@ def test_other_activation_trigger() -> None:
 
 def test_date_plugin() -> None:
     """Test date plugin."""
-    sdp = processors.base_processor.SpacyDatePlugin()
+    sdp = plugins.SpacyDatePlugin()
     trigger = processors.base_processor.TriggerPlugin()
     plugin_watcher = PluginWatcher([sdp])
     plugin_watcher.add_trigger_plugin(trigger)
@@ -48,7 +49,7 @@ def test_date_plugin() -> None:
 
 def test_joke_plugin() -> None:
     """Test joke plugin."""
-    jok = processors.base_processor.Jokes()
+    jok = plugins.Jokes()
     trigger = processors.base_processor.TriggerPlugin()
     plugin_watcher = PluginWatcher([jok])
     plugin_watcher.add_trigger_plugin(trigger)
@@ -63,7 +64,7 @@ def test_joke_plugin() -> None:
 
 def test_internet_plugin() -> None:
     """Test internet plugin."""
-    ite = processors.base_processor.Internet()
+    ite = plugins.Internet()
     trigger = processors.base_processor.TriggerPlugin()
     plugin_watcher = PluginWatcher([ite])
     plugin_watcher.add_trigger_plugin(trigger)
@@ -84,7 +85,7 @@ def test_weather_plugin() -> None:
 
     we'll use münchen in this example and see if it would return the weather in munich
     """
-    wet = processors.base_processor.Weather()
+    wet = plugins.Weather()
     trigger = processors.base_processor.TriggerPlugin()
     plugin_watcher = PluginWatcher([wet])
     plugin_watcher.add_trigger_plugin(trigger)
@@ -108,7 +109,7 @@ def test_spacy_weather_plugin() -> None:
 
     here we check that with help of spacy this plugin could be triggered with different sentences
     """
-    wet = processors.base_processor.Weather()
+    wet = plugins.Weather()
     trigger = processors.base_processor.TriggerPlugin()
     plugin_watcher = PluginWatcher([wet])
     plugin_watcher.add_trigger_plugin(trigger)
@@ -134,7 +135,7 @@ def test_spacy_weather_plugin() -> None:
 
 def test_increase_volume_plugin() -> None:
     """Test volume plugin especially for increasing volume."""
-    vol = processors.base_processor.Volume()
+    vol = plugins.Volume()
     trigger = processors.base_processor.TriggerPlugin()
     plugin_watcher = PluginWatcher([vol])
     plugin_watcher.add_trigger_plugin(trigger)
@@ -151,7 +152,7 @@ def test_increase_volume_plugin() -> None:
 
 def test_decrease_volume_plugin() -> None:
     """Test volume plugin especially for decreasing volume."""
-    vol = processors.base_processor.Volume()
+    vol = plugins.Volume()
     trigger = processors.base_processor.TriggerPlugin()
     plugin_watcher = PluginWatcher([vol])
     plugin_watcher.add_trigger_plugin(trigger)
@@ -168,7 +169,7 @@ def test_decrease_volume_plugin() -> None:
 
 def test_location_plugin() -> None:
     """Test location plugin."""
-    loc = processors.base_processor.Location()
+    loc = plugins.Location()
     trigger = processors.base_processor.TriggerPlugin()
     plugin_watcher = PluginWatcher([loc])
     plugin_watcher.add_trigger_plugin(trigger)
@@ -187,7 +188,7 @@ def test_wikipedia_plugin_first() -> None:
     here we try searching for london and try to see if it could return a summary of
     the desired wikipedia page for the first result
     """
-    wik = processors.base_processor.Wikipedia()
+    wik = plugins.Wikipedia()
     trigger = processors.base_processor.TriggerPlugin()
     plugin_watcher = PluginWatcher([wik])
     plugin_watcher.add_trigger_plugin(trigger)
@@ -214,7 +215,7 @@ def test_wikipedia_plugin_second() -> None:
     here we try searching for london and try to see if it could return a summary of
     the desired wikipedia page for the second result
     """
-    wik = processors.base_processor.Wikipedia()
+    wik = plugins.Wikipedia()
     trigger = processors.base_processor.TriggerPlugin()
     plugin_watcher = PluginWatcher([wik])
     plugin_watcher.add_trigger_plugin(trigger)
@@ -241,7 +242,7 @@ def test_wikipedia_plugin_third() -> None:
     here we try searching for london and try to see if it could return a summary of
     the desired wikipedia page for the third result
     """
-    wik = processors.base_processor.Wikipedia()
+    wik = plugins.Wikipedia()
     trigger = processors.base_processor.TriggerPlugin()
     plugin_watcher = PluginWatcher([wik])
     plugin_watcher.add_trigger_plugin(trigger)
@@ -268,7 +269,7 @@ def test_break_plugin() -> None:
     here we try breaking the flow of a plugin by saying "hey assistant" in the middle the process
     we'll use wikipedia plugin to demonstrate this function
     """
-    wik = processors.base_processor.Wikipedia()
+    wik = plugins.Wikipedia()
     trigger = processors.base_processor.TriggerPlugin()
     plugin_watcher = PluginWatcher([wik])
     plugin_watcher.add_trigger_plugin(trigger)

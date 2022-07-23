@@ -8,7 +8,7 @@ import spacy
 import wikipedia
 
 from assistant3.common import plugin_help
-from assistant3.common.plugins import PluginResultType, PluginType
+from assistant3.common.plugins import PluginResultType
 from assistant3.processors.base_processor import BasePlugin
 
 

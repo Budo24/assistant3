@@ -83,10 +83,26 @@ class GUI():
         self.lbl.pack()
         # self.lbl.grid()
 
-    def speech_bubble(self, _x: int, _y: int, _r: int, **kwargs: int) -> None:
+    def speech_bubble(
+        self,
+        _x: int,
+        _y: int,
+        _r: int,
+        _fill: str = ' red',
+        _outline: str = 'black',
+        _width: int = 5,
+    ) -> None:
         """Empty."""
         self.m_canvas.delete('all')
-        self.m_canvas.create_oval(_x0=_x - _r, _y0=_y - _r, _x1=_x + _r, _x2=_y + _r, **kwargs)
+        self.m_canvas.create_oval(
+            _x - _r,
+            _y - _r,
+            _x + _r,
+            _y + _r,
+            fill=_fill,
+            outline=_outline,
+            width=_width,
+        )
 
     # Update values
     def update_animate(self) -> None:
@@ -114,9 +130,9 @@ class GUI():
 
             self.radius = self.waves[self.frame] if self.waves[self.frame] > 15 else 15
             _r = self.radius
-            self.speech_bubble(100, 100, int(_r), fill='red', outline='black', width=5)
+            self.speech_bubble(100, 100, int(_r), _fill='red', _outline='black', _width=5)
         else:
-            self.speech_bubble(100, 100, 30, fill='black', outline='black', width=3)
+            self.speech_bubble(100, 100, 30, _fill='black', _outline='black', _width=3)
 
         self.window.after(100, self.update_bubble)
 

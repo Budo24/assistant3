@@ -1,15 +1,10 @@
 """BasePlugin."""
-import datetime
 import queue
-import time
 import typing
 
-import pyjokes
 import pyttsx3
 import spacy
-import wikipedia
 
-from assistant3.common import plugin_help
 from assistant3.common.exceptions import UidNotAssignedError
 from assistant3.common.plugins import PluginResultType, PluginType
 
@@ -316,4 +311,3 @@ class TriggerPlugin(BasePlugin):
         self.end_result['result_speech_func'] = self.spit
         self.queue.put(self.end_result)
         return
-
