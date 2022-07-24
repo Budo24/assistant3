@@ -34,8 +34,11 @@ Clone the repository and setup your local checkout:
    pip install -e .
    python -m spacy download en_core_web_md 
 
-   cd src
-   python assistant3.py -d 0
+   $ assistant3 
+   $ gui
+
+   Note: When ConnectionRefusedError is raised, change PORT number in src/assistant3/main_assistant/assistant3.py 
+   and src/assistant3/gui/gui_class.py
 
 This creates a new virtual environment with the necessary python dependencies and installs the project in editable mode.
 
