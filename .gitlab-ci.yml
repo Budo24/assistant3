@@ -12,8 +12,8 @@ test:
     - ENV/bin/python -m pip install -r requirements.txt
     - ENV/bin/python -m pip install -e .[dev]
     - ENV/bin/python -m spacy download en_core_web_md
-    - cd src
-    - ../ENV/bin/python -m pytest
+    - ENV/bin/python -m pytest
+    - ENV/bin/sphinx-build docs public
   coverage: '/\d+\%\s*$/'
   artifacts:
     paths:
