@@ -1,4 +1,4 @@
-"""BasePlugin."""
+"""BasePlugin plugin."""
 import queue
 import typing
 
@@ -7,6 +7,7 @@ import spacy
 
 from assistant3.common.exceptions import UidNotAssignedError
 from assistant3.common.plugins import PluginResultType, PluginType
+from assistant3.processors.bestellung_management import bestellung_management, manager_tools
 
 
 class BasePlugin():
@@ -19,6 +20,8 @@ class BasePlugin():
             match: Text to process.
 
         """
+        self.order_manager = bestellung_management.OrderManager()
+        self.manager_tools = manager_tools.ManagerTools()
         self.init_doc = match
         self.spacy_model = spacy.blank('en')
         self.engine = pyttsx3.init()
