@@ -7,10 +7,12 @@ test:
   stage: test
   image: python:3.10
   script:
+    - apt-get update && apt-get install -y espeak
     - python3.10 -m venv ENV
     - ENV/bin/python -m pip install -r requirements.txt
     - ENV/bin/python -m pip install -e .[dev]
     - ENV/bin/python -m spacy download en_core_web_md
+    - cd src
     - ENV/bin/python -m pytest
   coverage: '/\d+\%\s*$/'
   artifacts:
