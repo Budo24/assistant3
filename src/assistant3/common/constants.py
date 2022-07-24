@@ -134,7 +134,7 @@ actions_keywords = [
     'activity',
     'delete activity',
     'insert',
-    'right',
+    'write',
 ]
 
 answers = [
