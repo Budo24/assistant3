@@ -34,7 +34,6 @@ Clone the repository and setup your local checkout:
    pip install -e .
    python -m spacy download en_core_web_md 
 
-   cd src
    $ assistant3 
    $ gui
 
