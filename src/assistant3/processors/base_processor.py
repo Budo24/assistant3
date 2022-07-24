@@ -277,7 +277,7 @@ class TriggerPlugin(BasePlugin):
 
     def spit(self) -> None:
         """Play response audio."""
-        # turn on if you use bestellung_management
+        # turn on for bestellung plugins
         # get_status = self.order_manager.get_spit_response_triger()
         # if not get_status:
         #    self.engine.say('how can i help')
@@ -285,7 +285,7 @@ class TriggerPlugin(BasePlugin):
         # elif get_status:
         #    self.engine.say(self.order_manager.order_spit)
         #    self.engine.runAndWait()
-        # turn off next two lines, if you use bestellung_management
+        # turn off next two lines, if you use bestellung plugins
         self.engine.say('how can i help')
         self.engine.runAndWait()
 
@@ -305,7 +305,7 @@ class TriggerPlugin(BasePlugin):
         """
         self.queue = _queue
         activated = self.is_activated(doc)
-        # turn on if you use bestellung_management
+        # turn on for bestellung plugins
         # get_status = self.order_manager.check_order_triger(str(doc))
         # if not get_status:
         #    activated = self.is_activated(doc)

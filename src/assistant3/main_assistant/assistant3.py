@@ -13,6 +13,14 @@ import assistant3.data
 
 from .. import processors
 from ..processors import monthly_plan_plugin, plugins
+from ..processors.bestellung_management.bestellung_plugins import (
+    AddOrderPlugin,
+    CollectOrder,
+    MeetClient,
+    PickPlugin,
+)
+# turn on for bestellung plugins
+# from ..processors.bestellung_management.make_db import MakeDB
 from .plugins_watcher import PluginWatcher
 
 
@@ -55,9 +63,23 @@ class Assistant3():
         # trigger plugin object
         self.trigger = processors.base_processor.TriggerPlugin()
         # the plugin_watcher object
+
+        self.aop = AddOrderPlugin()
+        self.cop = CollectOrder()
+        self.pop = PickPlugin()
+        self.mcp = MeetClient()
+        # turn on for bestellung plugins
+        # self.db_object = MakeDB()
+
         self.plugin_watcher = PluginWatcher(
             [self.wik, self.jok, self.loc, self.cal, self.mpp, self.wet, self.int],
         )
+        # turn on for bestellung plugins
+        # self.plugin_watcher = PluginWatcher([self.aop])
+        # self.plugin_watcher = PluginWatcher([self.cop])
+        # self.plugin_watcher = PluginWatcher([self.mcp])
+        # self.plugin_watcher = PluginWatcher([self.pop])
+
         # optionaly adding a trigger Plugin ("hey assistant")
         print('waiting for gui connection...')
         self.plugin_watcher.add_trigger_plugin(self.trigger)
@@ -147,6 +169,8 @@ class Assistant3():
                             dump_fn.write(data)
                     # end_result = None
         except KeyboardInterrupt as exc:
+            # turn on for besttlung plugins
+            # self.db_object.remove_db_plugin()
             wav_file_path = resourcesapi.path(assistant3.data, 'inter_results.txt')
             with open(str(wav_file_path), 'w', encoding='utf-8') as w_f:
                 w_f.write('')
