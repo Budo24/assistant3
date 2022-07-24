@@ -5,3 +5,4 @@ pyttsx3==2.90
 sounddevice
 xlsxwriter
 requests<3.0.0,>=2.28.1
+word2number
