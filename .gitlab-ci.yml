@@ -8,14 +8,11 @@ test:
   image: python:3.10
   script:
     - apt-get update && apt-get install -y espeak
-    - python3.10 -m venv venv
-    - venv/bin/python -m pip install -r requirements.txt
-    - venv/bin/python -m pip install -e .[dev]
-    - venv/bin/python -m spacy download en_core_web_md
-    - echo $MYPY_CONFIG_FILE_DIR
-    - pwd
-    - ls
-    - venv/bin/python -m pytest
+    - python3.10 -m venv ENV
+    - ENV/bin/python -m pip install -r requirements.txt
+    - ENV/bin/python -m pip install -e .[dev]
+    - ENV/bin/python -m spacy download en_core_web_md
+    - ENV/bin/python -m pytest
   coverage: '/\d+\%\s*$/'
   artifacts:
     paths:
@@ -33,9 +30,9 @@ build:
   stage: build
   image: python:3.10
   script:
-    - python3.10 -m venv venv
-    - venv/bin/python -m pip install build
-    - venv/bin/python -m build .
+    - python3.10 -m venv ENV
+    - ENV/bin/python -m pip install build
+    - ENV/bin/python -m build .
   artifacts:
     paths:
       - dist
