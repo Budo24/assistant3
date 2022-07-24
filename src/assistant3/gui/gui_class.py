@@ -12,7 +12,7 @@ class GUI():
     """Empty."""
 
     HOST = '127.0.0.1'  # The server's hostname or IP address
-    PORT = 65513
+    PORT = 65511
 
     def __init__(self) -> None:
         """Empty."""
@@ -27,7 +27,7 @@ class GUI():
         position_right = int(self.window.winfo_screenwidth() / 2 - window_width / 2)
         position_down = int(self.window.winfo_screenheight() / 2 - window_height / 2)
         # Positions the window in the center of the page
-        self.window.geometry('+' + str(position_right) + '+' + str(position_down))
+        self.window.geometry('+' + str(position_right) + '+' + str(position_down),)
         self.text = 'Understood text ...'
         self.radius = 0.0
         # Label for Text Output
