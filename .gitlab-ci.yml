@@ -5,12 +5,13 @@ stages:
 
 test:
   stage: test
-  image: python:3.10
+  image: python:3.8
   script:
     - apt-get update && apt-get install -y espeak
-    - python3.10 -m venv ENV
+    - python3.8 -m venv ENV
     - ENV/bin/python -m pip install -r requirements.txt
     - ENV/bin/python -m pip install -e .[dev]
+    - ENV/bin/python -m spacy download en_core_web_md
     - ENV/bin/python -m pytest
   coverage: '/\d+\%\s*$/'
   artifacts:
@@ -27,9 +28,9 @@ test:
 
 build:
   stage: build
-  image: python:3.10
+  image: python:3.8
   script:
-    - python3.10 -m venv ENV
+    - python3.8 -m venv ENV
     - ENV/bin/python -m pip install build
     - ENV/bin/python -m build .
   artifacts:
