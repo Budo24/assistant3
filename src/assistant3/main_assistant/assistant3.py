@@ -1,9 +1,7 @@
 """assistant3 entry."""
 import argparse
 import importlib.resources as resourcesapi
-import os
 import queue
-import socket
 import sys
 import typing
 
@@ -14,8 +12,13 @@ import assistant3.data
 
 from .. import processors
 from ..processors import monthly_plan_plugin, plugins
+from ..processors.bestellung_management.bestellung_plugins import (
+    AddOrderPlugin,
+    CollectOrder,
+    MeetClient,
+    PickPlugin,
+)
 from ..processors.bestellung_management.make_db import MakeDB
-from ..processors.bestellung_management.bestellung_plugins import AddOrderPlugin, CollectOrder, MeetClient, PickPlugin
 from .plugins_watcher import PluginWatcher
 
 
@@ -64,12 +67,12 @@ class Assistant3():
         # trigger plugin object
         self.trigger = processors.base_processor.TriggerPlugin()
         # the plugin_watcher object
-        print("kkkk", self.db_object.read_db())
         self.plugin_watcher = PluginWatcher(
-            [self.wik, self.jok, self.loc, self.cal, self.mpp, self.vol, self.wet, self.int, self.sdp,
-             self.aop, self.cop, self.pop, self.mcp
+            [
+                self.wik, self.jok, self.loc, self.cal, self.mpp, self.vol, self.wet, self.int,
+                self.sdp, self.aop, self.cop, self.pop, self.mcp
             ]
-            )
+        )
         # optionaly adding a trigger Plugin ("hey assistant")
         self.plugin_watcher.add_trigger_plugin(self.trigger)
         # self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -78,7 +81,6 @@ class Assistant3():
         # conn, addr = self.socket.accept()
         # self.conn = conn
         # self.addr = addr
-            
 
     def callback(self, *args: typing.Iterable[typing.SupportsIndex]) -> None:
         """Feed audio buffer in sounddevice audio stream.
@@ -108,8 +110,7 @@ class Assistant3():
             device_info = sd.query_devices(args.device, 'input')
             # soundfile expects an int, sounddevice provides a float:
             args.samplerate = int(device_info['default_samplerate'])
-            vosk_model_path = resourcesapi.path(
-                assistant3.data, 'vosk-model-small-en-us-0.15')
+            vosk_model_path = resourcesapi.path(assistant3.data, 'vosk-model-small-en-us-0.15')
             model = vosk.Model(str(vosk_model_path))
 
             dump_file_exist = bool(args.filename)
@@ -132,12 +133,11 @@ class Assistant3():
                     if rec.AcceptWaveform(data):
                         res = rec.Result()
                         text = res.replace('\n', '')
-                        text = text.replace(
-                            '{  "text" : "', '').replace('"}', '')
+                        text = text.replace('{  "text" : "', '').replace('"}', '')
                         print(text)
                         # wav_file_path = resourcesapi.path(assistant3.data, 'inter_results.txt')
                         # with open(str(wav_file_path), 'w', encoding='utf-8') as w_f:
-                            # w_f.write(text)
+                        # w_f.write(text)
                         # .conn.sendall(b'0000')
 
                         res_list = self.plugin_watcher.run(text)
@@ -146,8 +146,7 @@ class Assistant3():
                             res_list[0]['result_speech_func']()
                         self.feedback_ignore_obj = False
                         if len(res_list) > 0:
-                            self.plugin_watcher.add_entry_to_flow_record(
-                                res_list[0])
+                            self.plugin_watcher.add_entry_to_flow_record(res_list[0])
                         ret_str = ''
                         ret_str += 'returned res_list\n'
                         ret_str += str(res_list)

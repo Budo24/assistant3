@@ -337,7 +337,6 @@ class MeetClient(BasePlugin):
             _queue: to put some rasults.
 
         """
-
         self.queue = _queue
         self.order_manager.client_spit = str(doc)
         _mtask = self.order_manager.db_object.read_db_plugin()
@@ -373,10 +372,9 @@ class MeetClient(BasePlugin):
             self.end_result['result'] = ''
             self.end_result['result_speech_func'] = self.error_spit
             # here we push it to the results queue passed by pw
-            self.end_result['type'] = PluginResultType.TEXT
             self.queue.put(self.end_result)
             return
-        self.end_result['type'] = PluginResultType.KEEP_ALIVE
+        self.end_result['type'] = PluginResultType.TEXT
         self.end_result['result'] = ''
         self.end_result['plugin_type'] = PluginType.SYSTEM_PLUGIN
         self.end_result['result_speech_func'] = self.spit

@@ -48,31 +48,34 @@ def pick_time_generate(order_id: int) -> int:
     """
     time_str = str(order_id)
     time_str = time_str[-6:]
-    month_day = month_day_generate()
+    month_day = month_day_generate(datetime.datetime.now())
     if month_day[2] is True:
         return int(str(month_day[0]) + str(month_day[1]) + time_str)
     month_day[0] = month_day[0] + 1
     return int(str(month_day[0]) + str(month_day[1]) + time_str)
 
 
-def month_day_generate() -> list[bool | int]:
+def month_day_generate(time_now: datetime.datetime) -> list[bool | int]:
     """Give list of month and day. use for pick_time_generate.
 
     Add one day to the actually day to determine pick_time.
     That why its make sence to check the actually day.
+
+    Args:
+        time_now: datetime.datetime.now()
 
     Returns:
         Return month and day.
 
     """
     nlp = spacy.load('en_core_web_md')
-    date_time_func = datetime.datetime.now()
+    date_time_func = time_now
     day_time_text = str(date_time_func)
     day_time_doc = nlp(day_time_text)
     split_day_time = [token.text for token in day_time_doc]
     month_day = [int(split_day_time[4]), int(split_day_time[2])]
-    month_31_day = month_day[0] in (7, 8, 10, 12, 1, 3, 5)
-    month_february = month_day[0] == 2
+    month_31_day = month_day[1] in (7, 8, 10, 12, 1, 3, 5)
+    month_february = month_day[1] == 2
     _m = (month_day[0] + 1 > 28 and month_february)
     _n = (month_day[0] + 1 > 30 and not month_31_day)
     if _n or (month_day[0] + 1 > 31) or _m:
@@ -83,4 +86,3 @@ def month_day_generate() -> list[bool | int]:
         month_day[0] = 1
         return [month_day[0], month_day[1], True]
     return [month_day[0], month_day[1], False]
-
