@@ -42,6 +42,46 @@ def test_activity_exist() -> None:
     print('Everything successful')
 
 
+def test_get_activity() -> None:
+    """Test if time range is empty."""
+    monthly_plan = monthly_plan_plugin.MonthlyPlanPlugin()
+    with patch('assistant3.common.helpers.date') as mock_date:
+        mock_date.today.return_value = date(2010, 10, 8)
+        with patch('assistant3.processors.base_processor.BasePlugin') as plugin:
+            plugin.engine.return_value = engine_
+
+            monthly_plan = monthly_plan_plugin.MonthlyPlanPlugin()
+
+            monthly_plan.insert_date('ninth')
+            monthly_plan.insert_activity('ninth')
+            monthly_plan.insert_activity('twenty zero twenty three zero')
+            monthly_plan.insert_activity('playing football')
+            one_single_date = monthly_plan.give_date_from_monthly_plan('ninth')
+            assert one_single_date.get_activities('ninth') == {'20 0 23 0': 'playing football'}
+            monthly_plan.insert_date('thirty')
+            one_single_date = monthly_plan.give_date_from_monthly_plan('thirty')
+            assert one_single_date.get_activities('thirty') == {}
+
+
+def test_set_activity() -> None:
+    """Test setting of activity."""
+    monthly_plan = monthly_plan_plugin.MonthlyPlanPlugin()
+    with patch('assistant3.common.helpers.date') as mock_date:
+        mock_date.today.return_value = date(2010, 10, 8)
+        with patch('assistant3.processors.base_processor.BasePlugin') as plugin:
+            plugin.engine.return_value = engine_
+
+            monthly_plan = monthly_plan_plugin.MonthlyPlanPlugin()
+
+            monthly_plan.insert_date('ninth')
+            one_single_date = monthly_plan.give_date_from_monthly_plan('2010-10-09')
+            one_single_date.set_activity('ninth', '20 0 23 0', 'watching tv')
+            assert one_single_date.activities == {'20 0 23 0': 'watching tv'}
+            monthly_plan.insert_date('eleventh')
+            one_single_date = monthly_plan.give_date_from_monthly_plan('2010-10-11')
+            assert one_single_date.activities == {}
+
+
 def test_write_xls() -> None:
     """Test writing into xls."""
     with patch('assistant3.common.helpers.date') as mock_date:
