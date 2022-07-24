@@ -135,39 +135,6 @@ def test_spacy_weather_plugin() -> None:
         assert res_list[0]['result'] == text
 
 
-# def test_increase_volume_plugin() -> None:
-#     """Test volume plugin especially for increasing volume."""
-#     vol = plugins.Volume()
-#     trigger = processors.base_processor.TriggerPlugin()
-#     plugin_watcher = PluginWatcher([vol])
-#     plugin_watcher.add_trigger_plugin(trigger)
-#     text1 = 'hey assistant'
-#     text2 = 'volume'
-#     text3 = 'increase'
-#     res_list = plugin_watcher.run(text1)
-#     plugin_watcher.add_entry_to_flow_record(res_list[0])
-#     res_list = plugin_watcher.run(text2)
-#     plugin_watcher.add_entry_to_flow_record(res_list[0])
-#     res_list = plugin_watcher.run(text3)
-#     assert res_list[0]['result'] == 'increased volume'
-
-# def test_decrease_volume_plugin() -> None:
-#     """Test volume plugin especially for decreasing volume."""
-#     vol = plugins.Volume()
-#     trigger = processors.base_processor.TriggerPlugin()
-#     plugin_watcher = PluginWatcher([vol])
-#     plugin_watcher.add_trigger_plugin(trigger)
-#     text1 = 'hey assistant'
-#     text2 = 'volume'
-#     text3 = 'decrease'
-#     res_list = plugin_watcher.run(text1)
-#     plugin_watcher.add_entry_to_flow_record(res_list[0])
-#     res_list = plugin_watcher.run(text2)
-#     plugin_watcher.add_entry_to_flow_record(res_list[0])
-#     res_list = plugin_watcher.run(text3)
-#     assert res_list[0]['result'] == 'decreased volume'
-
-
 def test_location_plugin() -> None:
     """Test location plugin."""
     loc = plugins.Location()
@@ -262,6 +229,122 @@ def test_wikipedia_plugin_third() -> None:
     final = wikipedia.summary(search_result[3], sentences=2)
     assert res_list[0]['result'] is not None
     assert res_list[0]['result'] == final
+
+
+def test_calculator_add() -> None:
+    """Test Calculator plugin.
+
+    Testing calculator plugin for add function
+    """
+    cal = plugins.Calculator()
+    trigger = processors.base_processor.TriggerPlugin()
+    plugin_watcher = PluginWatcher([cal])
+    plugin_watcher.add_trigger_plugin(trigger)
+    text1 = 'hey assistant'
+    text2 = 'calculator'
+    first_num = 'twenty two'
+    second_num = 'five'
+    operator = 'add'
+    res_list = plugin_watcher.run(text1)
+    plugin_watcher.add_entry_to_flow_record(res_list[0])
+    res_list = plugin_watcher.run(text2)
+    plugin_watcher.add_entry_to_flow_record(res_list[0])
+    res_list = plugin_watcher.run(first_num)
+    plugin_watcher.add_entry_to_flow_record(res_list[0])
+    res_list = plugin_watcher.run(second_num)
+    plugin_watcher.add_entry_to_flow_record(res_list[0])
+    res_list = plugin_watcher.run(operator)
+    plugin_watcher.add_entry_to_flow_record(res_list[0])
+    result = 'calculation result is 27.0'
+    assert res_list[0]['result'] is not None
+    assert res_list[0]['result'] == result
+
+
+def test_calculator_sub() -> None:
+    """Test Calculator plugin.
+
+    Testing calculator plugin for Subtract function
+    """
+    cal = plugins.Calculator()
+    trigger = processors.base_processor.TriggerPlugin()
+    plugin_watcher = PluginWatcher([cal])
+    plugin_watcher.add_trigger_plugin(trigger)
+    text1 = 'hey assistant'
+    text2 = 'calculator'
+    first_num = 'twenty two'
+    second_num = 'five'
+    operator = 'sub'
+    res_list = plugin_watcher.run(text1)
+    plugin_watcher.add_entry_to_flow_record(res_list[0])
+    res_list = plugin_watcher.run(text2)
+    plugin_watcher.add_entry_to_flow_record(res_list[0])
+    res_list = plugin_watcher.run(first_num)
+    plugin_watcher.add_entry_to_flow_record(res_list[0])
+    res_list = plugin_watcher.run(second_num)
+    plugin_watcher.add_entry_to_flow_record(res_list[0])
+    res_list = plugin_watcher.run(operator)
+    plugin_watcher.add_entry_to_flow_record(res_list[0])
+    result = 'calculation result is 17.0'
+    assert res_list[0]['result'] is not None
+    assert res_list[0]['result'] == result
+
+
+def test_calculator_multiplication() -> None:
+    """Test Calculator plugin.
+
+    Testing calculator plugin for multiply function
+    """
+    cal = plugins.Calculator()
+    trigger = processors.base_processor.TriggerPlugin()
+    plugin_watcher = PluginWatcher([cal])
+    plugin_watcher.add_trigger_plugin(trigger)
+    text1 = 'hey assistant'
+    text2 = 'calculator'
+    first_num = 'twenty two'
+    second_num = 'five'
+    operator = 'multiply'
+    res_list = plugin_watcher.run(text1)
+    plugin_watcher.add_entry_to_flow_record(res_list[0])
+    res_list = plugin_watcher.run(text2)
+    plugin_watcher.add_entry_to_flow_record(res_list[0])
+    res_list = plugin_watcher.run(first_num)
+    plugin_watcher.add_entry_to_flow_record(res_list[0])
+    res_list = plugin_watcher.run(second_num)
+    plugin_watcher.add_entry_to_flow_record(res_list[0])
+    res_list = plugin_watcher.run(operator)
+    plugin_watcher.add_entry_to_flow_record(res_list[0])
+    result = 'calculation result is 110.0'
+    assert res_list[0]['result'] is not None
+    assert res_list[0]['result'] == result
+
+
+def test_calculator_division() -> None:
+    """Test Calculator plugin.
+
+    Testing calculator plugin for division function
+    """
+    cal = plugins.Calculator()
+    trigger = processors.base_processor.TriggerPlugin()
+    plugin_watcher = PluginWatcher([cal])
+    plugin_watcher.add_trigger_plugin(trigger)
+    text1 = 'hey assistant'
+    text2 = 'calculator'
+    first_num = 'twenty'
+    second_num = 'five'
+    operator = 'division'
+    res_list = plugin_watcher.run(text1)
+    plugin_watcher.add_entry_to_flow_record(res_list[0])
+    res_list = plugin_watcher.run(text2)
+    plugin_watcher.add_entry_to_flow_record(res_list[0])
+    res_list = plugin_watcher.run(first_num)
+    plugin_watcher.add_entry_to_flow_record(res_list[0])
+    res_list = plugin_watcher.run(second_num)
+    plugin_watcher.add_entry_to_flow_record(res_list[0])
+    res_list = plugin_watcher.run(operator)
+    plugin_watcher.add_entry_to_flow_record(res_list[0])
+    result = 'calculation result is 4.0'
+    assert res_list[0]['result'] is not None
+    assert res_list[0]['result'] == result
 
 
 def test_break_plugin() -> None:
