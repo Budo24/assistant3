@@ -51,6 +51,8 @@ class GUI():
         self.speech = True
         self.answer = False
         self.frame = 0
+        self.animate = True
+
         # self.wav_sample = wave.open('./file_example_WAV_1MG.wav', 'r')
         wav_file_path = resourcesapi.path(assistant3.data, 'file_example_WAV_1MG.wav')
         self.wav_sample = wave.open(str(wav_file_path), 'r')
@@ -58,15 +60,14 @@ class GUI():
         self.waves = []
         for i in range(1, self.frames):
             self.waves.append(int(self.wav_sample.readframes(i)[0]) * 0.23)
+
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((GUI.HOST, GUI.PORT))
 
-        self.animate = True
 
-        
-
-    def update_speech(self, text: str = 'understood Text...') -> None:
+    def update_speech(self, text: str) -> None:
         # text needs to be passed
+        self.text = text
         self.myCanvas.delete('all')
         wav_file_path = resourcesapi.path(assistant3.data, 'inter_results.txt')
         try:
@@ -82,6 +83,7 @@ class GUI():
 
         #self.window.after(200, self.update_speech)
 
+
     def show_label(self):
         """Empty."""
         self.lbl.pack()
@@ -95,7 +97,7 @@ class GUI():
         return id
 
     # Update values
-    def update_animate(self):
+    def update_animate(self, rec):
         rec = self.socket.recv(4)
         print(rec)
         if rec == b'0000':
@@ -109,10 +111,10 @@ class GUI():
         
 
     
-    def update_bubble(self) -> None:
+    def update_bubble(self, frames = 700) -> None:
         """Empty."""
         # Update Speech Bubble, speech is bool if usr is speeking, needs to be passed
-        
+        self.frames = frames
         if self.animate:
             if self.frame < self.frames - 10:
                 self.frame = self.frame + 1
@@ -126,6 +128,7 @@ class GUI():
             self.speech_bubble(100, 100, 30, fill='black', outline='black', width=3)
 
         self.window.after(100, self.update_bubble)
+        return r
 
     def run(self) -> None:
         """Empty."""
