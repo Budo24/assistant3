@@ -95,7 +95,7 @@ class GUI():
         return id
 
     # Update values
-    def update_animate(self):
+    def update_animate(self, rec):
         rec = self.socket.recv(4)
         print(rec)
         if rec == b'0000':
